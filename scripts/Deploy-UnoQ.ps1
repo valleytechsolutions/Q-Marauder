@@ -17,7 +17,7 @@ Invoke-BoardAdb shell 'mkdir -p /home/arduino/q-marauder/scripts /home/arduino/q
 foreach ($name in @('qmarauder','scripts','licenses','packaging','LICENSE','THIRD_PARTY_NOTICES.md')) {
     Invoke-BoardAdb push (Join-Path $taskRoot $name) '/home/arduino/q-marauder/'
 }
-Invoke-BoardAdb shell 'cd /home/arduino/q-marauder && sh scripts/install.sh && python3 scripts/start.py'
+Invoke-BoardAdb shell 'chmod -R go-w /home/arduino/q-marauder && cd /home/arduino/q-marauder && sh scripts/install.sh && python3 scripts/start.py'
 Invoke-BoardAdb forward "tcp:$LocalPort" 'tcp:8787'
 Write-Host "Open http://127.0.0.1:$LocalPort"
 Write-Host 'Application installed. Existing running previews must be restarted to load updates. OS and MCU are not flashed.'
