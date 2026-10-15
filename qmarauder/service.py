@@ -17,6 +17,7 @@ class Service:
         self.shutdown_event = threading.Event()
         self.state = dict(version=__version__, wifi=[], ble=[], gps=None, busy=None,
                           error=None, updated=None, mission=None, stopping=False,
+                          display=dict(connected=False, touch="uncalibrated", error=None),
                           capabilities=radio.diagnostics())
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
         self.worker = threading.Thread(target=self._work, name="radio-worker", daemon=True)

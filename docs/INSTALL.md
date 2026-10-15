@@ -56,6 +56,15 @@ data live in separate, clearly named directories. Archive observations before
 removing the data directory. No Arduino partitions, Wi-Fi profiles, bootloader, or
 existing MCU firmware are modified by the application installer.
 
+## Native shield firmware
+
+The separate `sh scripts/flash-display.sh` helper does replace the MCU sketch. It
+compiles first and saves a private full-flash recovery backup in the data directory.
+It currently accepts only the tested factory Zephyr core; it is not a universal
+flasher for every UNO Q software version. See [firmware setup](../firmware/README.md).
+After upload, follow the TFT's top/bottom touch calibration prompts. Start the Linux
+console to enable live menu actions and save calibration across MCU resets.
+
 ## Image recovery and future web installation
 
 Arduino's [official flasher](https://docs.arduino.cc/software/app-lab/configure/flash/)

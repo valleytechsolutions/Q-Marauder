@@ -6,8 +6,8 @@ Black Wire Militia × Marauder-inspired tooling, with a graphite, cyan, and red 
 MIT application code. Independent project; not an official JustCallMeKoko release.
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
-> Runs on the UNO Q's existing Debian installation. The GPIO TFT is not enabled yet.
-> Both logos currently appear in the console startup screen, not the physical TFT's boot sequence.
+> Runs on the UNO Q's existing Debian installation. The native ILI9486 display now renders.
+> Portrait menus and touch calibration are in hardware bring-up; see docs/DISPLAY.md.
 
 ## Works today
 
@@ -18,6 +18,8 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - Fresh gpsd position ingestion; no coordinates are fabricated when GPS is absent.
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
+- Native 320 x 480 portrait firmware with Up / Select / Down navigation, 14 menu
+  groups, and 132 selections. Unported functions are explicitly marked planned.
 
 ## Quick start on the UNO Q
 
@@ -54,10 +56,10 @@ See [installation and recovery](docs/INSTALL.md) before enabling startup on boot
 ## The hardware split matters
 
 The Qualcomm QRB2210 runs the Linux radio backends, storage, and console. The STM32U585
-owns the UNO shield headers. An ILI9486 shield needs a compatible STM32 display/input
-driver and a compact bridge protocol; it is not a Linux framebuffer just because it
-is physically stacked on the board. The 480×320 browser layout is a design preview,
-not proof of hardware display support.
+owns the UNO shield headers. `firmware/uno_shield` drives the parallel ILI9486 shield
+and exchanges small status/action messages with the Linux application. Follow
+[display setup](firmware/README.md) for the tested factory core. The browser console
+and the portrait TFT are separate renderers sharing the same radio worker.
 
 The connected development board reports `ath10k_snoc`, 2.4/5 GHz channels, and monitor
 mode support. That is a capability advertisement, **not** a successful capture or

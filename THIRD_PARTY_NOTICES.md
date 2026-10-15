@@ -26,6 +26,19 @@ and artwork; this repository does not grant trademark rights or imply endorsemen
 
 ## Arduino bridge
 
-The optional MCU diagnostic sketch uses separately installed Arduino_RouterBridge.
+The MCU targets use separately installed Arduino_RouterBridge.
 The RouterBridge library and Arduino platform retain their upstream licenses.
 No Arduino runtime binaries are redistributed in this alpha source package.
+
+## Native TFT
+
+ILI9486/ILI9488 initialization parameters in `firmware/uno_shield/Parallel9486.h`
+are adapted from David Prentice's MCUFRIEND_kbv. Its notices are retained in
+`licenses/MCUFRIEND.txt`. Adafruit GFX is installed separately and retains its BSD
+license. The resistive touch measurement follows the published Adafruit TouchScreen
+circuit method. Native menu labels reference the pinned Marauder source and retain
+the upstream MIT notice. No upstream radio attack implementation is included.
+
+`firmware/uno_shield/LogoData.h` is a generated encoding of the supplied artwork;
+the same artwork-rights exclusion as the original images applies to this header.
+The logo converter's code is MIT licensed; conversion does not change artwork rights.

@@ -66,7 +66,7 @@ function renderDiagnostics() {
     ["RADIO DRIVER",c.interfaces.map(x=>x.driver).join(", ")||"Not detected",c.interfaces.map(x=>x.name).join(", ")||"Run on the UNO Q"],
     ["MONITOR MODE",c.monitor_advertised===null?"Unknown":c.monitor_advertised?"Advertised":"Not advertised","Driver report; capture still needs a hardware test"],
     ["PACKET INJECTION","Not verified","No injection backend in this release"],
-    ["TFT DISPLAY","Awaiting pinout","ILI9486 MCU integration is not enabled"],
+    ["TFT DISPLAY",state.display?.connected?"Native portrait UI":"Not connected",state.display?.error || (state.display?.connected?"320 x 480 / Up, Select, Down / "+state.display.touch:"Install the UNO shield MCU target")],
     ["GPS RECEIVER",state.gps?"Fresh fix":"No fix","Local gpsd · coordinates never fabricated"],
     ["PLATFORM",c.platform,"Debian service + separate MCU display firmware"]
   ];

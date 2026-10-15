@@ -1,18 +1,31 @@
-# MCU bring-up target
+# Native display firmware
 
-`bridge_probe` is a compileable RouterBridge diagnostic target for
-`arduino:zephyr:unoq`. It does not drive any shield GPIO, render a screen, or capture
-touch. It is not the final display firmware.
+`uno_shield` renders the real ILI9486 UNO shield in portrait, with a startup logo
+screen, Marauder-style menu hierarchy, and three-zone finger navigation. It uses
+the UNO Q STM32, with radio work and storage on Debian. See [hardware evidence and
+touch validation](../docs/DISPLAY.md) before using another shield.
 
-On the board, install the official library and compile:
+On the tested factory core, from the repository root on the board:
 
 ```sh
-arduino-cli lib update-index
-# The tested zephyr 0.11.0-rc5 core bundles RouterBridge 0.1.3.
-arduino-cli lib install 'MsgPack@0.4.2'
-arduino-cli compile --fqbn arduino:zephyr:unoq firmware/bridge_probe
+sh scripts/flash-display.sh
 ```
 
-Keep the current MCU sketch until the shield pinout and voltage compatibility have
-been confirmed. Compilation alone is not proof that RPC transport or display output
-works. The first physical milestone is the color-bar test in `docs/DISPLAY.md`.
+The helper builds first, backs up the MCU flash once, then flashes only the sketch.
+It refuses an untested core version. It does not reinstall Debian or replace the
+matching Zephyr runtime. The backup stays local and must never be published.
+
+To build without uploading:
+
+```sh
+arduino-cli lib install 'Arduino_RouterBridge@0.4.3' 'Arduino_RPClite@0.3.1' \
+  'MsgPack@0.4.2' 'Adafruit GFX Library@1.12.6' 'Adafruit BusIO@1.17.4'
+arduino-cli compile --fqbn arduino:zephyr:unoq firmware/uno_shield
+```
+
+`MenuData.h` is generated from the upstream checkout pinned in the notices, by
+`scripts/build-tft-menus.py`. `LogoData.h` is generated from supplied source artwork
+by `scripts/encode-tft-logos.py` (Pillow is a build-time dependency only). These
+headers are checked in; normal firmware builds do not need either generator.
+
+`bridge_probe` is the earlier GPIO-free diagnostic scaffold. It does not drive a TFT.

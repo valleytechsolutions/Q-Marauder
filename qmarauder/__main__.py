@@ -20,12 +20,19 @@ def main():
     from .service import Service
     from .server import serve
     from .locking import instance_lock
+    from .display import DisplayLink
     def stop(_signum, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, stop)
     try:
         with instance_lock(args.data_dir):
-            serve(Service(args.data_dir), args.port)
+            service = Service(args.data_dir)
+            display = DisplayLink(service, args.data_dir)
+            display.start()
+            try:
+                serve(service, args.port)
+            finally:
+                display.close()
     except KeyboardInterrupt:
         pass
 
