@@ -1,0 +1,29 @@
+[Unit]
+Description=Q-Marauder wireless field console
+After=NetworkManager.service bluetooth.service
+Wants=NetworkManager.service bluetooth.service
+
+[Service]
+Type=simple
+User=arduino
+Group=arduino
+WorkingDirectory=/home/arduino/.local/lib/q-marauder/current
+ExecStart=/usr/bin/python3 -m qmarauder serve
+Restart=on-failure
+RestartSec=3
+TimeoutStopSec=40
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/arduino/.local/share/q-marauder
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,85 @@
+# Q-Marauder
+
+**A Debian-native wireless field console for Arduino UNO Q.**
+
+Black Wire Militia × Marauder-inspired tooling, with a graphite, cyan, and red UI.
+MIT application code. Independent project; not an official JustCallMeKoko release.
+
+> **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
+> Runs on the UNO Q's existing Debian installation. The GPIO TFT is not enabled yet.
+> Both logos currently appear in the console startup screen, not the physical TFT's boot sequence.
+
+## Works today
+
+- Actual Wi-Fi AP discovery through NetworkManager, including observed 2.4/5 GHz networks.
+- BlueZ BLE discovery with names, addresses, and RSSI where available.
+- AP-count channel chart, filtering, device diagnostics, and an 81-entry port inventory.
+- Repeated Wi-Fi survey sessions with SQLite persistence and CSV/JSON exports.
+- Fresh gpsd position ingestion; no coordinates are fabricated when GPS is absent.
+- A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
+- Original BWM and Marauder artwork in the application startup screen.
+
+## Quick start on the UNO Q
+
+The supplied Arduino Debian image already provides Python, NetworkManager, and BlueZ.
+No Python packages are required for the console.
+
+```sh
+git clone https://github.com/valleytechsolutions/Q-Marauder.git
+cd Q-Marauder
+python3 -m qmarauder doctor
+python3 -m qmarauder serve
+```
+
+From a computer with Google's official platform-tools:
+
+```sh
+adb devices
+adb -s YOUR_DEVICE_SERIAL forward tcp:8788 tcp:8787
+```
+
+Open **http://127.0.0.1:8788**. Alternatively use
+`ssh -L 8788:127.0.0.1:8787 arduino@YOUR_BOARD`.
+The console intentionally listens only on the board's loopback interface.
+
+For a Windows USB deployment, run `scripts/Deploy-UnoQ.ps1` from a source checkout:
+
+```powershell
+.\scripts\Deploy-UnoQ.ps1 -Serial YOUR_DEVICE_SERIAL -AdbPath C:\path\to\adb.exe
+```
+
+For a persistent Linux install, use `sh scripts/install.sh`, then follow its output.
+See [installation and recovery](docs/INSTALL.md) before enabling startup on boot.
+
+## The hardware split matters
+
+The Qualcomm QRB2210 runs the Linux radio backends, storage, and console. The STM32U585
+owns the UNO shield headers. An ILI9486 shield needs a compatible STM32 display/input
+driver and a compact bridge protocol; it is not a Linux framebuffer just because it
+is physically stacked on the board. The 480×320 browser layout is a design preview,
+not proof of hardware display support.
+
+The connected development board reports `ath10k_snoc`, 2.4/5 GHz channels, and monitor
+mode support. That is a capability advertisement, **not** a successful capture or
+injection test. Advanced Marauder functions remain individually tracked in
+[the parity plan](docs/PARITY.md) and the Modules view. A compatible external radio
+may be necessary if on-board firmware cannot satisfy those tests.
+
+## Development
+
+```sh
+python3 -m unittest discover -s tests -v
+python3 scripts/build_catalog.py
+python3 scripts/package.py
+```
+
+Use [architecture](docs/ARCHITECTURE.md), [display bring-up](docs/DISPLAY.md), and
+[hardware evidence](docs/HARDWARE.md) to pick the next work item. Dragon Detector,
+Axeoff, and Squachwach are reserved integration targets; their source repositories
+and protocols still need to be identified.
+
+Scans can contain identifiers and locations. Records stay on the device until you
+export them. Use radio tests only in environments you own or are authorized to assess.
+Do not commit local captures, credentials, or survey databases.
+
+Application license: [MIT](LICENSE). Artwork and dependencies: [notices](THIRD_PARTY_NOTICES.md).

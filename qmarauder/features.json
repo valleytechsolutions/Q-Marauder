@@ -1,0 +1,650 @@
+[
+  {
+    "id": "scan-aps",
+    "name": "Access point survey",
+    "category": "Wi-Fi",
+    "status": "implemented",
+    "detail": "NetworkManager scan with SSID, BSSID, band, channel, security, and signal quality. No station capture.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-aps"
+  },
+  {
+    "id": "view-ap-info",
+    "name": "AP details",
+    "category": "Wi-Fi",
+    "status": "implemented",
+    "detail": "NetworkManager scan with SSID, BSSID, band, channel, security, and signal quality. No station capture.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/view-ap-info"
+  },
+  {
+    "id": "channel-analyzer",
+    "name": "Channel analyzer",
+    "category": "Wi-Fi",
+    "status": "partial",
+    "detail": "AP counts by channel and signal quality snapshots. Packet utilization and continuous target tracking are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/channel-analyzer"
+  },
+  {
+    "id": "signal-monitor",
+    "name": "Signal monitor",
+    "category": "Wi-Fi",
+    "status": "partial",
+    "detail": "AP counts by channel and signal quality snapshots. Packet utilization and continuous target tracking are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/signal-monitor"
+  },
+  {
+    "id": "bluetooth-sniffer",
+    "name": "BLE discovery",
+    "category": "Bluetooth",
+    "status": "partial",
+    "detail": "Bounded BlueZ LE discovery with names, addresses, and available RSSI. Raw advertising payloads are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bluetooth-sniffer"
+  },
+  {
+    "id": "wardrive",
+    "name": "Wardrive",
+    "category": "Field collection",
+    "status": "partial",
+    "detail": "Durable repeated Wi-Fi surveys, fresh gpsd fixes, and CSV/JSON export. BLE missions, WiGLE, GPX, and geofences remain.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/wardrive"
+  },
+  {
+    "id": "recon",
+    "name": "Recon missions",
+    "category": "Field collection",
+    "status": "partial",
+    "detail": "Durable repeated Wi-Fi surveys, fresh gpsd fixes, and CSV/JSON export. BLE missions, WiGLE, GPX, and geofences remain.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/recon"
+  },
+  {
+    "id": "scan-stations",
+    "name": "Station scan",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-stations"
+  },
+  {
+    "id": "scan-all",
+    "name": "Combined AP/station scan",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-all"
+  },
+  {
+    "id": "probe-request-sniff",
+    "name": "Probe request capture",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/probe-request-sniff"
+  },
+  {
+    "id": "beacon-sniff",
+    "name": "Beacon capture",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/beacon-sniff"
+  },
+  {
+    "id": "raw-sniff",
+    "name": "Raw PCAP capture",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/raw-sniff"
+  },
+  {
+    "id": "deauth-sniff",
+    "name": "Deauthentication detection",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-sniff"
+  },
+  {
+    "id": "eapol-pmkid-scan",
+    "name": "EAPOL / PMKID capture",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/eapol-pmkid-scan"
+  },
+  {
+    "id": "packet-count",
+    "name": "Packet counter",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/packet-count"
+  },
+  {
+    "id": "packet-monitor",
+    "name": "Packet monitor",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/packet-monitor"
+  },
+  {
+    "id": "sniffsae",
+    "name": "SAE commit capture",
+    "category": "Wi-Fi capture",
+    "status": "planned",
+    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/sniffsae"
+  },
+  {
+    "id": "fox-hunt",
+    "name": "Fox hunt",
+    "category": "Tracking",
+    "status": "planned",
+    "detail": "Needs packet/advertisement decoding and recorded validation fixtures. CSI additionally depends on driver telemetry.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/fox-hunt"
+  },
+  {
+    "id": "detect-pwnagotchi",
+    "name": "Pwnagotchi detection",
+    "category": "Tracking",
+    "status": "planned",
+    "detail": "Needs packet/advertisement decoding and recorded validation fixtures. CSI additionally depends on driver telemetry.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/detect-pwnagotchi"
+  },
+  {
+    "id": "remote-id",
+    "name": "Remote ID aircraft detection",
+    "category": "Tracking",
+    "status": "planned",
+    "detail": "Needs packet/advertisement decoding and recorded validation fixtures. CSI additionally depends on driver telemetry.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/remote-id"
+  },
+  {
+    "id": "csi-motion-monitor",
+    "name": "CSI motion monitor",
+    "category": "Tracking",
+    "status": "planned",
+    "detail": "Needs packet/advertisement decoding and recorded validation fixtures. CSI additionally depends on driver telemetry.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/csi-motion-monitor"
+  },
+  {
+    "id": "ping-scan",
+    "name": "Ping scan",
+    "category": "Network testing",
+    "status": "planned",
+    "detail": "Linux backend pending; use an explicit owned/authorized network scope and bounded jobs.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/ping-scan"
+  },
+  {
+    "id": "arp-scan",
+    "name": "ARP scan",
+    "category": "Network testing",
+    "status": "planned",
+    "detail": "Linux backend pending; use an explicit owned/authorized network scope and bounded jobs.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/arp-scan"
+  },
+  {
+    "id": "port-scan",
+    "name": "Port scan",
+    "category": "Network testing",
+    "status": "planned",
+    "detail": "Linux backend pending; use an explicit owned/authorized network scope and bounded jobs.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/port-scan"
+  },
+  {
+    "id": "ssh-scan",
+    "name": "SSH discovery",
+    "category": "Network testing",
+    "status": "planned",
+    "detail": "Linux backend pending; use an explicit owned/authorized network scope and bounded jobs.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/ssh-scan"
+  },
+  {
+    "id": "telnet-scan",
+    "name": "Telnet discovery",
+    "category": "Network testing",
+    "status": "planned",
+    "detail": "Linux backend pending; use an explicit owned/authorized network scope and bounded jobs.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/telnet-scan"
+  },
+  {
+    "id": "beacon-spam-list",
+    "name": "Beacon list test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/beacon-spam-list"
+  },
+  {
+    "id": "beacon-spam-random",
+    "name": "Random beacon test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/beacon-spam-random"
+  },
+  {
+    "id": "rick-roll-beacon",
+    "name": "Rick Roll beacon",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/rick-roll-beacon"
+  },
+  {
+    "id": "probe-request-flood",
+    "name": "Probe request flood",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/probe-request-flood"
+  },
+  {
+    "id": "deauth-flood",
+    "name": "Deauthentication test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-flood"
+  },
+  {
+    "id": "ap-clone-spam",
+    "name": "AP clone test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/ap-clone-spam"
+  },
+  {
+    "id": "bad-msg",
+    "name": "Bad Message",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bad-msg"
+  },
+  {
+    "id": "association-sleep-attack",
+    "name": "Association sleep test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/association-sleep-attack"
+  },
+  {
+    "id": "sae-commit-flood",
+    "name": "SAE commit flood",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/sae-commit-flood"
+  },
+  {
+    "id": "channel-switch",
+    "name": "Channel switch test",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/channel-switch"
+  },
+  {
+    "id": "quiet-time",
+    "name": "Quiet Time",
+    "category": "Active Wi-Fi tests",
+    "status": "planned",
+    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/quiet-time"
+  },
+  {
+    "id": "evilportal",
+    "name": "Evil Portal",
+    "category": "Access point testing",
+    "status": "planned",
+    "detail": "Not implemented. Requires an isolated AP/network backend and separation from the management connection.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/evilportal"
+  },
+  {
+    "id": "karma",
+    "name": "Karma",
+    "category": "Access point testing",
+    "status": "planned",
+    "detail": "Not implemented. Requires an isolated AP/network backend and separation from the management connection.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/karma"
+  },
+  {
+    "id": "bluetooth-analyzer",
+    "name": "Bluetooth analyzer",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bluetooth-analyzer"
+  },
+  {
+    "id": "bluetooth-wardrive",
+    "name": "BLE wardrive",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bluetooth-wardrive"
+  },
+  {
+    "id": "flipper-sniff",
+    "name": "Flipper detection",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flipper-sniff"
+  },
+  {
+    "id": "airtag-sniff",
+    "name": "AirTag discovery",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/airtag-sniff"
+  },
+  {
+    "id": "airtag-monitor",
+    "name": "AirTag monitor",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/airtag-monitor"
+  },
+  {
+    "id": "ibeacon-sniff",
+    "name": "iBeacon analysis",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/ibeacon-sniff"
+  },
+  {
+    "id": "detect-card-skimmers",
+    "name": "Card skimmer heuristics",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/detect-card-skimmers"
+  },
+  {
+    "id": "flock-sniff",
+    "name": "Flock heuristics",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flock-sniff"
+  },
+  {
+    "id": "flock-wardrive",
+    "name": "Flock wardrive",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flock-wardrive"
+  },
+  {
+    "id": "meta-detect",
+    "name": "Meta device heuristics",
+    "category": "Bluetooth analysis",
+    "status": "planned",
+    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/meta-detect"
+  },
+  {
+    "id": "sour-apple",
+    "name": "Sour Apple",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/sour-apple"
+  },
+  {
+    "id": "swiftpair-spam",
+    "name": "Swift Pair advertisements",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/swiftpair-spam"
+  },
+  {
+    "id": "samsung-ble-spam",
+    "name": "Samsung advertisements",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/samsung-ble-spam"
+  },
+  {
+    "id": "flipper-ble-spam",
+    "name": "Flipper advertisements",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flipper-ble-spam"
+  },
+  {
+    "id": "bt-spam-all",
+    "name": "Combined BLE tests",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bt-spam-all"
+  },
+  {
+    "id": "spoof-airtag",
+    "name": "AirTag emulation",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/spoof-airtag"
+  },
+  {
+    "id": "findmy-sound",
+    "name": "Find My sound",
+    "category": "Active BLE tests",
+    "status": "planned",
+    "detail": "Not implemented. BlueZ advertising support does not establish ESP32 payload/behavior parity.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/findmy-sound"
+  },
+  {
+    "id": "gps-data",
+    "name": "GPS fix",
+    "category": "GPS",
+    "status": "partial",
+    "detail": "Reads fresh 2D/3D TPV fixes from local gpsd. Physical receiver not yet connected or validated.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/gps-data"
+  },
+  {
+    "id": "nmea-stream",
+    "name": "NMEA stream",
+    "category": "GPS",
+    "status": "planned",
+    "detail": "Requires receiver bring-up and route/geofence implementation.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/nmea-stream"
+  },
+  {
+    "id": "gps-tracker",
+    "name": "GPX tracker / POI",
+    "category": "GPS",
+    "status": "planned",
+    "detail": "Requires receiver bring-up and route/geofence implementation.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/gps-tracker"
+  },
+  {
+    "id": "wardrive-geofences",
+    "name": "Survey geofences",
+    "category": "GPS",
+    "status": "planned",
+    "detail": "Requires receiver bring-up and route/geofence implementation.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/wardrive-geofences"
+  },
+  {
+    "id": "select-aps",
+    "name": "Target selection",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/select-aps"
+  },
+  {
+    "id": "select-stations",
+    "name": "Station selection",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/select-stations"
+  },
+  {
+    "id": "add-ssid",
+    "name": "SSID lists",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/add-ssid"
+  },
+  {
+    "id": "generate-ssids",
+    "name": "SSID generation",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/generate-ssids"
+  },
+  {
+    "id": "clear-ssids",
+    "name": "Clear SSIDs",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/clear-ssids"
+  },
+  {
+    "id": "clear-aps",
+    "name": "Clear APs",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/clear-aps"
+  },
+  {
+    "id": "set-macs",
+    "name": "MAC configuration",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/set-macs"
+  },
+  {
+    "id": "join",
+    "name": "Wi-Fi profiles",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/join"
+  },
+  {
+    "id": "select-ep-html-file",
+    "name": "Portal file selection",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/select-ep-html-file"
+  },
+  {
+    "id": "direct-upload",
+    "name": "Direct upload",
+    "category": "Management",
+    "status": "planned",
+    "detail": "Port pending. Existing NetworkManager profiles are not changed by this alpha.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/direct-upload"
+  },
+  {
+    "id": "device-info",
+    "name": "Device information",
+    "category": "Device",
+    "status": "partial",
+    "detail": "Diagnostics, local CLI, source installer, and session exports exist. Signed image updates and general file management are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/device-info"
+  },
+  {
+    "id": "cli",
+    "name": "CLI",
+    "category": "Device",
+    "status": "partial",
+    "detail": "Diagnostics, local CLI, source installer, and session exports exist. Signed image updates and general file management are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/cli"
+  },
+  {
+    "id": "update-firmware",
+    "name": "Update / installation",
+    "category": "Device",
+    "status": "partial",
+    "detail": "Diagnostics, local CLI, source installer, and session exports exist. Signed image updates and general file management are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/update-firmware"
+  },
+  {
+    "id": "sd-file-browser",
+    "name": "File archive",
+    "category": "Device",
+    "status": "partial",
+    "detail": "Diagnostics, local CLI, source installer, and session exports exist. Signed image updates and general file management are pending.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/sd-file-browser"
+  },
+  {
+    "id": "settings",
+    "name": "Settings",
+    "category": "Device",
+    "status": "planned",
+    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/settings"
+  },
+  {
+    "id": "spiffs-backup-and-restore",
+    "name": "Backup / restore",
+    "category": "Device",
+    "status": "planned",
+    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/spiffs-backup-and-restore"
+  },
+  {
+    "id": "menu-navigation",
+    "name": "Touch UI / brightness",
+    "category": "Device",
+    "status": "planned",
+    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/menu-navigation"
+  },
+  {
+    "id": "flipper-zero",
+    "name": "Flipper companion",
+    "category": "Device",
+    "status": "planned",
+    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flipper-zero"
+  },
+  {
+    "id": "dragon-detector",
+    "name": "Dragon Detector",
+    "category": "Future detectors",
+    "status": "planned",
+    "detail": "Integration slot reserved. Original repository, license, protocol, and test data are needed.",
+    "source": null
+  },
+  {
+    "id": "axeoff",
+    "name": "Axeoff",
+    "category": "Future detectors",
+    "status": "planned",
+    "detail": "Integration slot reserved. Original repository, license, protocol, and test data are needed.",
+    "source": null
+  },
+  {
+    "id": "squachwach",
+    "name": "Squachwach",
+    "category": "Future detectors",
+    "status": "planned",
+    "detail": "Integration slot reserved. Original repository, license, protocol, and test data are needed.",
+    "source": null
+  }
+]

@@ -1,0 +1,14 @@
+.tools/
+.upstream/
+.local/
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+data/
+*.sqlite3*
+*.pcap*
+.env
+node_modules/
