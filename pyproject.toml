@@ -16,3 +16,6 @@ q-marauder = "qmarauder.__main__:main"
 
 [tool.setuptools.package-data]
 qmarauder = ["web/*", "web/assets/*", "features.json"]
+
+[tool.setuptools.packages.find]
+include = ["qmarauder*"]

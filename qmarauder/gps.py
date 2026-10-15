@@ -29,7 +29,10 @@ def read_fix() -> dict | None:
             connection.settimeout(0.6)
             deadline, pending = time.monotonic() + 1.5, b""
             while time.monotonic() < deadline:
-                chunk = connection.recv(8192)
+                try:
+                    chunk = connection.recv(8192)
+                except socket.timeout:
+                    continue
                 if not chunk:
                     break
                 pending += chunk
