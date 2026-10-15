@@ -37,5 +37,5 @@ arduino-router-cli '$/serial/close' /dev/ttyHS1 >/dev/null
   upload -a 0x80F0000 "$build/uno_shield.ino.elf-zsk.bin"
 reopen
 trap - EXIT
-echo 'MCU uploaded. Complete the top/bottom touch setup on the TFT.'
+echo 'MCU uploaded. With USB at the bottom, tap the upright/readable orientation, then calibrate top/bottom touch.'
 echo 'Run python3 -m qmarauder serve to connect the native menu to Linux.'

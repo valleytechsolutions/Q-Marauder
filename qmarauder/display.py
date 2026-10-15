@@ -7,6 +7,22 @@ import subprocess
 import threading
 
 ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop"}
+ORIENTATIONS = (0, 1, 2, 3)  # Software reflections: bit 0 = X, bit 1 = Y.
+
+
+def orientation_value(value):
+    if isinstance(value, str) and value in tuple(map(str, ORIENTATIONS)):
+        return int(value)
+    if type(value) is int and value in ORIENTATIONS:
+        return value
+    raise ValueError("Invalid portrait orientation")
+
+
+def save_json(path, value):
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(value), encoding="utf-8")
+    temporary.replace(path)
 
 
 def rpc(method, *arguments):
@@ -33,12 +49,16 @@ class DisplayLink:
     def __init__(self, service, data_dir, call=rpc):
         self.service, self.call = service, call
         self.path = Path(data_dir) / "touch-calibration.json"
+        self.orientation_path = Path(data_dir) / "display-orientation.json"
         self.stop = threading.Event()
         self.thread = None
         self.handled = None
         self.reply = ""
         self.restore_attempted = False
         self.saved = None
+        self.orientation = None
+        self.orientation_restore_attempted = False
+        self.saved_orientation = None
 
     def start(self):
         if not shutil.which("arduino-router-cli") or not Path("/var/run/arduino-router.sock").exists():
@@ -71,7 +91,38 @@ class DisplayLink:
         if self.call("qm.ack", sequence, self.reply) is not True:
             raise ConnectionError("Display action acknowledgement failed")
 
+    def sync_orientation(self):
+        value = self.call("qm.orientation")
+        if value == "unset":
+            # A fast MCU restart may happen without a failed RPC request.
+            if self.orientation is not None:
+                self.orientation_restore_attempted = False
+                self.restore_attempted = False
+                self.saved = None
+            self.orientation = None
+            self.status(orientation="setup", touch="uncalibrated")
+            if not self.orientation_restore_attempted:
+                self.orientation_restore_attempted = True
+                try:
+                    saved = orientation_value(json.loads(self.orientation_path.read_text(encoding="utf-8")))
+                except (OSError, ValueError, TypeError):
+                    return False
+                self.call("qm.restoreOrientation", saved)
+            return False
+        value = orientation_value(value)
+        if value != self.orientation:
+            self.orientation = value
+            self.restore_attempted = False
+            self.saved = None
+        if value != self.saved_orientation:
+            save_json(self.orientation_path, value)
+            self.saved_orientation = value
+        self.status(orientation=value)
+        return True
+
     def sync_calibration(self):
+        if self.orientation is None:
+            return
         value = self.call("qm.calibration")
         if value == "uncalibrated":
             self.status(touch="uncalibrated")
@@ -79,18 +130,19 @@ class DisplayLink:
                 self.restore_attempted = True
                 try:
                     saved = json.loads(self.path.read_text(encoding="utf-8"))
-                    values = calibration_values(saved)
+                    # Legacy calibration has no orientation and cannot safely be reused.
+                    if not isinstance(saved, dict) or saved.get("orientation") != self.orientation:
+                        return
+                    values = calibration_values(saved.get("calibration"))
                 except (OSError, ValueError, TypeError):
                     return
                 self.call("qm.restoreCalibration", *values)
             return
         calibration_values(value)
-        if value != self.saved:
-            self.path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
-            temporary = self.path.with_suffix(".tmp")
-            temporary.write_text(json.dumps(value), encoding="utf-8")
-            temporary.replace(self.path)
-            self.saved = value
+        record = {"orientation": self.orientation, "calibration": value}
+        if record != self.saved:
+            save_json(self.path, record)
+            self.saved = record
         self.status(touch="calibrated")
 
     def cycle(self):
@@ -111,7 +163,8 @@ class DisplayLink:
         if accepted is not True:
             raise ConnectionError("Display rejected its view model")
         self.handle_action(self.call("qm.action"))
-        self.sync_calibration()
+        if self.sync_orientation():
+            self.sync_calibration()
         self.status(connected=True, error=None)
 
     def run(self):
@@ -121,7 +174,7 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/2;"):
+                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/4;"):
                         raise ConnectionError("Compatible portrait display firmware is required")
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)
@@ -130,6 +183,7 @@ class DisplayLink:
                         self.handled = None
                     previous_uptime = uptime
                     self.restore_attempted = False
+                    self.orientation_restore_attempted = False
                     self.status(protocol=protocol, details=details)
                     linked = True
                 self.cycle()

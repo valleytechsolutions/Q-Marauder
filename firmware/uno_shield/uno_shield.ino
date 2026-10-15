@@ -18,6 +18,11 @@ int stable=0;
 uint32_t renderMs=0;
 TouchSample lastTouch={0,0,0,false};
 int drawnMenu=-1, drawnSelection=-1, drawnPage=-1;
+const uint8_t orientations[]={1,3,0,2}; // Software X/Y reflections, not MADCTL bytes.
+int orientation=-1, orientationIndex=0;
+unsigned long orientationSince=0;
+uint32_t orientationReadback=0;
+bool splashPending=false, calibrationRestoreAllowed=false;
 
 void label(int x,int y,const String &value,uint16_t color,uint8_t size=2) {
   lcd.setCursor(x,y); lcd.setTextColor(color); lcd.setTextSize(size); lcd.print(value);
@@ -44,6 +49,37 @@ void logo(int x,int y,int width,const uint16_t *runs,size_t count) {
     }
   }
 }
+void orientationScreen() {
+  lcd.portraitAxes(orientations[orientationIndex]);
+  orientationReadback=lcd.readRegister(0x0B);
+  lcd.fillScreen(0);
+  label(124,24,"TOP",CYAN,4);
+  label(12,100,"LEFT",WHITE,2); label(248,100,"RIGHT",WHITE,2);
+  label(70,157,"Q-MARAUDER",WHITE,3);
+  label(76,207,"ABC 123",CYAN,4);
+  label(76,285,"TAP ANYWHERE",WHITE,2);
+  label(52,317,"IF THIS IS UPRIGHT",WHITE,2);
+  label(70,349,"AND READS NORMALLY",WHITE,1);
+  label(82,410,"USB AT BOTTOM",CYAN,2);
+  label(124,452,String(orientationIndex+1)+" / 4",MUTED,2);
+  orientationSince=millis();
+}
+void splash() {
+  lcd.fillScreen(0);
+  logo(25,125,bwmWidth,&bwmRuns[0][0],sizeof(bwmRuns)/4);
+  logo(195,101,marauderWidth,&marauderRuns[0][0],sizeof(marauderRuns)/4);
+  label(40,55,"Q-MARAUDER",WHITE,3);
+  label(40,352,"BWM x MARAUDER",CYAN,2);
+  label(55,396,"UNO Q / NATIVE CONSOLE",MUTED,1);
+  delay(1500);
+}
+bool chooseOrientation(int value,bool restoring) {
+  if(value<0 || value>3) return false;
+  orientation=value; lcd.portraitAxes(value);
+  touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=restoring;
+  drawnMenu=-1; splashPending=true; dirty=true;
+  return true;
+}
 int countItems() { int n=0; for(const auto &e:menuEntries) if(e.menu==menu)++n; return n; }
 const MenuEntry &itemAt(int index) {
   for(const auto &e:menuEntries) if(e.menu==menu && index--==0) return e;
@@ -58,6 +94,7 @@ void chrome() {
   label(14,84,"Q-MARAUDER",WHITE,2);
 }
 void render() {
+  if(orientation<0) { dirty=false; return; }
   unsigned long start=millis();
   bool menuVisible=touch.calibrated && !infoTitle.length();
   int page=selection/5;
@@ -101,7 +138,7 @@ void navigate(int zone) {
   else {
     const auto &entry=itemAt(selection);
     if(entry.child>=0) { menu=entry.child; selection=0; }
-    else if(entry.action==6) { touch.calibrated=false; calibrationStep=0; }
+    else if(entry.action==6) { touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=false; }
     else {
       infoTitle=entry.title;
       if(entry.action==0) infoText="Port planned. This function has no UNO Q backend yet.";
@@ -126,6 +163,10 @@ void pollTouch() {
   releaseAt=0;
   if(held || !released || ++stable<3) return;
   held=true; released=false;
+  if(orientation<0) {
+    if(millis()-orientationSince>=1000) chooseOrientation(orientations[orientationIndex],false);
+    return;
+  }
   if(!touch.calibrated) {
     if(calibrationStep==0) { topX=lastTouch.x; topY=lastTouch.y; calibrationStep=1; }
     else {
@@ -137,16 +178,25 @@ void pollTouch() {
     int y=touch.screenY(lastTouch); navigate(y<72?-1:y>=416?1:0);
   }
 }
-String protocol() { return "qm-display/2;portrait;three-zone-touch"; }
+String protocol() { return "qm-display/4;portrait;three-zone-touch;software-orientation"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
-      +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";selection="+selection;
+      +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";selection="+selection
+      +";orientation="+orientation;
+}
+String panelRegisters() {
+  return String("candidate=")+orientationIndex+";software_axes="+orientations[orientationIndex]
+      +";madctl=0x"+String(orientationReadback,HEX)+";current=0x"+String(lcd.readRegister(0x0B),HEX);
+}
+String getOrientation() { return orientation<0?"unset":String(orientation); }
+bool restoreOrientation(int value) {
+  return orientation<0 && chooseOrientation(value,true);
 }
 String calibration() {
   return touch.calibrated?String(touch.axis)+","+touch.top+","+touch.bottom:"uncalibrated";
 }
 bool restoreCalibration(int axis,int top,int bottom) {
-  if(touch.calibrated || calibrationStep!=0) return false;
+  if(!calibrationRestoreAllowed || orientation<0 || touch.calibrated || calibrationStep!=0) return false;
   bool result=touch.set(axis,top,bottom); dirty=true; return result;
 }
 String action() { return String(actionSequence)+","+pendingAction; }
@@ -162,27 +212,27 @@ bool update(int wifi,int ble,int sessions,bool gps,String status) {
 }
 void setup() {
   lcd.begin(); analogReadResolution(10);
-  lcd.fillScreen(0);
-  logo(25,125,bwmWidth,&bwmRuns[0][0],sizeof(bwmRuns)/4);
-  logo(195,101,marauderWidth,&marauderRuns[0][0],sizeof(marauderRuns)/4);
-  label(40,55,"Q-MARAUDER",WHITE,3);
-  label(40,352,"BWM x MARAUDER",CYAN,2);
-  label(55,396,"UNO Q / NATIVE CONSOLE",MUTED,1);
-  delay(1800);
-  chrome(); render();
+  orientationScreen();
   // Flush partial serial frames on the older factory core before registering RPC.
   Serial1.begin(115200); Serial1.print("MCU starting RPC Bridge communication"); Serial1.flush();
   Bridge.begin();
   Bridge.provide_safe("qm.protocol",protocol);
   Bridge.provide_safe("qm.diagnostics",diagnostics);
+  Bridge.provide_safe("qm.panelRegisters",panelRegisters);
   Bridge.provide_safe("qm.update",update);
   Bridge.provide_safe("qm.action",action);
   Bridge.provide_safe("qm.ack",acknowledge);
   Bridge.provide_safe("qm.calibration",calibration);
   Bridge.provide_safe("qm.restoreCalibration",restoreCalibration);
+  Bridge.provide_safe("qm.orientation",getOrientation);
+  Bridge.provide_safe("qm.restoreOrientation",restoreOrientation);
 }
 void loop() {
   if(connected && millis()-lastUpdate>15000) { connected=false; headline="Linux offline / data stale"; dirty=true; }
+  if(orientation<0 && millis()-orientationSince>7000 && !lastTouch.down) {
+    orientationIndex=(orientationIndex+1)%4; orientationScreen();
+  }
+  if(splashPending) { splashPending=false; splash(); chrome(); dirty=true; }
   pollTouch();
   if(dirty) render();
   delay(5);

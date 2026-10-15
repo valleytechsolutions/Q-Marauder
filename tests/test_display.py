@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
-from qmarauder.display import DisplayLink, calibration_values, rpc
+from qmarauder.display import DisplayLink, calibration_values, orientation_value, rpc
 
 
 class DisplayTests(unittest.TestCase):
@@ -29,12 +29,50 @@ class DisplayTests(unittest.TestCase):
             service.lock=__import__('threading').RLock()
             service.state={"display":{}}
             link=DisplayLink(service,directory,Mock(return_value="0,125,905"))
+            link.orientation=3
             link.sync_calibration()
-            self.assertEqual(json.loads(link.path.read_text()),"0,125,905")
+            self.assertEqual(json.loads(link.path.read_text()),
+                             {"orientation":3,"calibration":"0,125,905"})
             restore=Mock(side_effect=["uncalibrated",True])
             second=DisplayLink(service,directory,restore)
+            second.orientation=3
             second.sync_calibration()
             restore.assert_called_with("qm.restoreCalibration",0,125,905)
+
+    def test_calibration_from_another_orientation_or_legacy_is_not_restored(self):
+        with tempfile.TemporaryDirectory() as directory:
+            service=Mock()
+            service.lock=__import__('threading').RLock()
+            service.state={"display":{}}
+            for record in ("0,125,905", {"orientation":0,"calibration":"0,125,905"}):
+                call=Mock(return_value="uncalibrated")
+                link=DisplayLink(service,directory,call)
+                link.orientation=3
+                link.path.write_text(json.dumps(record))
+                link.sync_calibration()
+                call.assert_called_once_with("qm.calibration")
+
+    def test_orientation_persists_and_restores_after_mcu_reset(self):
+        with tempfile.TemporaryDirectory() as directory:
+            service=Mock()
+            service.lock=__import__('threading').RLock()
+            service.state={"display":{}}
+            call=Mock(side_effect=["3", "unset", True, "3"])
+            link=DisplayLink(service,directory,call)
+            self.assertTrue(link.sync_orientation())
+            self.assertEqual(json.loads(link.orientation_path.read_text()),3)
+            link.restore_attempted=True
+            self.assertFalse(link.sync_orientation())
+            call.assert_called_with("qm.restoreOrientation",3)
+            self.assertFalse(link.restore_attempted)
+            self.assertIsNone(link.orientation)
+            self.assertTrue(link.sync_orientation())
+
+    def test_orientation_rejects_invalid_axes(self):
+        for value in (0,1,2,3,"0","1","2","3"):
+            self.assertEqual(orientation_value(value),int(value))
+        for value in (True,None,8,72,136,200,"3;reset","03",3.0):
+            with self.assertRaises(ValueError): orientation_value(value)
 
     def test_rpc_uses_argument_list_and_detects_rejection(self):
         result=Mock(returncode=0,stdout='Got RPC response: true\n')

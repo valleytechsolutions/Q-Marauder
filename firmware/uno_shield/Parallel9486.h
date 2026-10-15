@@ -7,6 +7,7 @@
 class Parallel9486 : public Adafruit_GFX {
   const uint8_t dataPins[8] = {8, 9, 2, 3, 4, 5, 6, 7};
   static constexpr uint8_t RD = A0, WR = A1, DC = A2, CS = A3, RST = A4;
+  uint8_t reflections = 0;
   void bus(uint8_t value) {
     for (uint8_t i = 0; i < 8; ++i) digitalWrite(dataPins[i], (value >> i) & 1);
   }
@@ -49,7 +50,7 @@ public:
   }
   void begin() {
     // A0/A1 are driven at the UNO Q's own 3.3 V. Only tolerant D2-D9
-    // become inputs for the controller ID read; resistive touch stays disabled.
+    // become inputs for the controller ID read. Touch initializes separately.
     for (uint8_t pin : {RD, WR, DC, CS, RST}) { pinMode(pin, OUTPUT); digitalWrite(pin, HIGH); }
     pinMode(10, OUTPUT); digitalWrite(10, HIGH); // deselect shield SD
     for (uint8_t pin : dataPins) pinMode(pin, OUTPUT);
@@ -74,9 +75,16 @@ public:
       reg1(0xB4, 2); reg(0xB6, function, 3); reg(0xF7, adjust, 4);
     }
     reg1(0x3A, 0x55); // 16-bit RGB565 on 8-bit parallel bus
-    reg1(0x36, 0x48); // portrait, BGR
+    reg1(0x36, 0x08); // Fixed portrait address mode; reflection is applied in software.
     reg(0x20, nullptr, 0); reg(0x11, nullptr, 0); delay(150);
     reg(0x29, nullptr, 0); delay(50);
+  }
+  void portraitAxes(uint8_t value) {
+    // Keep the panel's address mode fixed. Some shields reporting 0x9486
+    // accept MADCTL MX/MY writes without correcting the visible image.
+    // Every primitive uses solid rectangles, so reflecting their coordinates
+    // also reflects individual glyph pixels and the decoded logo runs.
+    reflections = value & 3;
   }
   void restoreBus() {
     digitalWrite(CS, HIGH);
@@ -91,6 +99,8 @@ public:
     if (x + w > width()) w = width() - x;
     if (y + h > height()) h = height() - y;
     if (w <= 0 || h <= 0) return;
+    if (reflections & 1) x = width() - x - w;
+    if (reflections & 2) y = height() - y - h;
     window(x, y, w, h);
     uint32_t count = uint32_t(w) * h;
     uint8_t hi = color >> 8, lo = color;

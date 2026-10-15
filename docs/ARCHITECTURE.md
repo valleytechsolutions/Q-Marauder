@@ -24,18 +24,21 @@ after the bounded in-flight operation returns (up to about 32 seconds for Wi-Fi)
 
 ## Display architecture
 
-Preferred next implementation: STM32-local rendering at 480×320 with persistent
-fonts, palette, and converted logo assets in flash. Linux sends view models and small
-updates through Arduino RouterBridge. The MCU sends touch/button events back.
+`firmware/uno_shield` renders locally on the STM32 at 320 x 480 in portrait, with
+fonts, palette, and converted logo assets in flash. Linux sends bounded counts and
+status through Arduino RouterBridge. The MCU sends sequenced, allowlisted action
+requests back; acknowledgements can retry without starting the same job again.
 A full RGB565 frame is 307,200 bytes; continuously streaming complete frames through
 a serial RPC transport is a poor default. Measure the actual bridge throughput
 before setting refresh budgets. Incremental redraw is required.
 
 The desktop web console is an operator/development interface and visual reference.
-The shield will not run a browser. It needs a native renderer, touch calibration,
-font/logo encoding, and a verified driver. No claim is made that CSS is flashed to STM32.
+The shield uses native graphics, a parallel driver, and two-point resistive touch
+calibration. Orientation setup reflects drawing coordinates before recalibrating
+touch. Linux persists both settings and restores calibration only for the matching
+orientation. Setup repeats after MCU reset if the Linux service is unavailable.
 
-The diagnostic bridge sketch registers only `qm.protocol` and `qm.status` and drives
+The earlier `bridge_probe` sketch registers only `qm.protocol` and `qm.status` and drives
 no shield pins. It is a protocol smoke-test target, not a TFT firmware implementation.
 
 ## Privileged backends

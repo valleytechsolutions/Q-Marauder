@@ -14,7 +14,9 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 | Monitor | Advertised by iw phy; capture not exercised |
 | Injection | Not tested; not inferred from monitor support |
 | Bluetooth | BlueZ controller powered; central/peripheral roles advertised |
-| Display | User reports 3.5-inch ILI9486 UNO shield; exact wiring/touch unresolved |
+| Display | Red 3.5-inch parallel UNO shield; register D3 reports 0x9486; native GUI renders |
+| Touch | XP=D6, XM=A2, YP=A1, YM=D7; owner confirmed two-point calibration and navigation |
+| Orientation | Portrait software reflection setup under validation; see DISPLAY.md |
 | GPS | No receiver/fix validated |
 | Privilege | ADB user arduino; sudo requires the user's password |
 | Boot service | No systemd user session/linger on this board; boot enablement needs admin setup |
@@ -24,12 +26,13 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 - Actual Wi-Fi discovery returned access points in both bands (18 in the first scan).
 - BlueZ LE discovery returned 28 devices in its first bounded scan window.
 - Repeated survey collection and stop completed; records survived a process restart.
-- All 22 automated checks passed on Windows Python 3.13 and the board's Python 3.13.
-- The MCU bridge probe compiled on the board: 17,796 bytes program storage and
-  4,636 bytes globals. Core-bundled RouterBridge 0.1.3 plus MsgPack 0.4.2 and its
-  library-manager dependencies were used. The resulting sketch was not flashed.
+- All 30 automated checks passed on Windows Python 3.13 and the board's Python 3.13,
+  including orientation persistence and rejection of mismatched touch calibration.
+- Native TFT firmware compiled and flashed with the matching factory runtime retained.
+  The owner confirmed the physical dashboard and subsequent portrait touch navigation.
+  Display mirroring remains under validation; successful uploads do not verify appearance.
 - The source installer and USB forwarding were exercised on this board.
-- These results do not validate the TFT, GPS receiver, raw capture, injection, or boot service.
+- These results do not validate final TFT orientation, GPS, raw capture, injection, or boot service.
 
 `iw` was absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This

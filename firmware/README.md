@@ -15,6 +15,11 @@ The helper builds first, backs up the MCU flash once, then flashes only the sket
 It refuses an untested core version. It does not reinstall Debian or replace the
 matching Zephyr runtime. The backup stays local and must never be published.
 
+Keep the Linux application and display firmware from the same revision (the native
+bridge uses protocol 4). First select the upright, readable portrait layout while
+holding USB at the bottom, then press/release the top and bottom pads to calibrate.
+The Linux service saves this choice and calibration for subsequent MCU starts.
+
 To build without uploading:
 
 ```sh
