@@ -1,7 +1,7 @@
 # Native display firmware
 
 `uno_shield` renders the real ILI9486 UNO shield in portrait, with a startup logo
-screen, Marauder-style menu hierarchy, and three-zone finger navigation. It uses
+screen, Marauder-style menu hierarchy, direct-touch rows, and BWM/Marauder/Cyber themes. It uses
 the UNO Q STM32, with radio work and storage on Debian. See [hardware evidence and
 touch validation](../docs/DISPLAY.md) before using another shield.
 
@@ -16,9 +16,10 @@ It refuses an untested core version. It does not reinstall Debian or replace the
 matching Zephyr runtime. The backup stays local and must never be published.
 
 Keep the Linux application and display firmware from the same revision (the native
-bridge uses protocol 4). First select the upright, readable portrait layout while
-holding USB at the bottom, then press/release the top and bottom pads to calibrate.
-The Linux service saves this choice and calibration for subsequent MCU starts.
+bridge uses protocol 5). First select the upright, readable portrait layout while
+holding USB at the bottom, then press/release the three calibration circles.
+The Linux service saves orientation, two-axis calibration, and theme for subsequent
+MCU starts. Vertical-only calibrations from older builds are not reused.
 
 To build without uploading:
 
@@ -32,5 +33,12 @@ arduino-cli compile --fqbn arduino:zephyr:unoq firmware/uno_shield
 `scripts/build-tft-menus.py`. `LogoData.h` is generated from supplied source artwork
 by `scripts/encode-tft-logos.py` (Pillow is a build-time dependency only). These
 headers are checked in; normal firmware builds do not need either generator.
+
+The touch transform and menu hit targets can be checked without the MCU runtime:
+
+```sh
+g++ -std=c++17 -I firmware/uno_shield tests/native_touch_test.cpp -o /tmp/qm-touch-test
+/tmp/qm-touch-test
+```
 
 `bridge_probe` is the earlier GPIO-free diagnostic scaffold. It does not drive a TFT.

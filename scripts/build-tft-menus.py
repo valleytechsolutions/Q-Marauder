@@ -20,15 +20,16 @@ menus=[("mainMenu","Main menu",0), ("wifiMenu","Wi-Fi",0),
        ("bluetoothMenu","Bluetooth",0), ("bluetoothSnifferMenu","Bluetooth / Sniffers",6),
        ("bluetoothAttackMenu","Bluetooth / Attacks",6), ("gpsMenu","GPS",0),
        ("deviceMenu","Device",0), ("reconMenu","Recon / Wardriving",0),
-       ("settingsMenu","Settings",10), ("detectorsMenu","Counter surveillance",0)]
+       ("settingsMenu","Settings",10), ("detectorsMenu","Counter surveillance",0),
+       ("themesMenu","Appearance",12)]
 links={(0,"WiFi"):1,(0,"Bluetooth"):6,(0,"GPS"):9,(0,"Device"):10,(0,"Recon"):11,
        (1,"Sniffers"):2,(1,"Scanners"):3,(1,"Attacks"):4,(1,"General"):5,
        (6,"Sniffers"):7,(6,"Bluetooth Attacks"):8,(10,"Settings"):12,
-       (0,"Counter surveillance"):13}
-# Positive action IDs are the only executable Linux requests. All other leaves
-# explicitly show 'Port planned', even if a related browser feature already exists.
+       (0,"Counter surveillance"):13,(12,"Themes"):14}
+# Only IDs 1-4 invoke Linux jobs. IDs 5-10 are local display actions.
 actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
-         "Device Info":5,"Calibrate touch":6,"Live status":7}
+         "Device Info":5,"Calibrate touch":6,"Live status":7,
+         "BWM":8,"Marauder":9,"Cyber":10}
 entries=[]
 for index,(key,title,parent) in enumerate(menus):
     found=[]
@@ -42,8 +43,9 @@ for index,(key,title,parent) in enumerate(menus):
     if index==0: found=["Recon","WiFi","Bluetooth","GPS","Device","Counter surveillance","Reboot"]
     if index==3: found.insert(1,"Scan APs")
     if index==11: found=["Back","Wardrive","Stop survey","Live status"]
-    if index==12: found=["Back","Calibrate touch"]
+    if index==12: found=["Back","Themes","Calibrate touch"]
     if index==13: found=["Back","Dragon Detector","Axeoff","Squachwach"]
+    if index==14: found=["Back","BWM","Marauder","Cyber"]
     if index==10 and "Calibrate touch" not in found: found.append("Calibrate touch")
     if index and "Back" not in found: found.insert(0,"Back")
     for value in found:

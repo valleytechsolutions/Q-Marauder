@@ -62,7 +62,7 @@ The separate `sh scripts/flash-display.sh` helper does replace the MCU sketch. I
 compiles first and saves a private full-flash recovery backup in the data directory.
 It currently accepts only the tested factory Zephyr core; it is not a universal
 flasher for every UNO Q software version. See [firmware setup](../firmware/README.md).
-After upload, follow the TFT's top/bottom touch calibration prompts. Start the Linux
+After upload, follow the TFT's orientation selection and three-circle touch calibration. Start the Linux
 console to enable live menu actions and save calibration across MCU resets.
 
 ## Image recovery and future web installation

@@ -33,10 +33,13 @@ a serial RPC transport is a poor default. Measure the actual bridge throughput
 before setting refresh budgets. Incremental redraw is required.
 
 The desktop web console is an operator/development interface and visual reference.
-The shield uses native graphics, a parallel driver, and two-point resistive touch
-calibration. Orientation setup reflects drawing coordinates before recalibrating
+The shield uses native graphics, a parallel driver, and resistive touch
+calibration with three targets and an affine transform. Large menu rows respond to
+direct taps; Back and page controls replace the earlier Up/Down/Select zones.
+Orientation setup reflects drawing coordinates before recalibrating
 touch. Linux persists both settings and restores calibration only for the matching
-orientation. Setup repeats after MCU reset if the Linux service is unavailable.
+orientation. Theme changes are local to the renderer and saved through the bridge.
+Setup repeats after MCU reset if the Linux service is unavailable.
 
 The earlier `bridge_probe` sketch registers only `qm.protocol` and `qm.status` and drives
 no shield pins. It is a protocol smoke-test target, not a TFT firmware implementation.

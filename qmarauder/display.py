@@ -37,12 +37,15 @@ def rpc(method, *arguments):
 
 
 def calibration_values(value):
-    if not isinstance(value, str) or not re.fullmatch(r"[01],\d{1,4},\d{1,4}", value):
+    if not isinstance(value, str) or not re.fullmatch(r"v2(?:,\d{1,4}){6}", value):
         raise ValueError("Invalid touch calibration")
-    axis, top, bottom = map(int, value.split(","))
-    if not (0 <= top <= 1023 and 0 <= bottom <= 1023 and abs(top-bottom) >= 250):
-        raise ValueError("Invalid touch span")
-    return axis, top, bottom
+    values = tuple(map(int, value.split(",")[1:]))
+    if any(not 0 <= v <= 1023 for v in values):
+        raise ValueError("Invalid touch range")
+    x0, y0, x1, y1, x2, y2 = values
+    if abs((x1-x0)*(y2-y0)-(y1-y0)*(x2-x0)) < 60000:
+        raise ValueError("Touch targets are too close or collinear")
+    return values
 
 
 class DisplayLink:
@@ -50,6 +53,7 @@ class DisplayLink:
         self.service, self.call = service, call
         self.path = Path(data_dir) / "touch-calibration.json"
         self.orientation_path = Path(data_dir) / "display-orientation.json"
+        self.theme_path = Path(data_dir) / "display-theme.json"
         self.stop = threading.Event()
         self.thread = None
         self.handled = None
@@ -59,6 +63,7 @@ class DisplayLink:
         self.orientation = None
         self.orientation_restore_attempted = False
         self.saved_orientation = None
+        self.saved_theme = None
 
     def start(self):
         if not shutil.which("arduino-router-cli") or not Path("/var/run/arduino-router.sock").exists():
@@ -120,6 +125,25 @@ class DisplayLink:
         self.status(orientation=value)
         return True
 
+    def sync_theme(self):
+        value = self.call("qm.theme")
+        if value == "unset":
+            try:
+                saved = json.loads(self.theme_path.read_text(encoding="utf-8"))
+                if type(saved) is not int or saved not in (0, 1, 2):
+                    saved = 0
+            except (OSError, ValueError, TypeError):
+                saved = 0
+            self.call("qm.restoreTheme", saved)
+            return
+        if value not in ("0", "1", "2"):
+            raise ValueError("Invalid display theme")
+        value = int(value)
+        if value != self.saved_theme:
+            save_json(self.theme_path, value)
+            self.saved_theme = value
+        self.status(theme=("BWM", "Marauder", "Cyber")[value])
+
     def sync_calibration(self):
         if self.orientation is None:
             return
@@ -164,6 +188,7 @@ class DisplayLink:
             raise ConnectionError("Display rejected its view model")
         self.handle_action(self.call("qm.action"))
         if self.sync_orientation():
+            self.sync_theme()
             self.sync_calibration()
         self.status(connected=True, error=None)
 
@@ -174,7 +199,7 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/4;"):
+                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/5;"):
                         raise ConnectionError("Compatible portrait display firmware is required")
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)

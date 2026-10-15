@@ -7,7 +7,8 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
 > Runs on the UNO Q's existing Debian installation. The native ILI9486 display now renders.
-> Portrait menus and touch calibration are in hardware bring-up; see docs/DISPLAY.md.
+> Upright portrait is confirmed on the test shield. Direct-touch menus and themes
+> are in validation; see [display setup](docs/DISPLAY.md) for the remaining checks.
 
 ## Works today
 
@@ -18,8 +19,9 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - Fresh gpsd position ingestion; no coordinates are fabricated when GPS is absent.
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
-- Native 320 x 480 portrait firmware with Up / Select / Down navigation, 14 menu
-  groups, and 132 selections. Unported functions are explicitly marked planned.
+- Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
+  15 menu groups, and 137 selections. Unported functions are explicitly marked planned.
+- BWM, Marauder, and Cyber TFT themes with a faint BWM background emblem.
 
 ## Quick start on the UNO Q
 

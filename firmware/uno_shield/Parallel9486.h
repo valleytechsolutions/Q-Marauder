@@ -3,15 +3,42 @@
 #pragma once
 #include <Arduino.h>
 #include <Adafruit_GFX.h>
+#include <stm32u5xx_ll_gpio.h>
+#include <zephyr/devicetree.h>
+
+// The fast path is tied to the core's actual UNO Q device-tree mapping.
+// Refuse a changed mapping instead of writing a different peripheral's pins.
+#define QM_PIN_MATCH(index,port,pin) \
+  (DT_SAME_NODE(DT_GPIO_CTLR_BY_IDX(DT_PATH(zephyr_user),digital_pin_gpios,index),DT_NODELABEL(port)) && \
+   DT_GPIO_PIN_BY_IDX(DT_PATH(zephyr_user),digital_pin_gpios,index)==pin)
+static_assert(QM_PIN_MATCH(8,gpiob,4) && QM_PIN_MATCH(9,gpiob,8) &&
+              QM_PIN_MATCH(2,gpiob,3) && QM_PIN_MATCH(3,gpiob,0) &&
+              QM_PIN_MATCH(4,gpioa,12) && QM_PIN_MATCH(5,gpioa,11) &&
+              QM_PIN_MATCH(6,gpiob,1) && QM_PIN_MATCH(7,gpiob,2) &&
+              QM_PIN_MATCH(15,gpioa,5), "UNO Q TFT fast bus requires its verified pin mapping");
+#undef QM_PIN_MATCH
 
 class Parallel9486 : public Adafruit_GFX {
   const uint8_t dataPins[8] = {8, 9, 2, 3, 4, 5, 6, 7};
   static constexpr uint8_t RD = A0, WR = A1, DC = A2, CS = A3, RST = A4;
   uint8_t reflections = 0;
   void bus(uint8_t value) {
-    for (uint8_t i = 0; i < 8; ++i) digitalWrite(dataPins[i], (value >> i) & 1);
+    uint32_t a=((value&0x10)<<8)|((value&0x20)<<6);
+    uint32_t b=((value&1)<<4)|((value&2)<<7)|((value&4)<<1)|
+               ((value&8)>>3)|((value&0x40)>>5)|((value&0x80)>>5);
+    // Atomic set/reset masks affect only the eight LCD data pins.
+    GPIOA->BSRR=((0x1800^a)<<16)|a;
+    GPIOB->BSRR=((0x011F^b)<<16)|b;
   }
-  void strobe() { digitalWrite(WR, LOW); digitalWrite(WR, HIGH); }
+  static inline void pulseHold() {
+    // >=100 ns at the STM32U585's maximum 160 MHz, plus peripheral stores.
+    __asm__ volatile("nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
+                     "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n" ::: "memory");
+  }
+  void strobe() {
+    GPIOA->BSRR=uint32_t(1)<<(5+16); pulseHold();
+    GPIOA->BSRR=uint32_t(1)<<5; pulseHold();
+  }
   void byte(uint8_t value) { bus(value); strobe(); }
   void command(uint8_t value) {
     digitalWrite(DC, LOW); byte(value); digitalWrite(DC, HIGH);

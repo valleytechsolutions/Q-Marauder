@@ -1,7 +1,7 @@
 // Generated menu labels from Marauder; upstream MIT notice in licenses/.
 #pragma once
 struct MenuEntry { uint8_t menu; const char *title; int8_t child; uint8_t action; };
-const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance"};
+const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance","Appearance"};
 const MenuEntry menuEntries[] = {
   {0,"Recon",11,0},
   {0,"WiFi",1,0},
@@ -130,10 +130,15 @@ const MenuEntry menuEntries[] = {
   {11,"Stop survey",-1,4},
   {11,"Live status",-1,7},
   {12,"Back",10,0},
+  {12,"Themes",14,0},
   {12,"Calibrate touch",-1,6},
   {13,"Back",0,0},
   {13,"Dragon Detector",-1,0},
   {13,"Axeoff",-1,0},
   {13,"Squachwach",-1,0},
+  {14,"Back",12,0},
+  {14,"BWM",-1,8},
+  {14,"Marauder",-1,9},
+  {14,"Cyber",-1,10},
 };
-constexpr int MENU_ENTRY_COUNT = 132;
+constexpr int MENU_ENTRY_COUNT = 137;
