@@ -29,6 +29,11 @@ if not release.exists():
         shutil.copy2(root / name, temporary / name)
     shutil.copytree(root / "licenses", temporary / "licenses")
     temporary.rename(release)
+# Windows ADB transfers can mark every source file executable/world-writable.
+# Normalize the installed tree instead of preserving those transfer permissions.
+release.chmod(0o755)
+for installed in release.rglob("*"):
+    installed.chmod(0o755 if installed.is_dir() else 0o644)
 link = base / f".current-{os.getpid()}"
 link.symlink_to(release, target_is_directory=True)
 link.replace(base / "current")
