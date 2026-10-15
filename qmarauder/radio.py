@@ -4,7 +4,26 @@ import os
 import re
 import shutil
 import subprocess
+import gzip
 from pathlib import Path
+from . import lab
+
+
+def kernel_support():
+    release = os.uname().release if hasattr(os, "uname") else "unknown"
+    config, source = "", None
+    for path in (Path("/proc/config.gz"), Path("/boot") / f"config-{release}"):
+        try:
+            config = gzip.decompress(path.read_bytes()).decode() if path.suffix == ".gz" else path.read_text()
+            source = str(path)
+            break
+        except (OSError, ValueError, UnicodeError):
+            continue
+    options = {}
+    for name in ("USBIP_CORE", "USBIP_VHCI_HCD", "MT7921U"):
+        match = re.search(rf"^CONFIG_{name}=([ym])$", config, re.M)
+        options[name] = match[1] if match else "disabled" if source else "unknown"
+    return dict(release=release, config_source=source, options=options)
 
 
 def run(argv: list[str], timeout: int = 20) -> str:
@@ -113,7 +132,14 @@ def diagnostics() -> dict:
             if (dev / "wireless").exists() or (dev / "phy80211").exists():
                 driver = dev / "device/driver"
                 interfaces.append(dict(name=dev.name, driver=driver.resolve().name if driver.exists() else "unknown"))
-    return dict(interfaces=interfaces, monitor_advertised=monitor, capture_verified=False,
+    effective = 0
+    try:
+        status = Path("/proc/self/status").read_text()
+        effective = int(re.search(r"^CapEff:\s*([0-9a-fA-F]+)$", status, re.M)[1], 16)
+    except (OSError, TypeError, ValueError):
+        pass
+    return dict(interfaces=interfaces, monitor_advertised=monitor, capture_verified=False, lab=lab.status(),
+                privileges=dict(net_admin=bool(effective & (1 << 12)), net_raw=bool(effective & (1 << 13))),
                 injection_verified=False, display_verified=False, tools={name: bool(shutil.which(name))
                 for name in ("nmcli", "bluetoothctl", "gpsd", "tcpdump")},
-                iw_evidence=evidence, platform=os.uname().machine if hasattr(os, "uname") else os.name)
+                iw_evidence=evidence, kernel=kernel_support(), platform=os.uname().machine if hasattr(os, "uname") else os.name)

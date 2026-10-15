@@ -1,0 +1,14 @@
+[Unit]
+Description=Q-Marauder fixed lab action socket
+
+[Socket]
+ListenStream=/run/q-marauder-radio.sock
+SocketUser=root
+SocketGroup=arduino
+SocketMode=0660
+Accept=yes
+MaxConnections=4
+RemoveOnStop=yes
+
+[Install]
+WantedBy=sockets.target

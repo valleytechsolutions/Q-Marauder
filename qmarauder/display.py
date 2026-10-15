@@ -5,8 +5,10 @@ import re
 import shutil
 import subprocess
 import threading
+from .display_results import result_page
 
-ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop"}
+ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop", 14: "diagnostics",
+           15: "lab-recon", 16: "lab-injection", 17: "lab-deauth"}
 ORIENTATIONS = (0, 1, 2, 3)  # Software reflections: bit 0 = X, bit 1 = Y.
 
 
@@ -64,6 +66,7 @@ class DisplayLink:
         self.orientation_restore_attempted = False
         self.saved_orientation = None
         self.saved_theme = None
+        self.last_result = None
 
     def start(self):
         if not shutil.which("arduino-router-cli") or not Path("/var/run/arduino-router.sock").exists():
@@ -88,7 +91,7 @@ class DisplayLink:
             else:
                 try:
                     self.service.submit(ACTIONS[action])
-                    self.reply = "Task accepted. Results and exports are available in the USB console."
+                    self.reply = "Task accepted."
                 except (RuntimeError, ValueError) as exc:
                     self.reply = str(exc)[:120]
             # Keep the result until acknowledged, even across a transient RPC error.
@@ -130,19 +133,19 @@ class DisplayLink:
         if value == "unset":
             try:
                 saved = json.loads(self.theme_path.read_text(encoding="utf-8"))
-                if type(saved) is not int or saved not in (0, 1, 2):
+                if type(saved) is not int or saved not in (0, 1, 2, 3):
                     saved = 0
             except (OSError, ValueError, TypeError):
                 saved = 0
             self.call("qm.restoreTheme", saved)
             return
-        if value not in ("0", "1", "2"):
+        if value not in ("0", "1", "2", "3"):
             raise ValueError("Invalid display theme")
         value = int(value)
         if value != self.saved_theme:
             save_json(self.theme_path, value)
             self.saved_theme = value
-        self.status(theme=("BWM", "Marauder", "Cyber")[value])
+        self.status(theme=("BWM", "Marauder", "Biscuit Shop", "Valleytech")[value])
 
     def sync_calibration(self):
         if self.orientation is None:
@@ -169,6 +172,26 @@ class DisplayLink:
             self.saved = record
         self.status(touch="calibrated")
 
+    def sync_results(self, state):
+        request = self.call("qm.view")
+        if not isinstance(request, str) or not re.fullmatch(r"\d{1,10},[0-4],\d{1,4}", request):
+            raise ValueError("Invalid display view")
+        sequence, kind, page = map(int, request.split(","))
+        if kind == 0:
+            self.last_result = None
+            return
+        total, status, payload = result_page(state, kind, page)
+        current = (sequence, total, status, payload)
+        if current != self.last_result:
+            # Factory RouterBridge accepts only 256-byte RPC packets. Stage ASCII
+            # chunks, then commit the page atomically; never stream a whole page.
+            for offset in range(0, max(1, len(payload)), 128):
+                if self.call("qm.resultChunk", sequence, offset, payload[offset:offset + 128]) is not True:
+                    return
+            # A tap may change the page while a response is in flight; retry next cycle.
+            if self.call("qm.results", sequence, total, status) is True:
+                self.last_result = current
+
     def cycle(self):
         state = self.service.snapshot()
         if state["error"]:
@@ -190,6 +213,7 @@ class DisplayLink:
         if self.sync_orientation():
             self.sync_theme()
             self.sync_calibration()
+            self.sync_results(state)
         self.status(connected=True, error=None)
 
     def run(self):
@@ -199,7 +223,7 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/5;"):
+                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/6;"):
                         raise ConnectionError("Compatible portrait display firmware is required")
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)
@@ -209,6 +233,7 @@ class DisplayLink:
                     previous_uptime = uptime
                     self.restore_attempted = False
                     self.orientation_restore_attempted = False
+                    self.last_result = None
                     self.status(protocol=protocol, details=details)
                     linked = True
                 self.cycle()

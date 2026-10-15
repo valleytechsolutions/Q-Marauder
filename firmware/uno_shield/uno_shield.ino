@@ -13,7 +13,8 @@ struct Palette { const char *name; uint16_t bg,panel,accent,text,muted,watermark
 const Palette themes[]={
   {"BWM",0x0841,0x10A3,0xF926,0xEF7D,0xA514,0x2803},
   {"Marauder",0x0862,0x1905,0xC638,0xEF7D,0x9CD3,0x3003},
-  {"Cyber",0x0062,0x0905,0x2EDF,0xEF7D,0x94D3,0x0947}
+  {"Biscuit Shop",0x1081,0x2102,0xFCAF,0xF7BC,0xBDB5,0x49C7},
+  {"Valleytech",0x0842,0x1084,0x4E9F,0xEF7D,0xAD76,0x3186}
 };
 constexpr uint16_t GREEN=0x47E9, RED=0xF926;
 int theme=0;
@@ -33,6 +34,13 @@ int orientation=-1,orientationIndex=0;
 unsigned long orientationSince=0;
 uint32_t orientationReadback=0;
 bool splashPending=false,calibrationRestoreAllowed=false;
+struct ResultRow { String title,summary,detail; };
+ResultRow resultRows[4];
+int resultKind=0,resultPage=0,resultTotal=0,resultSequence=0;
+String resultStatus="Loading...",resultPayload="";
+String incomingResults="";
+int incomingSequence=-1;
+bool resultReady=false;
 
 void textStyle(uint8_t size) {
   lcd.setFont(size==2?&FreeSans9pt7b:nullptr);
@@ -54,6 +62,16 @@ void wrapped(int x,int y,String value,uint16_t color,int columns=23,int maxLines
     value=value.substring(n); value.trim();
   }
 }
+void fitted(int x,int y,int width,String value,uint16_t color) {
+  textStyle(2); int16_t left,top; uint16_t w,h;
+  lcd.getTextBounds(value,0,0,&left,&top,&w,&h);
+  if(w>width) {
+    do { value.remove(value.length()-1); lcd.getTextBounds(value+"...",0,0,&left,&top,&w,&h); }
+    while(value.length() && w>width);
+    value+="...";
+  }
+  label(x,y,value,color);
+}
 void logo(int x,int y,int width,const uint16_t *runs,size_t count) {
   uint32_t position=0;
   for(size_t i=0;i<count;++i) {
@@ -65,7 +83,47 @@ void logo(int x,int y,int width,const uint16_t *runs,size_t count) {
     }
   }
 }
-void watermark() {
+uint16_t backgroundBlend(uint16_t color,uint16_t base) {
+  // 25% source color, 75% surface color, in RGB565 channels.
+  return ((((color>>11)+3*(base>>11))/4)<<11)
+       | (((((color>>5)&63)+3*((base>>5)&63))/4)<<5)
+       | (((color&31)+3*(base&31))/4);
+}
+void imageBackground(int x,int y,int width,const uint16_t *runs,size_t count,int rows) {
+  const auto &p=themes[theme]; uint32_t position=0;
+  for(size_t i=0;i<count;++i) {
+    int remaining=runs[i*2]; uint16_t color=runs[i*2+1];
+    while(remaining) {
+      int col=position%width,n=min(remaining,width-col);
+      // Black pixels include transparency flattened by the build-time encoder.
+      if(color>0) {
+        int top=y+(position/width)*2;
+        // All card and image boundaries are even, so both output lines share a surface.
+        int relative=top-Layout::rowTop;
+        bool onCard=relative>=0 && relative<rows*Layout::rowStride
+                 && relative%Layout::rowStride<Layout::rowHeight;
+        lcd.fillRect(x+col*2,top,n*2,2,backgroundBlend(color,onCard?p.panel:p.bg));
+      }
+      remaining-=n; position+=n;
+    }
+  }
+}
+void watermark(int rows) {
+  if(theme==1) {
+    imageBackground(56,112,marauderBackgroundWidth,&marauderBackgroundRuns[0][0],
+                    sizeof(marauderBackgroundRuns)/4,rows);
+    return;
+  }
+  if(theme==2) {
+    imageBackground(32,132,biscuitBackgroundWidth,&biscuitBackgroundRuns[0][0],
+                    sizeof(biscuitBackgroundRuns)/4,rows);
+    return;
+  }
+  if(theme==3) {
+    imageBackground(40,124,valleytechBackgroundWidth,&valleytechBackgroundRuns[0][0],
+                    sizeof(valleytechBackgroundRuns)/4,rows);
+    return;
+  }
   // Render the supplied red emblem as a faint silhouette, behind the text.
   // Runtime tinting preserves the original artwork and needs no framebuffer.
   uint32_t position=0;
@@ -110,6 +168,8 @@ bool chooseOrientation(int value,bool restoring) {
 }
 bool isBack(const MenuEntry &entry) { return strcmp(entry.title,"Back")==0; }
 int countItems() { int n=0; for(const auto &e:menuEntries) if(e.menu==menu && !isBack(e))++n; return n; }
+int visibleCount() { return resultKind?(resultReady?resultTotal:0):countItems(); }
+int visiblePage() { return resultKind?resultPage:page; }
 const MenuEntry &itemAt(int index) {
   for(const auto &e:menuEntries) if(e.menu==menu && !isBack(e) && index--==0) return e;
   return menuEntries[0];
@@ -144,27 +204,43 @@ void render() {
   else {
     lcd.fillScreen(p.bg);
     label(14,13,"Q-MARAUDER",p.text,2); lcd.fillRect(14,57,292,2,p.accent);
-    bool detail=infoTitle.length()>0; int count=countItems(),first=page*Layout::pageSize;
+    bool detail=infoTitle.length()>0; int count=visibleCount(),viewPage=visiblePage(),first=viewPage*Layout::pageSize;
     if(!detail) {
       for(int row=0;row<Layout::pageSize && first+row<count;++row)
         lcd.fillRoundRect(10,Layout::rowTop+row*Layout::rowStride,300,Layout::rowHeight,6,p.panel);
     }
-    watermark();
+    watermark(detail?0:max(0,min(Layout::pageSize,count-first)));
     if(detail) {
       wrapped(16,76,infoTitle,p.accent,24,2);
       wrapped(20,145,infoText,p.text,23,11);
       footerButton(10,"BACK");
       centered(112,442,198,"TAP BACK TO RETURN",p.muted,1);
+    } else if(resultKind) {
+      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results"};
+      label(14,76,titles[resultKind],p.text);
+      label(14,100,resultStatus.substring(0,36),p.muted,1);
+      label(270,100,String(viewPage+1)+"/"+String(max(1,(count+3)/4)),p.accent,1);
+      for(int row=0;row<4 && first+row<count;++row) {
+        int y=Layout::rowTop+row*Layout::rowStride;
+        fitted(24,y+12,272,resultRows[row].title,p.text);
+        label(24,y+43,resultRows[row].summary,p.muted,1);
+      }
+      if(!count) {
+        centered(0,212,320,resultReady?"No results yet":"Loading results...",p.text);
+        centered(0,248,320,"BACK returns to scan controls",p.muted,1);
+      }
+      footerButton(10,"BACK"); footerButton(112,"PREV",viewPage>0);
+      footerButton(214,"NEXT",(viewPage+1)*4<count);
     } else {
       label(14,76,menuTitles[menu],p.text,2);
       label(14,100,"TAP AN ITEM TO OPEN",p.muted,1);
       label(270,100,String(page+1)+"/"+String((count+3)/4),p.accent,1);
       for(int row=0;row<Layout::pageSize && first+row<count;++row) {
         const auto &entry=itemAt(first+row); int y=Layout::rowTop+row*Layout::rowStride;
-        bool themeItem=entry.action>=8 && entry.action<=10;
+        bool themeItem=entry.action>=8 && entry.action<=11;
         if(themeItem) {
           label(24,y+12,entry.title,p.text,2);
-          const char *captions[]={"RED / GRAPHITE","CRIMSON / STEEL","ICE / MIDNIGHT"};
+          const char *captions[]={"RED / GRAPHITE","CRIMSON / STEEL","AMBER / ESPRESSO","SILVER / ELECTRIC BLUE"};
           label(24,y+43,captions[entry.action-8],p.muted,1);
           if(theme==entry.action-8) { lcd.drawRoundRect(10,y,300,64,6,p.accent); label(252,y+43,"ACTIVE",p.accent,1); }
         } else {
@@ -181,8 +257,14 @@ void render() {
   renderMs=millis()-start; dirty=false;
 }
 void openMenu(int target) { menu=target; page=0; infoTitle=""; infoText=""; dirty=true; }
+void requestResults(int kind,int targetPage=0) {
+  resultKind=kind; resultPage=targetPage; ++resultSequence;
+  resultReady=false; resultStatus="Loading..."; resultPayload="";
+  infoTitle=""; infoText=""; dirty=true;
+}
 void goBack() {
   if(infoTitle.length()) { infoTitle=""; infoText=""; dirty=true; return; }
+  if(resultKind) { resultKind=0; ++resultSequence; dirty=true; return; }
   if(menu==0) { themeReturnMenu=0; openMenu(14); return; }
   if(menu==14) { openMenu(themeReturnMenu); return; }
   for(const auto &e:menuEntries) if(e.menu==menu && isBack(e)) { openMenu(e.child); return; }
@@ -190,13 +272,17 @@ void goBack() {
 }
 void activate(int target) {
   if(target==0) { goBack(); return; }
-  if(target==1) { --page; dirty=true; return; }
-  if(target==2) { ++page; dirty=true; return; }
+  if(target==1) { if(resultKind) requestResults(resultKind,resultPage-1); else {--page; dirty=true;} return; }
+  if(target==2) { if(resultKind) requestResults(resultKind,resultPage+1); else {++page; dirty=true;} return; }
   if(target<10 || target>13) return;
+  if(resultKind) {
+    infoTitle=resultRows[target-10].title; infoText=resultRows[target-10].detail; dirty=true; return;
+  }
   const auto &entry=itemAt(page*4+target-10);
   if(entry.child>=0) { if(entry.child==14) themeReturnMenu=menu; openMenu(entry.child); }
-  else if(entry.action>=8 && entry.action<=10) { theme=entry.action-8; themeChosen=true; dirty=true; }
+  else if(entry.action>=8 && entry.action<=11) { theme=entry.action-8; themeChosen=true; dirty=true; }
   else if(entry.action==6) { touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=false; dirty=true; }
+  else if(entry.action==12 || entry.action==13) requestResults(entry.action-11);
   else {
     infoTitle=entry.title;
     if(entry.action==0) infoText="Port planned. This function has no UNO Q backend yet.";
@@ -204,7 +290,10 @@ void activate(int target) {
       infoText=String("Portrait touch console. WiFi discoveries: ")+wifiCount+". BLE discoveries: "+bleCount+". Sessions: "+sessionCount+". "+(hasGps?"GPS fix. ":"No GPS fix. ")+headline;
     else if(!connected) infoText="Linux service is offline. Reconnect to run this task.";
     else if(pendingAction) infoText="A request is pending. Please wait.";
-    else { pendingAction=entry.action; ++actionSequence; infoText="Request queued. "+headline; }
+    else {
+      pendingAction=entry.action; ++actionSequence; infoText="Request queued. "+headline;
+      if(entry.action==1 || entry.action==2 || entry.action>=14) requestResults(entry.action>=15?4:entry.action==14?3:entry.action);
+    }
     dirty=true;
   }
 }
@@ -218,7 +307,7 @@ void completeTap(int x,int y) {
     }
     dirty=true; return;
   }
-  int target=Layout::hit(touch.screenX(x,y),touch.screenY(x,y),countItems(),page,infoTitle.length()>0);
+  int target=Layout::hit(touch.screenX(x,y),touch.screenY(x,y),visibleCount(),visiblePage(),infoTitle.length()>0);
   if(target==pressedHit && target>=0) activate(target);
   else if(pressedHit>=0) dirty=true;
 }
@@ -239,15 +328,45 @@ void pollTouch() {
   if(++stable<3 || held) return;
   held=true; releasePending=true;
   if(touch.calibrated) {
-    pressedHit=Layout::hit(touch.screenX(pressX,pressY),touch.screenY(pressX,pressY),countItems(),page,infoTitle.length()>0);
+    pressedHit=Layout::hit(touch.screenX(pressX,pressY),touch.screenY(pressX,pressY),visibleCount(),visiblePage(),infoTitle.length()>0);
     if(pressedHit>=10) lcd.drawRoundRect(10,Layout::rowTop+(pressedHit-10)*Layout::rowStride,300,64,6,themes[theme].accent);
   }
 }
-String protocol() { return "qm-display/5;portrait;direct-touch;themes"; }
+String protocol() { return "qm-display/6;portrait;direct-touch;themes;results"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
       +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";page="+page
-      +";orientation="+orientation+";theme="+theme+";calibration_step="+calibrationStep;
+      +";orientation="+orientation+";theme="+theme+";calibration_step="+calibrationStep
+      +";result_kind="+resultKind+";result_page="+resultPage+";result_count="+resultTotal;
+}
+String view() { return String(resultSequence)+","+resultKind+","+resultPage; }
+bool resultChunk(int sequence,int offset,String chunk) {
+  if(!resultKind || sequence!=resultSequence || offset<0 || chunk.length()>128 || offset+chunk.length()>1047) return false;
+  if(offset==0) { incomingResults=""; incomingSequence=sequence; }
+  if(incomingSequence!=sequence || offset!=int(incomingResults.length())) return false;
+  incomingResults+=chunk; return true;
+}
+bool results(int sequence,int total,String status) {
+  if(incomingSequence!=sequence) return false;
+  String payload=incomingResults;
+  if(!resultKind || sequence!=resultSequence || total<0 || total>9999 || status.length()>36 || payload.length()>1047) return false;
+  if(resultPage>0 && resultPage*4>=total) { requestResults(resultKind,max(0,(total-1)/4)); return false; }
+  if(resultReady && resultTotal==total && resultStatus==status && resultPayload==payload) return true;
+  ResultRow parsed[4]; int start=0,rows=min(4,max(0,total-resultPage*4));
+  for(int row=0;row<rows;++row) {
+    int end=payload.indexOf('\n',start); if(end<0) end=payload.length();
+    String line=payload.substring(start,end);
+    int a=line.indexOf('\t'),b=line.indexOf('\t',a+1);
+    if(a<0 || b<0 || a>32 || b-a-1>46 || int(line.length())-b-1>180 || line.indexOf('\t',b+1)>=0) return false;
+    parsed[row]={line.substring(0,a),line.substring(a+1,b),line.substring(b+1)};
+    start=end+1;
+  }
+  if((rows==0 && payload.length()) || (rows>0 && start!=int(payload.length())+1)) return false;
+  for(int row=0;row<4;++row) resultRows[row]=parsed[row];
+  resultTotal=total; resultStatus=status; resultPayload=payload; resultReady=true;
+  // Keep detail text stable if discoveries reorder while the user is reading it.
+  if(!infoTitle.length()) dirty=true;
+  return true;
 }
 String panelRegisters() {
   return String("candidate=")+orientationIndex+";software_axes="+orientations[orientationIndex]
@@ -257,7 +376,7 @@ String getOrientation() { return orientation<0?"unset":String(orientation); }
 bool restoreOrientation(int value) { return orientation<0 && chooseOrientation(value,true); }
 String getTheme() { return themeChosen?String(theme):"unset"; }
 bool restoreTheme(int value) {
-  if(themeChosen || value<0 || value>2) return false;
+  if(themeChosen || value<0 || value>3) return false;
   theme=value; themeChosen=true; dirty=true; return true;
 }
 String calibration() {
@@ -271,7 +390,11 @@ bool restoreCalibration(int x0,int y0,int x1,int y1,int x2,int y2) {
 String action() { return String(actionSequence)+","+pendingAction; }
 bool acknowledge(int seq,String message) {
   if(seq!=actionSequence || message.length()>120) return false;
-  pendingAction=0; if(infoTitle.length()) { infoText=message; dirty=true; } return true;
+  pendingAction=0;
+  if(resultKind) {
+    if(message!="Task accepted.") { infoTitle="Task not started"; infoText=message; dirty=true; }
+  } else if(infoTitle.length()) { infoText=message; dirty=true; }
+  return true;
 }
 bool update(int wifi,int ble,int sessions,bool gps,String status) {
   if(wifi<0 || wifi>9999 || ble<0 || ble>9999 || sessions<0 || sessions>9999 || status.length()>68) return false;
@@ -289,6 +412,8 @@ void setup() {
   Bridge.provide_safe("qm.calibration",calibration); Bridge.provide_safe("qm.restoreCalibration",restoreCalibration);
   Bridge.provide_safe("qm.orientation",getOrientation); Bridge.provide_safe("qm.restoreOrientation",restoreOrientation);
   Bridge.provide_safe("qm.theme",getTheme); Bridge.provide_safe("qm.restoreTheme",restoreTheme);
+  Bridge.provide_safe("qm.view",view); Bridge.provide_safe("qm.results",results);
+  Bridge.provide_safe("qm.resultChunk",resultChunk);
 }
 void loop() {
   if(connected && millis()-lastUpdate>15000) { connected=false; headline="Linux offline / data stale"; statusDirty=true; }

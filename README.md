@@ -7,8 +7,7 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
 > Runs on the UNO Q's existing Debian installation. The native ILI9486 display now renders.
-> Upright portrait is confirmed on the test shield. Direct-touch menus and themes
-> are in validation; see [display setup](docs/DISPLAY.md) for the remaining checks.
+> Upright portrait, direct touch and theme switching are confirmed on the test shield; see [display setup](docs/DISPLAY.md) for the remaining checks.
 
 ## Works today
 
@@ -20,8 +19,12 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  15 menu groups, and 137 selections. Unported functions are explicitly marked planned.
-- BWM, Marauder, and Cyber TFT themes with a faint BWM background emblem.
+  15 menu groups, and 147 selections. Unported functions are explicitly marked planned.
+- BWM, Marauder, Biscuit Shop and Valleytech TFT themes with their supplied background artwork.
+- Native Wi-Fi/BLE result pages with tap-to-open details.
+- Optional bounded lab recon, injection-check and deauth backends, with local report
+  history and a separate privileged worker. Stock-radio capture/injection tests have
+  not succeeded; these RF functions are not verified. See [lab setup](docs/LAB.md).
 
 ## Quick start on the UNO Q
 
@@ -64,10 +67,13 @@ and exchanges small status/action messages with the Linux application. Follow
 and the portrait TFT are separate renderers sharing the same radio worker.
 
 The connected development board reports `ath10k_snoc`, 2.4/5 GHz channels, and monitor
-mode support. That is a capability advertisement, **not** a successful capture or
-injection test. Advanced Marauder functions remain individually tracked in
+mode support. Live monitor tests returned zero packets; ten directed probe
+submissions returned no responses. Capture and injection remain **unverified**.
+Advanced Marauder functions remain individually tracked in
 [the parity plan](docs/PARITY.md) and the Modules view. A compatible external radio
-may be necessary if on-board firmware cannot satisfy those tests.
+is the next validation path. The detected PC-connected MT7921 adapter needs both a
+Linux connection path and drivers missing from this board's current kernel. See
+[USB radio support](docs/USB-RADIO.md).
 
 ## Development
 

@@ -1,6 +1,6 @@
 [Unit]
 Description=Q-Marauder wireless field console
-After=NetworkManager.service bluetooth.service
+After=NetworkManager.service bluetooth.service arduino-router.service
 Wants=NetworkManager.service bluetooth.service
 
 [Service]

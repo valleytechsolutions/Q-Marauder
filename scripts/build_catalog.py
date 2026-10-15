@@ -66,5 +66,12 @@ for name in ("Dragon Detector", "Axeoff", "Squachwach"):
     entries.append(dict(id=name.lower().replace(" ", "-"),name=name,category="Future detectors",status="planned",
                         detail="Integration slot reserved. Original repository, license, protocol, and test data are needed.",source=None))
 root = Path(__file__).resolve().parents[1]
+for entry in entries:
+    if entry["id"] in ("packet-count", "deauth-sniff", "scan-stations"):
+        entry.update(status="partial", detail="Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.")
+    elif entry["id"] == "deauth-flood":
+        entry.update(status="partial", detail="Bounded 3-frame lab test implemented behind a configured AP allowlist and recent directed-probe response gate. Not a flood; RF injection and client effect remain unvalidated on UNO Q.")
+    elif entry["id"] in ("settings", "menu-navigation"):
+        entry.update(status="partial", detail="Owner confirmed portrait direct-touch menus and theme switching. Four artwork themes, saved affine touch calibration and native result pages exist; brightness control is pending.")
 (root / "qmarauder/features.json").write_text(json.dumps(entries, indent=2)+"\n", encoding="utf-8")
 print(f"Wrote {len(entries)} capability records")

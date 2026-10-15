@@ -38,7 +38,10 @@ in your own board terminal, not in a chat or source file.
 
 The service is unprivileged, uses a read-only home mount except its data directory,
 and starts no radio job on boot. This unit has not yet been enabled on the original
-development board because administrative authentication is required.
+development board; the working source preview still needs manual startup after reboot.
+The optional [radio helper](LAB.md) has a separate socket-activated service. Installing
+it does not enable console boot startup. Its socket works with the console unit's
+existing no-new-privileges restriction; do not remove that restriction to enable sudo.
 
 Check `systemctl status q-marauder` and `journalctl -u q-marauder`. Use USB forwarding
 or SSH tunneling to view the UI. Do not expose the unauthenticated console on a LAN.

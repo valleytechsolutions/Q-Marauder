@@ -1,0 +1,24 @@
+[Unit]
+Description=Q-Marauder bounded lab radio job
+
+[Service]
+Type=exec
+ExecStart=/usr/local/libexec/q-marauder-radio --socket
+StandardInput=socket
+StandardOutput=inherit
+StandardError=journal
+RuntimeMaxSec=40
+TimeoutStopSec=5
+UMask=0077
+StateDirectory=q-marauder-radio
+StateDirectoryMode=0700
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=CAP_NET_ADMIN CAP_NET_RAW
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK AF_PACKET

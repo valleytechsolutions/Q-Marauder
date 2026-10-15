@@ -11,22 +11,25 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 | MCU core | arduino:zephyr 0.11.0-rc5; FQBN arduino:zephyr:unoq |
 | Wi-Fi | wlan0, ath10k_snoc / ath10k_core / mac80211 |
 | Bands | 2.4 and 5 GHz frequencies advertised by phy0 |
-| Monitor | Advertised by iw phy; capture not exercised |
-| Injection | Not tested; not inferred from monitor support |
+| Monitor | Advertised, but shared and dedicated monitor tests returned zero receive packets |
+| Injection | Ten directed probes submitted, zero responses; RF injection unverified |
 | Bluetooth | BlueZ controller powered; central/peripheral roles advertised |
 | Display | Red 3.5-inch parallel UNO shield; register D3 reports 0x9486; native GUI renders |
-| Touch | XP=D6, XM=A2, YP=A1, YM=D7; direct-touch three-target calibration under validation |
-| Orientation | Owner confirmed upright/readable portrait; software X reflection, profile 1 |
+| Touch | XP=D6, XM=A2, YP=A1, YM=D7; owner confirmed direct touch after three-target calibration |
+| Orientation | Owner confirmed upright/readable portrait; current saved software-reflection profile 2 |
 | GPS | No receiver/fix validated |
-| Privilege | ADB user arduino; sudo requires the user's password |
-| Boot service | No systemd user session/linger on this board; boot enablement needs admin setup |
+| Privilege | Unprivileged console; fixed-action root radio socket installed and tested |
+| Boot service | Radio socket enabled; console boot service not enabled, source preview remains in use |
+| PC USB radio | 0e8d:7961 (MT7921 family), Wi-Fi driver error on Windows; not attached to board |
+| USB radio kernel support | MT7921U and USB/IP disabled in installed UNO Q kernel |
 
 ## Completed acceptance checks
 
 - Actual Wi-Fi discovery returned access points in both bands (18 in the first scan).
 - BlueZ LE discovery returned 28 devices in its first bounded scan window.
 - Repeated survey collection and stop completed; records survived a process restart.
-- All 32 automated Python checks passed on Windows and the board, including
+- All 55 automated Python checks passed on the board; Windows passed 54 and skipped
+  the Linux-specific file-lock check. Coverage includes
   orientation/theme persistence and rejection of legacy or invalid touch calibration.
 - Native C++ checks passed on the board for affine calibration with normal,
   reversed, and swapped axes, plus row/button boundaries and disabled page controls.
@@ -38,11 +41,25 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 - Fresh verification found 16 Wi-Fi APs across 2.4/5 GHz and 28 BLE devices;
   the hardware is functional for the implemented discovery backends.
 - The source installer and USB forwarding were exercised on this board.
-- These results do not validate cold boot, GPS, raw capture, injection, or boot service.
+- Protocol-6 firmware compiled at 115,160 bytes of program storage and 3,500 bytes
+  of static globals. Saved orientation, two-axis touch calibration and theme restored
+  after upload. The owner confirmed Wi-Fi result rows and device details on the TFT.
+- Fresh discovery returned 17 Wi-Fi APs across both bands and 26 BLE devices;
+  a later native Wi-Fi scan returned 20 APs. Counts vary with nearby activity.
+- Factory bridge RPCs reject oversized requests; 128-character result chunks
+  resolved the initial empty-results failure. Complete pages commit atomically.
+- Later source-preview verification returned 16 APs across both bands and 19 BLE
+  devices; saved orientation, affine calibration and Valleytech theme matched RPC.
+- Installed the fixed-action socket worker and verified configuration access without
+  sudo from the application. Lab reports now persist across application restarts.
+- These results do not validate cold boot, GPS, raw capture, injection, or console boot startup.
 
-`iw` was absent. For read-only probing, Debian's arm64 `iw` package was downloaded
+`iw` was initially absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This
-does not change interface mode, transmit frames, or establish capture capability.
+did not establish capture capability. The later authorized admin setup installed
+the system package and bounded lab helper. Monitor tuning was accepted in a
+dedicated test but still returned zero packets; normal Wi-Fi connectivity was restored.
+See [lab evidence](LAB.md) and [external-radio requirements](USB-RADIO.md).
 
 Official references:
 

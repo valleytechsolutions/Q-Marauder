@@ -10,11 +10,25 @@ from http.server import ThreadingHTTPServer
 from unittest.mock import patch
 from qmarauder.gps import validate_fix
 from qmarauder.radio import parse_wifi, parse_ble, split_nmcli
+from qmarauder.radio import kernel_support
 from qmarauder.storage import Store
 from qmarauder.server import handler_for, local_authority
 
 
 class ParsingTests(unittest.TestCase):
+    def test_missing_kernel_config_is_unknown_not_supported(self):
+        with patch("qmarauder.radio.Path.read_bytes", side_effect=FileNotFoundError), patch("qmarauder.radio.Path.read_text", side_effect=FileNotFoundError):
+            result = kernel_support()
+        self.assertIsNone(result["config_source"])
+        self.assertEqual(set(result["options"].values()), {"unknown"})
+
+    def test_kernel_config_distinguishes_usb_from_pcie_driver(self):
+        import gzip
+        config = b'CONFIG_MT7921E=m\n# CONFIG_MT7921U is not set\nCONFIG_USBIP_CORE=m\nCONFIG_USBIP_VHCI_HCD=y\n'
+        with patch("qmarauder.radio.Path.read_bytes", return_value=gzip.compress(config)):
+            result = kernel_support()["options"]
+        self.assertEqual(result, {"USBIP_CORE": "m", "USBIP_VHCI_HCD": "y", "MT7921U": "disabled"})
+
     def test_nmcli_escaping(self):
         self.assertEqual(split_nmcli(r"a\:b:c\\d"), ["a:b", "c\\d"])
 

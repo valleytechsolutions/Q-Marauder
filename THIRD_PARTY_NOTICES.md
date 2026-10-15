@@ -19,8 +19,9 @@ Preserve it whenever upstream code is incorporated in later ports.
 
 ## Brand assets
 
-`qmarauder/web/assets/bwm.png` and `marauder.webp` were supplied by the project owner
-for the requested startup branding and are included unchanged. They are excluded
+`qmarauder/web/assets/bwm.png`, `marauder.webp`, `biscuit.png`, and `valleytech.png`
+were supplied by the project owner for startup branding and theme backgrounds,
+and are included unchanged. They are excluded
 from this project's MIT grant. Their respective owners retain rights to the marks
 and artwork; this repository does not grant trademark rights or imply endorsement.
 

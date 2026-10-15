@@ -5,7 +5,7 @@ import queue
 import threading
 import time
 from pathlib import Path
-from . import __version__, gps, radio
+from . import __version__, gps, radio, lab
 from .storage import Store, utcnow
 
 
@@ -16,7 +16,8 @@ class Service:
         self.jobs = queue.Queue(maxsize=1)
         self.shutdown_event = threading.Event()
         self.state = dict(version=__version__, wifi=[], ble=[], gps=None, busy=None,
-                          error=None, updated=None, mission=None, stopping=False,
+                          error=None, updated=None, mission=None, stopping=False, lab=self.store.latest_lab(),
+                          scan_status={"wifi": {"state": "idle"}, "ble": {"state": "idle"}},
                           display=dict(connected=False, touch="uncalibrated", error=None),
                           capabilities=radio.diagnostics())
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
@@ -33,7 +34,7 @@ class Service:
         return state
 
     def submit(self, action):
-        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop"):
+        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", *lab.ACTIONS):
             raise ValueError("Unknown action")
         with self.lock:
             if action == "mission-stop":
@@ -43,6 +44,10 @@ class Service:
             if self.state["busy"] or self.state["mission"]:
                 raise RuntimeError("A radio task is already running. Stop the survey before starting another task.")
             self.state.update(busy=action, error=None)
+            if action in ("wifi", "ble"):
+                self.state["scan_status"][action] = {"state": "running"}
+            if action in lab.ACTIONS:
+                self.state["lab"] = {"action": action, "state": "running"}
             self.jobs.put_nowait(action)
 
     def _scan(self, kind, session=None):
@@ -52,6 +57,7 @@ class Service:
             self.store.append(session, rows, fix)
         with self.lock:
             self.state.update({kind: rows, "gps": fix, "updated": utcnow()})
+            self.state["scan_status"][kind] = {"state": "done", "updated": utcnow()}
 
     def _work(self):
         next_scan = 0.0
@@ -91,12 +97,28 @@ class Service:
                     capabilities = radio.diagnostics()
                     with self.lock:
                         self.state["capabilities"] = capabilities
+                elif action in lab.ACTIONS:
+                    session = self.store.start(action)
+                    report = lab.call(lab.ACTIONS[action])
+                    report = {**report, "kind": "lab", "state": "done", "updated": utcnow()}
+                    self.store.append(session, [report])
+                    with self.lock:
+                        self.state["lab"] = report
                 else:
                     session = self.store.start(action)
                     self._scan(action, session)
             except Exception as exc:
                 with self.lock:
                     self.state["error"] = str(exc)[:500]
+                    if action in ("wifi", "ble"):
+                        self.state["scan_status"][action] = {"state": "error", "error": str(exc)[:300]}
+                    if action in lab.ACTIONS:
+                        self.state["lab"] = {"kind": "lab", "state": "error", "action": lab.ACTIONS[action], "error": str(exc)[:300], "updated": utcnow()}
+                        if session:
+                            try:
+                                self.store.append(session, [self.state["lab"]])
+                            except Exception:
+                                self.state["lab"]["error"] += " (Report could not be saved.)"
             finally:
                 if session:
                     self.store.stop(session)

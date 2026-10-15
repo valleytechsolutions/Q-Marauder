@@ -59,8 +59,8 @@
     "id": "scan-stations",
     "name": "Station scan",
     "category": "Wi-Fi capture",
-    "status": "planned",
-    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "status": "partial",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-stations"
   },
   {
@@ -99,8 +99,8 @@
     "id": "deauth-sniff",
     "name": "Deauthentication detection",
     "category": "Wi-Fi capture",
-    "status": "planned",
-    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "status": "partial",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-sniff"
   },
   {
@@ -115,8 +115,8 @@
     "id": "packet-count",
     "name": "Packet counter",
     "category": "Wi-Fi capture",
-    "status": "planned",
-    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "status": "partial",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/packet-count"
   },
   {
@@ -243,8 +243,8 @@
     "id": "deauth-flood",
     "name": "Deauthentication test",
     "category": "Active Wi-Fi tests",
-    "status": "planned",
-    "detail": "Not implemented. Raw transmission needs separate driver/firmware validation, explicit target scope, duration limits, and a stop control.",
+    "status": "partial",
+    "detail": "Bounded 3-frame lab test implemented behind a configured AP allowlist and recent directed-probe response gate. Not a flood; RF injection and client effect remain unvalidated on UNO Q.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-flood"
   },
   {
@@ -595,8 +595,8 @@
     "id": "settings",
     "name": "Settings",
     "category": "Device",
-    "status": "planned",
-    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "status": "partial",
+    "detail": "Owner confirmed portrait direct-touch menus and theme switching. Four artwork themes, saved affine touch calibration and native result pages exist; brightness control is pending.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/settings"
   },
   {
@@ -611,8 +611,8 @@
     "id": "menu-navigation",
     "name": "Touch UI / brightness",
     "category": "Device",
-    "status": "planned",
-    "detail": "Requires Linux-specific storage/interface mapping and validated display hardware; ESP32 partitions are not portable.",
+    "status": "partial",
+    "detail": "Owner confirmed portrait direct-touch menus and theme switching. Four artwork themes, saved affine touch calibration and native result pages exist; brightness control is pending.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/menu-navigation"
   },
   {

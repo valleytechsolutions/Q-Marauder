@@ -64,14 +64,24 @@ function renderDiagnostics() {
   const c=state.capabilities;
   const entries=[
     ["RADIO DRIVER",c.interfaces.map(x=>x.driver).join(", ")||"Not detected",c.interfaces.map(x=>x.name).join(", ")||"Run on the UNO Q"],
-    ["MONITOR MODE",c.monitor_advertised===null?"Unknown":c.monitor_advertised?"Advertised":"Not advertised","Driver report; capture still needs a hardware test"],
-    ["PACKET INJECTION","Not verified","No injection backend in this release"],
-    ["TFT DISPLAY",state.display?.connected?"Native portrait UI":"Not connected",state.display?.error || (state.display?.connected?"320 x 480 / Up, Select, Down / "+state.display.touch:"Install the UNO shield MCU target")],
+    ["MONITOR MODE",c.monitor_advertised===null?"Unknown":c.monitor_advertised?"Advertised":"Not advertised","Advertisement does not prove packet reception"],
+    ["PACKET INJECTION","Not verified","Needs a successful directed-response test; see the lab report"],
+    ["TFT DISPLAY",state.display?.connected?"Native portrait UI":"Not connected",state.display?.error || (state.display?.connected?"320 x 480 / direct touch / "+state.display.touch:"Install the UNO shield MCU target")],
     ["GPS RECEIVER",state.gps?"Fresh fix":"No fix","Local gpsd · coordinates never fabricated"],
-    ["PLATFORM",c.platform,"Debian service + separate MCU display firmware"]
+    ["PLATFORM",c.platform,"Debian service + separate MCU display firmware"],
+    ["USB RADIO DRIVER",c.kernel?.options?.MT7921U === "disabled" ? "MT7921 USB missing" : ["y","m"].includes(c.kernel?.options?.MT7921U) ? "MT7921 USB configured" : "Not measured","A PC-connected adapter needs forwarding support on both systems"],
+    ["LAB HELPER",c.lab?.configured ? "Configured" : "Setup required",c.lab?.reason || "Fixed, bounded jobs for your configured lab AP"]
   ];
   $("diagnostics").replaceChildren(...entries.map(([label,value,note])=>{const box=elem("article",undefined,"diagnostic");box.append(elem("label",label),elem("strong",value),elem("p",note));return box;}));
   $("iw-evidence").textContent=c.iw_evidence;
+}
+function renderLab() {
+  const report=state.lab;
+  $("lab-status").textContent=report?.state === "running" ? "RUNNING" : report?.state === "error" ? "TEST ERROR" : report ? "LAST TEST" : "NO TEST YET";
+  $("lab-outcome").textContent=report?.error || report?.note || (report?.state === "running" ? "Test in progress. The result will appear here." : "Tests use the configured lab access point. Results stay on this device.");
+  const values=report?.state === "done" ? [["RECEIVE PACKETS",report.received ?? 0],["LAB FRAMES",report.frames ?? 0],["SUBMITTED",report.sent ?? 0],["DIRECTED REPLIES",report.probe_responses ?? 0]] : [];
+  $("lab-metrics").replaceChildren(...values.map(([label,value])=>{const card=elem("div");card.append(elem("small",label),elem("strong",value));return card;}));
+  document.querySelectorAll("[data-action^='lab-']").forEach(button=>{button.disabled ||= !state.capabilities.lab?.configured;});
 }
 function render() {
   $("ap-count").textContent=state.wifi.length || (state.updated ? "0":"—");
@@ -88,7 +98,7 @@ function render() {
   $("mission-status").textContent=state.stopping?"STOPPING":state.mission?"RECORDING":"STANDBY";
   document.querySelectorAll("[data-action]").forEach(button=>{button.disabled=button.dataset.action==="mission-stop"?state.stopping:!!(state.busy||state.mission);});
   showError(state.error);
-  renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();
+  renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
 }
 async function refresh() {
   try {

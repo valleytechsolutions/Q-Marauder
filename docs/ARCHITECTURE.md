@@ -25,8 +25,9 @@ after the bounded in-flight operation returns (up to about 32 seconds for Wi-Fi)
 ## Display architecture
 
 `firmware/uno_shield` renders locally on the STM32 at 320 x 480 in portrait, with
-fonts, palette, and converted logo assets in flash. Linux sends bounded counts and
-status through Arduino RouterBridge. The MCU sends sequenced, allowlisted action
+fonts, palette, and converted logo assets in flash. Linux sends bounded counts, status and paginated result metadata through Arduino
+RouterBridge. Result payloads are staged in 128-character ASCII chunks under the
+factory bridge's 256-byte RPC limit, then committed atomically. The MCU sends sequenced, allowlisted action
 requests back; acknowledgements can retry without starting the same job again.
 A full RGB565 frame is 307,200 bytes; continuously streaming complete frames through
 a serial RPC transport is a poor default. Measure the actual bridge throughput
@@ -46,16 +47,23 @@ no shield pins. It is a protocol smoke-test target, not a TFT firmware implement
 
 ## Privileged backends
 
-Keep the UI/storage process unprivileged. Future monitor setup/capture should use a
-small broker with fixed operations and independent capability checks. Never grant a
+The UI/storage process remains unprivileged. An optional root-owned helper offers
+fixed lab recon, injection check and three-frame deauthentication operations.
+Its root-owned profile pins an interface, SSID and BSSID allowlist; it does not load
+user-writable Python modules. A group-restricted Unix socket starts one time-limited
+worker per fixed action; a global lock serializes these with the legacy sudo entry
+point. The console keeps its no-new-privileges restriction. See [lab setup](LAB.md). Never grant a
 web service arbitrary sudo, root shell, or Docker access. Validate channel handling,
 management-link coexistence, packet format, and capture loss on each hardware/driver
 combination. Monitor advertisement is insufficient evidence for injection support.
 
 Active-test jobs need explicit target parameters, duration/rate bounds, cancellation,
 audit records, and the same capability checks used by the UI. Unsupported jobs should
-return an explanation, not be silently emulated. There are no active-test endpoints
-in this alpha.
+return an explanation, not be silently emulated. The new bounded lab endpoints
+require admin setup and live hardware validation. Local lab reports, including
+errors and unknown interrupted outcomes, persist with session exports. Interactive
+cancellation and tamper-resistant audit history remain future work; helper jobs have
+fixed limits and a watchdog. Transmit jobs reject an unverified monitor frequency.
 
 ## Detector packs
 

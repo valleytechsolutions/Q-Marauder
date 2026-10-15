@@ -40,16 +40,20 @@ must be tested separately before publishing a universal firmware binary.
   are inactive at the ends; gaps between targets do not activate neighboring items.
 - On the main menu the left footer button opens **Themes**. Details have a Back button.
 - FreeSans menu text, wrapped long labels, and large targets support finger input.
-- 15 groups / 137 selections follow Marauder's main menu branches, including Wi-Fi
+- 15 groups / 147 selections follow Marauder's main menu branches, including Wi-Fi
   Sniffers, Scanners, Attacks and General; Bluetooth Sniffers and Attacks; GPS and Device.
 - Unported leaves show **Port planned**. Menu presence does not mean backend parity.
 - Scan APs, BLE discovery, survey start and stop route to the existing Linux worker.
-  Results/exports remain in the USB console; native result-list screens are pending.
+  Wi-Fi/BLE results now appear in paginated native lists with tap-to-open details.
+  Exports remain in the USB console. Scan failures remain visible; old results are
+  labeled while a new scan runs. Lab controls are described in [LAB.md](LAB.md).
 - Supplied BWM and Marauder artwork is encoded for the physical startup screen.
   This is MCU application startup, not a replacement Linux bootloader screen.
-- **BWM** (red/graphite), **Marauder** (crimson/steel), and **Cyber** (cyan/midnight)
-  themes apply immediately and persist through Linux. A faint supplied BWM emblem
-  sits behind the menu text. Themes are also under Device / Settings / Themes.
+- **BWM** (red/graphite), **Marauder** (crimson/steel), and **Biscuit Shop** (amber/espresso) and **Valleytech** (silver/blue)
+  themes apply immediately and persist through Linux. Each uses its supplied artwork
+  behind the text; Marauder uses the skull/red arrows. Themes are also under Device /
+  Settings / Themes. The full source images remain unchanged; generated MCU assets
+  fit the menu body, preserve transparency, and render at subdued brightness.
 
 First use starts with four portrait orientation candidates. Hold the USB connector
 at the bottom and wait for upright, normally readable text, then tap anywhere.
@@ -78,17 +82,22 @@ verify a touch pinout. A different touch wiring requires a separate profile.
 On 2026-10-15 the owner confirmed upright, readable text with software profile `1`
 (X reflection, no Y reflection). That orientation and the earlier calibration
 restored after an MCU-only reset with Linux still running. The owner subsequently
-requested direct touch because the three-zone navigation was confusing. The new
-direct-touch build, themes, and two-axis calibration require physical acceptance;
-orientation remains unchanged. An orientation change starts fresh touch calibration.
+requested direct touch because the three-zone navigation was confusing. The owner then confirmed direct taps and theme switching work.
+The two-axis calibration and theme persist through the Linux bridge. An orientation
+change starts fresh touch calibration. Saved orientation, two-axis calibration and
+Valleytech theme restored after the protocol-6 upload with the bridge running.
+The owner confirmed native Wi-Fi network rows and tap-to-open details after the
+chunked-transfer fix; controller diagnostics also reported a populated result page.
 
 ## Linux connection
 
 `qmarauder.display` uses the installed `arduino-router-cli` against the local router
-socket. It sends bounded counts/status and polls a four-action allowlist. It does
+socket. It sends bounded counts/status and polls a fixed action allowlist. It does
 not stream framebuffers or run shell command strings from the MCU. The TFT shows
-an offline/stale state after 15 seconds without updates. Protocol `qm-display/5`
-adds direct touch and themes. The Linux service saves `display-orientation.json`,
+an offline/stale state after 15 seconds without updates. Protocol `qm-display/6`
+adds paginated results. The factory bridge has a 256-byte RPC limit: result pages
+are staged in 128-character ASCII chunks and committed only when complete. Stale
+page replies are rejected; unchanged results are not retransmitted. The Linux service saves `display-orientation.json`,
 `display-theme.json`, and `touch-calibration.json` under `~/.local/share/q-marauder`. Calibration records
 include the orientation and restore only when it matches; old records without an
 orientation are intentionally ignored. The MCU also rejects saved calibration
@@ -101,7 +110,7 @@ socket permissions or replace the router service to make communication work.
 
 ## Remaining verification
 
-Direct-touch accuracy, theme/logo appearance, cold boot,
+Native BLE result-page acceptance, new theme artwork appearance, cold boot,
 long-running touch reliability, and modern-core builds must be recorded before a
 general hardware release. The Linux service currently needs manual start or the
 documented systemd setup. The MCU firmware remains flashed, but restoring its saved

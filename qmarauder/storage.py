@@ -72,6 +72,19 @@ class Store:
                 count(o.lat) AS geotagged FROM sessions s LEFT JOIN observations o ON s.id=o.session
                 GROUP BY s.id ORDER BY s.started DESC LIMIT 100""")]
 
+    def latest_lab(self):
+        with self.connect() as db:
+            row = db.execute("""SELECT s.mode, o.payload FROM sessions s
+                LEFT JOIN observations o ON o.session=s.id
+                WHERE s.mode IN ('lab-recon', 'lab-injection', 'lab-deauth')
+                ORDER BY s.started DESC, o.id DESC LIMIT 1""").fetchone()
+        if row is None:
+            return None
+        if row["payload"]:
+            return json.loads(row["payload"])
+        return {"state": "error", "action": row["mode"],
+                "error": "Previous radio job was interrupted; outcome unknown. It was not restarted."}
+
     def export(self, identity, fmt):
         with self.connect() as db:
             if not db.execute("SELECT 1 FROM sessions WHERE id=?", (identity,)).fetchone():
@@ -81,7 +94,9 @@ class Store:
         if fmt == "json":
             return json.dumps(rows, ensure_ascii=False).encode()
         output = io.StringIO(newline="")
-        fields = ["time", "kind", "address", "name", "channel", "frequency", "signal", "rssi", "security", "lat", "lon"]
+        fields = ["time", "kind", "address", "name", "channel", "frequency", "signal", "rssi", "security", "lat", "lon",
+                  "action", "state", "interface", "bssid", "monitor_frequency", "received", "decoded", "frames",
+                  "beacons", "deauth_seen", "stations", "sent", "probe_responses", "capture_observed", "injection_observed", "note", "error"]
         writer = csv.DictWriter(output, fields, extrasaction="ignore")
         writer.writeheader()
         for row in rows:

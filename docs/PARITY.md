@@ -20,6 +20,13 @@ have already been mapped or that every wiki URL is a standalone page.
 
 ## Compatibility decisions
 
+The optional lab helper now provides an eight-second metadata recon job, ten
+directed injection probes and a three-frame deauthentication test. These are
+implemented subsets with automated tests. Admin setup is complete on the test board,
+but live stock-radio tests returned no monitor packets or directed responses.
+They do not establish all Marauder recon/attack behavior. See [lab setup](LAB.md).
+Wardriving expansion is deferred while scanning and lab radio work are validated.
+
 - Scan APs maps to NetworkManager. Scanning stations and sniffing frames need monitor capture.
 - Channel chart currently counts visible APs; it is not packet/channel utilization.
 - Raw capture and handshake analysis must consume real captures and retain provenance.

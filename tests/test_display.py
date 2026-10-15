@@ -116,8 +116,8 @@ class DisplayTests(unittest.TestCase):
         for _ in menus:
             reachable |= {int(child) for menu,_,child,_ in entries if int(menu) in reachable and int(child)>=0}
         self.assertEqual(reachable,menus)
-        self.assertEqual(len(entries),137)
-        self.assertTrue({"BWM","Marauder","Cyber"}.issubset({entry[1] for entry in entries}))
+        self.assertEqual(len(entries),147)
+        self.assertTrue({"BWM","Marauder","Biscuit Shop","Valleytech"}.issubset({entry[1] for entry in entries}))
         for menu,title,child,action in entries:
             if "Attack" in title or "Flood" in title or "Spam" in title:
                 self.assertEqual(int(action),0)

@@ -1,7 +1,7 @@
 # Native display firmware
 
 `uno_shield` renders the real ILI9486 UNO shield in portrait, with a startup logo
-screen, Marauder-style menu hierarchy, direct-touch rows, and BWM/Marauder/Cyber themes. It uses
+screen, Marauder-style menu hierarchy, direct-touch rows, and BWM/Marauder/Biscuit Shop/Valleytech themes. It uses
 the UNO Q STM32, with radio work and storage on Debian. See [hardware evidence and
 touch validation](../docs/DISPLAY.md) before using another shield.
 
@@ -16,7 +16,7 @@ It refuses an untested core version. It does not reinstall Debian or replace the
 matching Zephyr runtime. The backup stays local and must never be published.
 
 Keep the Linux application and display firmware from the same revision (the native
-bridge uses protocol 5). First select the upright, readable portrait layout while
+bridge uses protocol 6). First select the upright, readable portrait layout while
 holding USB at the bottom, then press/release the three calibration circles.
 The Linux service saves orientation, two-axis calibration, and theme for subsequent
 MCU starts. Vertical-only calibrations from older builds are not reused.
