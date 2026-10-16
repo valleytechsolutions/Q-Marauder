@@ -6,6 +6,7 @@ session archive. This is an alpha with a documented feature support matrix.
 
 | Start here | Guide |
 | --- | --- |
+| See the UI and upstream acknowledgments | [Gallery and credits](https://github.com/valleytechsolutions/Q-Marauder/wiki/Gallery-and-credits) |
 | Assemble and install | [Installation](https://github.com/valleytechsolutions/Q-Marauder/wiki/Installation) |
 | Use the handheld | [Portrait touchscreen](https://github.com/valleytechsolutions/Q-Marauder/wiki/Portrait-touchscreen) |
 | Scan, pair and inspect | [BLE Lab](https://github.com/valleytechsolutions/Q-Marauder/wiki/BLE-Lab) |

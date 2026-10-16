@@ -1,0 +1,47 @@
+name: Bug report
+description: Report a reproducible problem with installation, the console or TFT.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: "Please omit passwords, pairing codes, private addresses, locations and unrelated network observations."
+  - type: input
+    id: version
+    attributes:
+      label: Release or commit
+      placeholder: "For example: v0.1.0-alpha.8"
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Hardware and installation
+      description: Board, TFT shield/controller, radio adapter, host OS and installation method.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where does the problem occur?
+      options:
+        - Portrait TFT
+        - Browser console
+        - Installer or recovery
+        - Radio or BLE backend
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Actual result and relevant error text
+      description: Add a cropped screenshot or panel photograph if useful. Remove private information first.
+    validations:
+      required: true

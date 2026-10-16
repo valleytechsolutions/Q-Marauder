@@ -1,6 +1,7 @@
 **Q-Marauder**
 
 - [Home](https://github.com/valleytechsolutions/Q-Marauder/wiki)
+- [UI gallery and credits](https://github.com/valleytechsolutions/Q-Marauder/wiki/Gallery-and-credits)
 - [Installation](https://github.com/valleytechsolutions/Q-Marauder/wiki/Installation)
 - [Portrait touchscreen](https://github.com/valleytechsolutions/Q-Marauder/wiki/Portrait-touchscreen)
 - [BLE Lab](https://github.com/valleytechsolutions/Q-Marauder/wiki/BLE-Lab)

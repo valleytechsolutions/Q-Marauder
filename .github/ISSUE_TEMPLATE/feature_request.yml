@@ -1,0 +1,26 @@
+name: Feature request
+description: Propose a focused improvement with hardware and upstream references.
+title: "[Feature] "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What task should this improve?
+      description: Describe the user workflow and the desired result.
+    validations:
+      required: true
+  - type: textarea
+    id: hardware
+    attributes:
+      label: Hardware and interface
+      description: Note whether this is for the portrait TFT, browser, handheld or desk setup, and any required hardware.
+  - type: textarea
+    id: references
+    attributes:
+      label: Upstream projects or specifications
+      description: Include project/developer links and license information when proposing an integration.
+  - type: textarea
+    id: validation
+    attributes:
+      label: How could we verify it?
+      description: Describe an observable result and any available test hardware; do not post private device identifiers.

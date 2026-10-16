@@ -7,7 +7,7 @@ import tarfile
 import zipfile
 
 root = Path(__file__).resolve().parents[1]
-allowed = ["qmarauder", "scripts", "firmware", "packaging", "docs", "licenses", "tests", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "pyproject.toml", "Install-QMarauder.cmd", "Start-QMarauder.cmd", "Repair-Display.cmd"]
+allowed = ["qmarauder", "scripts", "firmware", "packaging", "docs", "licenses", "tests", "README.md", "CREDITS.md", "CONTRIBUTING.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "pyproject.toml", "Install-QMarauder.cmd", "Start-QMarauder.cmd", "Repair-Display.cmd"]
 files = []
 for name in allowed:
     path = root / name

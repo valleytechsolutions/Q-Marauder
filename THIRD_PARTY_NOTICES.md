@@ -1,5 +1,9 @@
 # Third-party notices
 
+The complete project/developer acknowledgments and each project's relationship to
+Q-Marauder are collected in [CREDITS.md](CREDITS.md). This file records license and
+redistribution boundaries; credits do not replace upstream notices.
+
 The packet and Remote ID decoders are independent implementations based on public
 protocol fields, BlueZ APIs and OpenDroneID documentation. No Unified Blue source
 or signature table is distributed. Synthetic Remote ID fixture bytes were produced
@@ -64,6 +68,12 @@ from the MIT code grant; no rights to background objects or visible third-party
 marks are asserted. Captions distinguish the pre-firmware state from working software.
 The browser startup and Settings screenshots contain the same supplied brand assets and carry
 their artwork-rights exclusions.
+
+The [UI gallery](docs/GALLERY.md) adds actual browser screenshots and clearly labeled
+software renders of the native TFT drawing code. The renders are not photographs
+or evidence of additional hardware validation. Their embedded artwork retains the
+same exclusions. The renderer uses separately installed Adafruit GFX; its source is
+not bundled in the documentation tooling.
 
 ## Arduino bridge
 
