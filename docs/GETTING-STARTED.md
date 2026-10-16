@@ -74,6 +74,13 @@ window. Follow [BLE Lab setup](BLE.md) to select your test device and configure
 watchlist detection. The core console/Wi-Fi/display installation needs no extra
 Python packages. [Browser-only installation](WEB-INSTALLER.md) remains a proposal.
 
+For **Flock BLE, Sky Spy BLE and BLE Sniff PCAP**, also run
+**scripts/Enable-LabRadio.cmd → 1**. This enables the fixed receive helper without
+requiring a Wi-Fi target. For a monitor-capable Wi-Fi adapter, choose **2** in that
+launcher to select your radio and authorized AP interactively. Existing helper users
+must rerun option 1 after upgrading. Then use **Counter surveillance** on the TFT.
+See the [packet detection how-to](DETECTION.md) and [active-test status](ACTIVE-TESTS.md).
+
 <img src="images/browser-startup.jpg" width="400" alt="Browser console startup screen with the supplied BWM and Marauder logos side by side">
 
 *Actual browser startup screenshot. The physical TFT uses its own portrait renderer;

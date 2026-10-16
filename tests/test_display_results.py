@@ -7,6 +7,10 @@ from qmarauder.display_results import result_page
 
 
 class ResultTests(unittest.TestCase):
+    def test_missing_wifi_adapter_does_not_claim_ready_from_installed_helper(self):
+        payload=result_page({'capabilities':{'lab':{'configured':True,'interface_present':False,'hci_capture':True}}},3,0)[2]
+        self.assertIn('Wi-Fi radio absent',payload)
+        self.assertIn('BLE packet capture',payload)
     def test_untrusted_names_cannot_create_rows_and_pages_are_bounded(self):
         rows = [dict(name="A\tB\n\x1b\x00\u2603" + "x" * 90, address=f"00:11:22:33:44:{i:02x}",
                      channel=36, band="5 GHz", signal=80, security="WPA2") for i in range(7)]

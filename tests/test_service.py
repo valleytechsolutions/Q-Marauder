@@ -17,6 +17,35 @@ def wait_for(predicate):
 
 
 class ServiceTests(unittest.TestCase):
+    def test_packet_capture_persists_and_restores_without_restarting_job(self):
+        import struct
+        raw=struct.pack('<IHHIIII',0xa1b2c3d4,2,4,0,0,4096,201)
+        with tempfile.TemporaryDirectory() as data,patch('qmarauder.radio.diagnostics',return_value={}),patch('qmarauder.capture.run',return_value=({'action':'ble-sniff','captured':0,'detections':[]},raw)) as run:
+            service=Service(data)
+            try:
+                service.submit('ble-sniff');wait_for(lambda:service.snapshot()['busy'] is None)
+                report=service.snapshot()['packet_lab']
+                self.assertEqual(service.store.export(report['capture_session'],'pcap'),raw)
+            finally:service.close()
+            service=Service(data)
+            try:
+                self.assertEqual(service.snapshot()['packet_lab']['captured'],0)
+                run.assert_called_once()
+            finally:service.close()
+
+    def test_beacon_cancel_is_allowed_while_job_running(self):
+        entered=threading.Event()
+        def run(request,cancel):
+            entered.set();cancel.wait(2)
+            raise RuntimeError('Stopped')
+        with tempfile.TemporaryDirectory() as data,patch('qmarauder.radio.diagnostics',return_value={}),patch('qmarauder.ble.call',side_effect=run):
+            service=Service(data)
+            try:
+                service.submit('ble-advertise');self.assertTrue(entered.wait(1))
+                service.submit('ble-advert-stop');wait_for(lambda:service.snapshot()['busy'] is None)
+                self.assertTrue(service.advertising_stop.is_set())
+            finally:service.close()
+
     def test_saved_scans_restore_as_cached_without_radio_activity(self):
         with tempfile.TemporaryDirectory() as data, patch('qmarauder.radio.diagnostics',return_value={}), patch('qmarauder.radio.wifi_scan') as wifi, patch('qmarauder.ble.call') as ble:
             from qmarauder.storage import Store

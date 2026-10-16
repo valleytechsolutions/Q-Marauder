@@ -13,6 +13,8 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 **[Browser installer feasibility](docs/WEB-INSTALLER.md)** · **[Desktop lab](docs/DESKTOP.md)** ·
 **[UPS and handheld power](docs/POWER.md)**
 
+**[Flock / Sky Spy / BLE capture how-to](docs/DETECTION.md)** · **[Active test status](docs/ACTIVE-TESTS.md)**
+
 <img src="docs/images/uno-q-shield-side.webp" width="500" alt="Actual UNO Q and red parallel TFT shield assembly, connected to a PC by USB">
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
@@ -29,6 +31,9 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - Actual Wi-Fi AP discovery through NetworkManager, including observed 2.4/5 GHz networks.
 - BlueZ BLE discovery with fresh RSSI, address type, service UUIDs and advertising metadata.
 - Selected-device signal tracking, configurable BLE watchlists and Axon/TASER candidate presets.
+- Received BLE advertising PCAP with packet-based Flock/Meta/Axon candidate analysis;
+  44–49 real HCI reports per test window. Remote ID decoding covers all six message
+  families and reference-encoder fixtures. No real Flock/drone detection is claimed.
 - [ChimeraBLE-compatible OUI list](docs/OUI.md): the same /24 source, with all 40,099
   prefixes and names checked against its generator. Public-address vendor hints appear
   on the TFT and browser; randomized addresses are not assigned a vendor by OUI.
@@ -45,7 +50,7 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  18 menu groups, and 174 selections. Unported functions are explicitly marked planned.
+  18 menu groups, and 182 selections. Unported functions are explicitly marked planned.
 - **Settings → Themes**: BWM, Marauder, Biscuit Shop and Valleytech, shared between
   the browser and TFT with supplied background artwork and saved preferences.
 - Native Wi-Fi/BLE result pages with tap-to-open details, saved scan restoration,
@@ -57,6 +62,13 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - Optional bounded lab recon, injection-check and deauth backends, with local report
   history and a separate privileged worker. PC-forwarded Alfa monitor reception is
   verified; injection remains unverified and deauth stays gated. See [lab setup](docs/LAB.md).
+- Flock/Sky Spy Wi-Fi channel-sampling backends are implemented with fixture tests;
+  live validation is blocked while the external Alfa is absent. BLE beacon-test
+  registration/cleanup works, but independent RF reception remains unconfirmed.
+
+**Not a complete attack toolkit yet.** Platform BLE spam, Wi-Fi floods/portals,
+GATT emulation/proxy and several upstream modes remain unimplemented. See the
+[explicit active-test matrix](docs/ACTIVE-TESTS.md) before relying on a menu label.
 
 ## Easiest installation: Windows + USB
 

@@ -7,7 +7,7 @@ from .ble_data import uuid
 from .settings import validate
 
 ACTIONS = ('ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt', 'ble-gatt',
-           'ble-read', 'ble-write', 'ble-notify', 'ble-pair', 'ble-snapshot', 'ble-hid', 'ble-hid-listen')
+           'ble-read', 'ble-write', 'ble-notify', 'ble-pair', 'ble-snapshot', 'ble-hid', 'ble-hid-listen', 'ble-advertise')
 
 
 def request_for(action, preferences, parameters=None):
@@ -16,7 +16,7 @@ def request_for(action, preferences, parameters=None):
         raise ValueError('Unknown BLE parameters')
     if action not in ('ble', *ACTIONS): raise ValueError('Unknown BLE action')
     validate({k: preferences[k] for k in ('target','adapter')})
-    if action not in ('ble','ble-detect','ble-detector','ble-axon') and not preferences['target']:
+    if action not in ('ble','ble-detect','ble-detector','ble-axon','ble-advertise') and not preferences['target']:
         raise ValueError('Select your BLE test device in Settings first')
     result = dict(action=action, adapter=preferences['adapter'], target=preferences['target'])
     if action in ('ble-read','ble-write','ble-notify'):
@@ -31,11 +31,28 @@ def request_for(action, preferences, parameters=None):
     return result
 
 
-def call(request):
+def call(request, cancel=None):
     process = subprocess.Popen([sys.executable, '-m', 'qmarauder.ble_worker'], stdin=subprocess.PIPE,
                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
-        output, errors = process.communicate(json.dumps(request), timeout=56)
+        if cancel is None:
+            output, errors = process.communicate(json.dumps(request), timeout=56)
+        else:
+            import time
+            deadline = time.monotonic()+56
+            payload = json.dumps(request)
+            while True:
+                if cancel.is_set():
+                    process.terminate()
+                    try: process.communicate(timeout=7)
+                    except subprocess.TimeoutExpired: process.kill(); process.communicate()
+                    return dict(action=request['action'], state='stopped', kind='ble-lab',
+                                note='Advertising test stopped; owned registrations released. No transmit count is inferred.')
+                try:
+                    output, errors = process.communicate(payload, timeout=.2); break
+                except subprocess.TimeoutExpired:
+                    payload = None
+                    if time.monotonic() >= deadline: raise
     except subprocess.TimeoutExpired:
         process.terminate()
         try: process.communicate(timeout=7)

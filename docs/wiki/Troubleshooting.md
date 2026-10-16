@@ -11,6 +11,10 @@
 | No notifications | Change a value on your own test peripheral during the window. A zero-event window is not automatically an error. |
 | Vendor says unknown | Check Settings registry status. Private/random addresses deliberately receive no prefix vendor. |
 | Capture action rejected | Update the installed radio helper. Source/application updates alone do not replace root-owned helper code. |
+| BLE PCAP asks for setup | Run Enable-BLELab, then Enable-LabRadio → 1. BLE capture does not require a Wi-Fi AP profile. |
+| Flock/Sky Spy reports zero matches | Check packet counts and coverage. Zero matches is a valid result, not proof that surveillance equipment or aircraft are absent. |
+| Wi-Fi radio absent | Verify Windows sees the Alfa, reconnect it if needed, then run Connect-Alfa. Refresh readiness after attaching. A driver installed on disk is not an attached radio. |
+| Beacon test registers but receiver sees nothing | Controller acceptance does not establish RF reception. This remains unverified on the development setup; do not infer spam functionality. |
 | Capture returns zero packets | Verify the external adapter, monitor channel and forwarding. Do not equate advertised monitor support with reception. |
 | Desktop app fails from ADB | Launch inside the signed-in graphical desktop. ADB alone does not provide a DISPLAY/Wayland session. |
 | Alfa disappears in desk mode | Moving USB from PC to hub ends PC USB/IP forwarding. Attach/test the radio directly on the hub. |

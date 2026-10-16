@@ -23,13 +23,14 @@ under `~/.local/lib/q-marauder/releases`, switches `current` atomically, and cre
 Old revisions remain available. Installation does not start radio collection.
 
 Run `~/.local/bin/q-marauder serve`. Or, for an unprivileged background preview from
-the source checkout, run `python3 scripts/start.py`. Its log and PID are in the data
+the source checkout, run `python3 scripts/start.py`. It starts the installed immutable
+revision when one exists. Its log, PID and recorded application path are in the data
 directory. The preview is temporary and does not survive a reboot automatically.
 `start.py` deliberately does not terminate another process using port 8787.
 
 To update a running preview, run `python3 scripts/stop-preview.py` from its source
 checkout, then rerun `scripts/start.py`. The stop helper verifies the PID's command
-line and checkout before signaling it. For a systemd install, restart the service after
+line and recorded source/release directory before signaling it. For a systemd install, restart the service after
 installing a new revision. Do not run two consoles against the same data directory.
 
 ## Start on boot

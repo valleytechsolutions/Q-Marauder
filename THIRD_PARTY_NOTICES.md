@@ -1,5 +1,12 @@
 # Third-party notices
 
+The packet and Remote ID decoders are independent implementations based on public
+protocol fields, BlueZ APIs and OpenDroneID documentation. No Unified Blue source
+or signature table is distributed. Synthetic Remote ID fixture bytes were produced
+from our test inputs with the Apache-2.0 OpenDroneID reference encoder; source hashes
+and reproduction instructions are in `docs/DETECTION.md`. The reference encoder
+itself is not bundled in the MIT application.
+
 Q-Marauder application code is MIT licensed. Debian, Linux, BlueZ, NetworkManager,
 Arduino tools, and any separately installed dependencies retain their own licenses.
 The complete operating system is not licensed as MIT merely because this application is.

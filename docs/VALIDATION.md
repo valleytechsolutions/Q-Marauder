@@ -1,0 +1,32 @@
+# Release validation and rollout limits
+
+Recorded for the packet-detection alpha, 2026-10-16. These checks do not certify
+every UNO Q image, shield clone, adapter, peer or power configuration.
+
+| Check | Evidence |
+| --- | --- |
+| Windows unit suite | 106 tests, one POSIX-only skip |
+| UNO Q Debian unit suite | 106 tests, no skip |
+| Portrait native geometry | Direct-hit navigation/keypad C++ checks pass |
+| MCU build | Factory Zephyr 0.11.0-rc5; 120,272-byte sketch, 3,640-byte globals |
+| Saved screen setup | Linux bridge restores portrait orientation, calibration and theme |
+| HCI receive | 44–49 actual advertising reports in initial windows, valid exported linktype-201 PCAPs |
+| Detection runtime | Flock BLE, Sky Spy BLE and packet detector completed; zero candidate/RID matches in these windows |
+| Protocol fixtures | OpenDroneID reference encoder supplies synthetic Basic ID, Location, unknown values, Authentication, Self ID, System and Operator ID messages |
+| False-positive handling | Separate reports cannot form a Meta composite; generic XUNTONG company alone and random-address OUIs do not establish Flock candidates |
+| BLE beacon test | Three successful controller registrations; HCI enable/disable commands accepted; cancellation and zero leftover instances checked. Independent RF receiver did not confirm reception |
+| Wi-Fi receive baseline | Earlier single-channel external-Alfa capture verified; new channel sampling awaits live validation while adapter is absent |
+| Fresh release install | Extracted source archive into a temporary directory; two installs create one immutable revision and preserve a user-data sentinel; desktop entry and installed HTTP startup checked. The existing OUI cache was reused; this was not a cold network-download test |
+| Isolation during clean test | No radio job started; the test HTTP server omitted the physical display bridge to preserve the owner's screen state |
+| Publication | ZIP/tar payload equivalence, documentation links and private-data exclusion checked |
+
+Read [Active tests](ACTIVE-TESTS.md) and [Detection](DETECTION.md) for exact coverage.
+New portrait packet pages are compiled/flashed and covered by bridge/geometry tests;
+the owner still needs to accept their behavior by touch. Earlier Wi-Fi results and
+BLE device/characteristic selection/read workflows were physically accepted.
+
+Not validated: physical Flock/drone targets, raw BLE link-layer/connection capture,
+extended advertisement reassembly, independent TX on this Bluetooth controller,
+Wi-Fi injection/client effects, every upstream attack family, arbitrary factory
+core versions, HDMI and UPS hardware, and unattended console boot on this board.
+The LED matrix settings request remains queued behind the security rollout work.

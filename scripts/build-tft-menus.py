@@ -37,7 +37,9 @@ actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "BLE watchlist scan":18,"BLE foxhunt":19,"GATT inventory":20,
          "Pair selected device":21,"Read value":22,"Listen notifications":23,"Write hex value":24,
          "GATT snapshot":25,"Inspect HID map":26,"AXEOFF BLE":27,"Detector scan":28,
-         "hci0 / onboard":34,"hci1 / secondary":35,"Listen HID reports":36,"Wi-Fi PCAP":37,"Write no response":38}
+         "hci0 / onboard":34,"hci1 / secondary":35,"Listen HID reports":36,"Wi-Fi PCAP":37,"Write no response":38,
+         "Flock Wi-Fi":39,"Flock BLE":40,"Sky Spy Wi-Fi":41,"Sky Spy BLE":42,"BLE Sniff PCAP":43,"Packet detector":44,
+         "BLE beacon test":45,"Stop beacon test":46,"AXEOFF Wi-Fi":47}
 entries=[]
 for index,(key,title,parent) in enumerate(menus):
     found=[]
@@ -53,11 +55,13 @@ for index,(key,title,parent) in enumerate(menus):
     if index==1: found[1:1]=["Scan APs","Wi-Fi results"]
     if index==6: found=["Back","Scan BLE","BLE results","BLE tools","Sniffers","Bluetooth Attacks"]
     if index in (4,8): found.insert(1,"Test readiness")
+    if index==8: found[2:2]=["BLE beacon test","Stop beacon test"]
     if index==2: found[1:1]=["Lab packet recon","Wi-Fi PCAP"]
     if index==4: found[2:2]=["Injection check","Lab deauth (3 frames)"]
     if index==11: found=["Back","Wardrive","Stop survey","Live status"]
     if index==12: found=["Back","Themes","Calibrate touch","BLE adapter"]
-    if index==13: found=["Back","Detector scan","AXEOFF BLE","BLE watchlist scan","BLE foxhunt","Wi-Fi PCAP","Flock-You Wi-Fi","Sky Spy","BLE Sniff PCAP","Dragon Detector","Squachwach"]
+    if index==7: found[1:1]=["BLE Sniff PCAP","Flock BLE","Sky Spy BLE"]
+    if index==13: found=["Back","Packet detector","Flock Wi-Fi","Flock BLE","Sky Spy Wi-Fi","Sky Spy BLE","BLE Sniff PCAP","AXEOFF BLE","AXEOFF Wi-Fi","BLE watchlist scan","BLE foxhunt","Wi-Fi PCAP","Dragon Detector","Squachwach"]
     if index==14: found=["Back","BWM","Marauder","Biscuit Shop","Valleytech"]
     if index==15: found=["Back","Pair selected device","GATT inventory","GATT snapshot","BLE foxhunt","Inspect HID map","Listen HID reports","Characteristic tools"]
     if index==16: found=["Back","Read value","Listen notifications","Write hex value","Write no response"]

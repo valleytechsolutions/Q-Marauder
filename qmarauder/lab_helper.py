@@ -23,11 +23,12 @@ CONFIG = Path("/etc/q-marauder/lab.json")
 STATE = Path("/var/lib/q-marauder-radio")
 MONITOR = "qmmon"
 TOOLS = {"iw": "/usr/sbin/iw", "ip": "/usr/sbin/ip", "nmcli": "/usr/bin/nmcli"}
+FIXED_ACTIONS = ('status', 'recon', 'injection', 'deauth', 'capture', 'wifi-discovery', 'ble-capture-0', 'ble-capture-1')
 
 
 def socket_action(stream):
     line = stream.readline(32)
-    if line not in ("status\n", "recon\n", "injection\n", "deauth\n", "capture\n"):
+    if line not in tuple(action+'\n' for action in FIXED_ACTIONS):
         raise ValueError("Expected one fixed radio action")
     return line.strip()
 
@@ -93,6 +94,8 @@ def split_fields(line):
 
 def target_for(profile):
     interface = profile["interface"]
+    if not Path('/sys/class/net', interface).exists():
+        raise RuntimeError('Configured Wi-Fi adapter is absent. Reconnect it and run Connect-Alfa, or configure the radio attached directly to the UNO Q.')
     link = command("iw", "dev", interface, "link")
     frequency = re.search(r"freq:\s*(\d+)", link)
     connected = "Connected to " in link
@@ -143,6 +146,83 @@ def management_frame(subtype, destination, source, bssid, sequence, body):
     return (b"\x00\x00\x08\x00\x00\x00\x00\x00" +
             struct.pack("<HH", subtype << 4, 0) + destination + source + bssid +
             struct.pack("<H", (sequence & 4095) << 4) + body)
+
+
+def append_packet(capture, packet, received):
+    if received >= 2000 or len(capture)+16+len(packet) > 524288: return False
+    timestamp = time.time_ns()
+    capture.extend(struct.pack('<IIII', timestamp//1_000_000_000, timestamp%1_000_000_000//1000, len(packet), len(packet)))
+    capture.extend(packet)
+    return True
+
+
+def capture_ble(index, ready=None):
+    """Read only LE advertisement events; never keys, connection data or commands."""
+    capture = bytearray(struct.pack('<IHHIIII', 0xa1b2c3d4, 2, 4, 0, 0, 4096, 201))
+    captured, received = 0, 0
+    with socket.socket(socket.AF_BLUETOOTH, socket.SOCK_RAW, socket.BTPROTO_HCI) as radio:
+        radio.bind((index,))  # Python's HCI address tuple selects the raw channel.
+        radio.setsockopt(0, 2, struct.pack('=IIIH2x', 1 << 4, 0, 1 << 30, 0))
+        radio.settimeout(.2)
+        if ready: ready()
+        end = time.monotonic() + 12
+        while time.monotonic() < end:
+            try: packet = radio.recv(4096)
+            except socket.timeout: continue
+            if len(packet) < 5 or packet[:2] != b'\x04\x3e' or packet[2] != len(packet)-3 or packet[3] not in (2,13): continue
+            received += 1
+            if append_packet(capture, b'\x00\x00\x00\x01'+packet, captured): captured += 1
+    return dict(action='ble-sniff', adapter='hci'+str(index), captured=captured, received=received,
+                linktype=201, capture_limit_reached=captured < received, pcap=base64.b64encode(capture).decode('ascii'),
+                note='12-second HCI advertisement capture with 8-second BlueZ discovery. Scan requests may transmit. Not BLE link-layer or connection sniffing.')
+
+
+def capture_discovery(profile):
+    """Bounded RX on channels 1/6/11; connected radios stay on their own channel."""
+    interface = profile['interface']
+    if not Path('/sys/class/net', interface).exists():
+        raise RuntimeError('Configured Wi-Fi adapter is absent. Reconnect it and run Connect-Alfa, or configure a directly attached radio.')
+    link = command('iw', 'dev', interface, 'link')
+    connected = 'Connected to ' in link
+    frequency = re.search(r'freq:\s*(\d+)', link)
+    if connected and not frequency: raise RuntimeError('Cannot determine management channel')
+    frequencies = [int(frequency[1])] if connected else [2412,2437,2462]
+    if Path('/sys/class/net', MONITOR).exists(): raise RuntimeError('qmmon already exists; inspect before retrying')
+    created, restore_management = False, False
+    capture = bytearray(struct.pack('<IHHIIII', 0xa1b2c3d4, 2, 4, 0, 0, 4096, 127))
+    captured, received, channels = 0, 0, []
+    try:
+        if not connected and command('nmcli','--get-values','GENERAL.NM-MANAGED','device','show',interface).strip() == 'yes':
+            command('nmcli','device','set',interface,'managed','no'); restore_management = True
+            command('ip','link','set',interface,'down')
+        command('iw','dev',interface,'interface','add',MONITOR,'type','monitor'); created = True
+        command('ip','link','set',MONITOR,'up')
+        with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(3)) as radio:
+            radio.bind((MONITOR,0)); radio.settimeout(.1)
+            # Four rounds, one second per channel. Store only management frames.
+            for mhz in (frequencies * (4 if not connected else 12)):
+                if not connected: command('iw','dev',MONITOR,'set','freq',str(mhz))
+                info = command('iw','dev',MONITOR,'info')
+                actual = re.search(r'\((\d+) MHz\)', info)
+                if not actual or int(actual[1]) != mhz: raise RuntimeError('Receive channel could not be verified')
+                if mhz not in channels: channels.append(mhz)
+                end = time.monotonic()+1
+                while time.monotonic() < end:
+                    try: packet, sender = radio.recvfrom(65535)
+                    except socket.timeout: continue
+                    if sender[2] == socket.PACKET_OUTGOING: continue
+                    frame = decode_frame(packet)
+                    if not frame or frame['kind'] != 0 or len(packet) > 4096: continue
+                    received += 1
+                    if append_packet(capture,packet,captured): captured += 1
+        return dict(action='wifi-discovery', interface=interface, captured=captured, received=received, channels=channels,
+                    linktype=127, capture_limit_reached=captured < received, pcap=base64.b64encode(capture).decode('ascii'),
+                    note='Management frames only. 12 receive windows; '+('connected radio held on its channel.' if connected else 'channels 1/6/11 sampled; no transmission by this job.'))
+    finally:
+        try:
+            if created: command('iw','dev',MONITOR,'del')
+        finally:
+            if restore_management: command('nmcli','device','set',interface,'managed','yes')
 
 
 def execute(action, profile):
@@ -267,7 +347,7 @@ def execute(action, profile):
 
 def main():
     os.umask(0o077)
-    if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in ("status", "recon", "injection", "deauth", "capture", "--socket"):
+    if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in (*FIXED_ACTIONS, '--socket'):
         raise SystemExit("Use the installed helper with one fixed action")
     def stop(_signal, _frame):
         raise RuntimeError("Lab test interrupted")
@@ -277,12 +357,21 @@ def main():
     signal.alarm(35)
     try:
         action = socket_action(sys.stdin) if sys.argv[1] == "--socket" else sys.argv[1]
-        profile = load_profile()
         if action == "status":
-            result = dict(configured=True, interface=profile["interface"], target_count=len(profile["bssids"]), capture_supported=True)
+            profile = load_profile() if CONFIG.exists() else None
+            result = dict(configured=True, interface=profile['interface'] if profile else None,
+                          target_count=len(profile['bssids']) if profile else 0, wifi_configured=bool(profile),
+                          interface_present=bool(profile and Path('/sys/class/net',profile['interface']).exists()), capture_supported=True,
+                          capture_version=2, hci_capture=True, discovery_capture=True)
         else:
             with exclusive_radio():
-                result = execute(action, profile)
+                if action.startswith('ble-capture-'):
+                    ready = (lambda: print(json.dumps({'ready':True}), flush=True)) if sys.argv[1] == '--socket' else None
+                    result = capture_ble(int(action[-1]), ready)
+                else:
+                    if not CONFIG.exists(): raise RuntimeError('Configure your Wi-Fi lab profile first; see docs/LAB.md. BLE capture does not need this profile.')
+                    profile = load_profile()
+                    result = capture_discovery(profile) if action == 'wifi-discovery' else execute(action, profile)
         print(json.dumps(result))
     except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as exc:
         print(json.dumps({"error": str(exc)[:300]}))

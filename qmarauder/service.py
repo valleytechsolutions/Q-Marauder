@@ -9,7 +9,7 @@ from pathlib import Path
 from . import __version__, gps, radio, lab, ble, settings, pairing
 from .ble_data import detections, decode
 from .detectors import evaluate, MODES
-from . import vendors
+from . import vendors, capture
 from .storage import Store, utcnow
 
 
@@ -19,6 +19,7 @@ class Service:
         self.lock = threading.RLock()
         self.jobs = queue.Queue(maxsize=1)
         self.shutdown_event = threading.Event()
+        self.advertising_stop = threading.Event()
         self.state = dict(version=__version__, wifi=[], ble=[], gps=None, busy=None,
                           error=None, updated=None, mission=None, stopping=False, lab=self.store.latest_lab(),
                           scan_status={"wifi": {"state": "idle"}, "ble": {"state": "idle"}},
@@ -28,6 +29,9 @@ class Service:
         self.state['pending_theme'] = self.state['settings']['theme']
         self.state['pairing'] = None
         self.state['detector_modes'] = MODES
+        self.state['packet_lab'] = self.store.latest_packet()
+        if self.state['packet_lab']:
+            self.state['updated'] = self.state['packet_lab'].get('updated')
         self.state['vendor_database'] = vendors.status()
         for kind in ('wifi','ble'):
             rows, when = self.store.latest_scan(kind)
@@ -62,9 +66,12 @@ class Service:
             if 'theme' in values: self.state['pending_theme'] = values['theme']
 
     def submit(self, action, parameters=None):
-        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", *lab.ACTIONS, *ble.ACTIONS):
+        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", 'ble-advert-stop', *lab.ACTIONS, *ble.ACTIONS, *capture.ACTIONS):
             raise ValueError("Unknown action")
         with self.lock:
+            if action == 'ble-advert-stop':
+                if self.state['busy'] == 'ble-advertise': self.advertising_stop.set()
+                return
             if action == "mission-stop":
                 if self.state["mission"]:
                     self.state["stopping"] = True
@@ -74,12 +81,15 @@ class Service:
             request = ble.request_for(action, self.state['settings'], parameters) if action in ble.ACTIONS else None
             if parameters and action not in ble.ACTIONS: raise ValueError('This action accepts no parameters')
             self.state.update(busy=action, error=None)
+            self.advertising_stop.clear()
             if action in ("wifi", "ble"):
                 self.state["scan_status"][action] = {"state": "running"}
             if action in lab.ACTIONS:
                 self.state["lab"] = {"action": action, "state": "running"}
             if action in ble.ACTIONS:
                 self.state['ble_lab'] = dict(action=action, state='running')
+            if action in capture.ACTIONS:
+                self.state['packet_lab'] = dict(action=action, state='running')
             self.jobs.put_nowait((action, request))
 
     def pairing_reply(self, answer):
@@ -139,6 +149,15 @@ class Service:
                     capabilities = radio.diagnostics()
                     with self.lock:
                         self.state["capabilities"] = capabilities
+                elif action in capture.ACTIONS:
+                    session = self.store.start(action)
+                    report, raw = capture.run(action, self.state['settings'])
+                    self.store.save_capture(session, raw)
+                    report.update(capture_session=session, kind='packet-lab', state='done', updated=utcnow())
+                    self.store.append(session, [report])
+                    with self.lock:
+                        self.state['packet_lab'] = report
+                        self.state['updated'] = report['updated']
                 elif action in lab.ACTIONS:
                     session = self.store.start(action)
                     report = lab.call(lab.ACTIONS[action])
@@ -152,7 +171,7 @@ class Service:
                         self.state["lab"] = report
                 elif action in ble.ACTIONS:
                     session = self.store.start(action)
-                    report = pairing.call(request, self.pairing) if action == 'ble-pair' else ble.call(request)
+                    report = pairing.call(request, self.pairing) if action == 'ble-pair' else ble.call(request, self.advertising_stop) if action == 'ble-advertise' else ble.call(request)
                     report['updated'] = utcnow()
                     if action == 'ble-detect':
                         report['detections'] = detections(report['rows'], self.state['settings']['rules'])
@@ -174,6 +193,11 @@ class Service:
             except Exception as exc:
                 with self.lock:
                     self.state["error"] = str(exc)[:500]
+                    if action in capture.ACTIONS:
+                        self.state['packet_lab'] = dict(action=action, state='error', error=str(exc)[:300])
+                        if session:
+                            try: self.store.append(session, [self.state['packet_lab']])
+                            except Exception: self.state['packet_lab']['error'] += ' (Report could not be saved.)'
                     if action in ("wifi", "ble"):
                         self.state["scan_status"][action] = {"state": "error", "error": str(exc)[:300]}
                     if action in lab.ACTIONS:

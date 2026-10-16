@@ -11,6 +11,12 @@ attack parity. Other unported menu entries remain marked planned.
 
 ## One-time Debian admin setup
 
+The simplest route is **scripts/Enable-LabRadio.cmd** after application installation.
+Choose **1** to install/update BLE capture while retaining any Wi-Fi profile. Choose
+**2** to select a Wi-Fi radio and authorized AP from an interactive list; the wizard
+saves a private profile and installs it. No Wi-Fi profile is required for BLE PCAP.
+The manual profile method below remains available for multiple authorized BSSIDs.
+
 Create a local JSON profile containing the exact interface, SSID and authorized AP
 BSSIDs from a scan. Do not commit the profile or real identifiers. Example:
 
@@ -28,13 +34,14 @@ sudo python3 scripts/install-radio-helper.py --profile /path/to/local-lab-profil
 This installs Debian's `iw`, `iproute2` and `sudo` packages if needed; copies a
 standalone helper to `/usr/local/libexec/q-marauder-radio`; stores a root-owned
 profile at `/etc/q-marauder/lab.json`; and grants the chosen normal account (default
-`arduino`) passwordless access to four **exact helper commands** through
+`arduino`) passwordless access to fixed **exact helper commands** through
 `/etc/sudoers.d/q-marauder-radio`. It does not grant arbitrary sudo access or run a
 radio test during installation. The application itself remains unprivileged.
 
 The installer also enables `q-marauder-radio.socket`. Its local Unix socket is
 accessible to the selected account's primary group. Each connection starts a
-separate, time-limited root helper that accepts only one of the four fixed actions.
+separate, time-limited root helper that accepts only one fixed action. BLE captures
+use a ready handshake before unprivileged BlueZ discovery starts.
 The UI prefers this socket, so its boot unit can retain `NoNewPrivileges=true` and
 an empty capability set. The root worker has only `NET_ADMIN` and `NET_RAW`, a
 read-only system and a private state directory. A process lock prevents concurrent
@@ -79,7 +86,8 @@ An existing `qmmon` is treated as a conflict, never deleted automatically.
 Every command has a timeout and each helper run has a 35-second watchdog. If a
 hard system/process crash interrupts cleanup, inspect a leftover `qmmon` before
 retrying. The UI serializes radio jobs. These short jobs terminate automatically;
-interactive cancellation and packet capture/export are not implemented yet.
+Wi-Fi interactive cancellation is pending. Bounded Wi-Fi/BLE PCAP export is available
+through the separate capture actions described in [Detection](DETECTION.md).
 Completed and failed jobs are saved as lab sessions, with CSV/JSON report exports.
 The latest report returns after an application restart. An interrupted job is shown
 as an unknown outcome and is never silently resumed. This is local operational
@@ -88,8 +96,8 @@ history, not a tamper-resistant audit log.
 ## Validation status
 
 - AP/BLE discovery: exercised on the development board.
-- Native Wi-Fi results and details: owner confirmed on the physical TFT. BLE uses
-  the same result renderer; its physical acceptance is still pending.
+- Native Wi-Fi results, BLE device/characteristic selection and Read value: owner
+  confirmed on the physical TFT. Newly added packet-result pages need acceptance.
 - Lab target validation, framing, cleanup, transmission bounds and evidence gate:
   automated fixtures pass.
 - Admin setup and local fixed-action socket: installed and exercised.
@@ -111,15 +119,15 @@ and [deauthentication behavior](https://www.aircrack-ng.org/doku.php?id=deauthen
 ## Receive-only PCAP capture
 
 Update the helper by running **scripts/Enable-LabRadio.cmd** after upgrading the
-application; it uses the previously prepared local lab profile. If that file is
-no longer present, upgrade from the board with
-`sudo python3 scripts/install-radio-helper.py --profile /etc/q-marauder/lab.json`
-to retain the existing root-owned profile. Use **Lab → Wi-Fi PCAP**, or **Counter surveillance → WiFi PCAP** on
+application; option 1 retains any existing root-owned Wi-Fi profile. The equivalent
+board command is `sudo python3 scripts/install-radio-helper.py`. Use option 2 to
+create/change the profile. Use **Lab → Wi-Fi PCAP**, or **Counter surveillance → Wi-Fi PCAP** on
 the portrait TFT. It receives for eight seconds on the configured lab channel,
 with a 512 KiB / 2000-packet storage limit; the capture action sends no packets.
 It may include nearby traffic on that channel, not only the configured AP.
 Download the session's **PCAP** from Field log; the file uses radiotap linktype 127.
 A live run captured 321 packets, and all PCAP record lengths/radiotap headers
-were checked in the 134,530-byte export. Rolling captures and channel hopping
+were checked in the 134,530-byte export. The Flock/Sky Spy Wi-Fi jobs separately
+implement 1/6/11 channel sampling, with hardware validation pending. Rolling captures
 remain unimplemented. Storage is bounded per capture; periodically manage old
 records and files on the board.

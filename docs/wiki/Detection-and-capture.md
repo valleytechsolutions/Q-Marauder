@@ -1,40 +1,47 @@
 # Detection and capture
 
 Open **Lab → Detection modes** on the desktop, or **Counter surveillance** on the
-portrait TFT. Each tool states its actual receive method and limitations.
+portrait TFT. Run `scripts/Enable-BLELab.cmd`, then `scripts/Enable-LabRadio.cmd` →
+**1** once for BLE capture. Choose **2** in the radio launcher to configure a Wi-Fi
+monitor adapter and authorized AP. Updating the app alone does not update the root helper.
 
 | Mode | Current behavior |
 | --- | --- |
-| Detector | User watchlist plus Axon/TASER identifier presets; BlueZ discovery |
-| AXEOFF BLE | Public OUI, company ID and service-UUID candidate matches |
-| Foxhunter | Bounded selected-address RSSI tracking |
-| Wi-Fi PCAP | Eight-second radiotap capture on the configured lab channel; export in Field log |
-| Flock-You Wi-Fi | Not implemented |
-| Sky Spy Remote ID | Not implemented |
-| BLE Sniff PCAP | Not implemented |
+| Packet detector | HCI reports with same-report Meta company + FD5F matching; Flock/Axon candidates |
+| Flock BLE | Specific service/name/public-OUI candidates; generic chipset company alone never matches |
+| Flock Wi-Fi | Registered Flock transmitter OUI; channels 1/6/11 on an idle monitor radio, connected channel otherwise |
+| Sky Spy BLE | Complete Remote ID FFFA advertisement messages |
+| Sky Spy Wi-Fi | OpenDroneID beacons/NAN; Basic ID, Location, Authentication, Self ID, System, Operator ID |
+| BLE Sniff PCAP | Received advertising events in HCI PCAP linktype 201; not BLE link-layer or connection sniffing |
+| AXEOFF BLE | Public Axon/TASER identifier candidates through BlueZ discovery |
+| AXEOFF Wi-Fi | Axon Enterprise transmitter OUI in management frames; same channel sampling and hardware limits as Flock Wi-Fi |
+| Foxhunter | Twenty-second selected-target RSSI tracking |
+| Wi-Fi PCAP | Eight-second radiotap capture on the configured lab channel |
 
-BlueZ discovery may transmit scan requests and aggregates properties across
-advertisements. These scans are **not** the passive BLE mode from Unified Blue.
-Same-advertisement Meta composite matching is not claimed. A candidate match does
-not verify surveillance equipment, ownership or activity. No matches do not prove
-the absence of a device.
+Tap a mode once, wait for its receive window and open result rows for details.
+The TFT shows packet counts, receiver coverage, evidence and Remote ID telemetry;
+PREV/NEXT changes pages. Zero matches still produces a report. The latest packet report
+is restored after restarting the app without repeating radio collection.
 
-## Wi-Fi capture
+Download **PCAP** and **JSON** from Packet analysis or Field log. The limit is
+512 KiB / 2,000 packets per capture. Files can contain nearby identifiers and
+unverified broadcast locations; they remain private on the board by default.
 
-1. Configure the radio helper for your lab using the
-   [lab guide](https://github.com/valleytechsolutions/Q-Marauder/blob/main/docs/LAB.md).
-   Existing installs must update the helper for the new `capture` action.
-2. Keep the supported monitor adapter attached. The onboard radio has not passed
-   monitor receive tests; a PC-forwarded Alfa depends on that PC connection.
-3. Run **Wi-Fi PCAP**. It uses the configured AP's channel and transmits no frames
-   itself. Other system traffic is not disabled by this statement.
-4. Open **Field log → PCAP** for that session. Read it with Wireshark.
+BLE capture lasts twelve seconds and starts eight seconds of BlueZ discovery after
+the HCI receiver is ready. Scan requests may transmit. Complete legacy and extended
+reports are decoded; incomplete extended fragments are kept in PCAP but not matched.
+Connection traffic and keys are excluded. This differs from Unified Blue's passive
+link-layer capture. The broader community Wi-Fi fingerprint table is not included.
 
-Capture is capped at **512 KiB or 2,000 packets**, with a 4,096-byte snapshot length.
-The report says whether the storage limit was reached. Captures may include nearby
-traffic on the selected channel; treat exported files as private. Channel hopping,
-rolling continuous capture and raw BLE link-layer export remain pending.
+Real BLE captures saved 44–49 reports in validation windows. No actual Flock/drone
+signature was seen; known positives and all six Remote ID families are covered by
+synthetic reference-encoder fixtures. A candidate is not proof of surveillance.
+Authentication signatures are not verified. Zero matches does not prove absence.
 
-The existing injection check and bounded deauthentication lab test are separate
-tools. Monitor reception does not prove injection, and injection does not prove
-client disconnection. No broad attack is started by opening a detection mode.
+The new Wi-Fi sampling jobs still need live validation: the development Alfa stopped
+enumerating on Windows. Earlier single-channel Alfa monitor capture was verified.
+Onboard monitor reception and RF injection remain unverified. Keep the PC attached
+when using a forwarded adapter.
+
+[Detailed protocol/evidence guide](https://github.com/valleytechsolutions/Q-Marauder/blob/main/docs/DETECTION.md) ·
+[Active test status](https://github.com/valleytechsolutions/Q-Marauder/blob/main/docs/ACTIVE-TESTS.md)

@@ -68,7 +68,8 @@ class LabTests(unittest.TestCase):
                 radio.assert_not_called()
                 self.assertEqual(command.call_args_list[-1].args, ("iw", "dev", "qmmon", "del"))
 
-    def test_target_requires_allowlisted_bssid_ssid_and_connected_channel(self):
+    @patch.object(helper.Path, 'exists', return_value=True)
+    def test_target_requires_allowlisted_bssid_ssid_and_connected_channel(self, _exists):
         scan = (r"02\:11\:22\:33\:44\:55:Fixture lab:2412 MHz:70" + "\n" +
                 r"02\:11\:22\:33\:44\:66:Fixture lab:5180 MHz:99")
         with patch.object(helper, "command", side_effect=["Connected to ap\n freq: 2412", scan]):

@@ -19,9 +19,11 @@ async function action(name, parameters) {
     if (!response.ok) throw Error(result.error || "Request failed");
     if (name === "wifi" || name === "ble") showView(name);
     if (name.startsWith("ble-")) showView("ble");
+    if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) showView('workspace');
     if (name === "wifi-capture") showView("system");
     if (name.startsWith("mission")) showView("survey");
     await refresh();
+    if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) $('packet-status').scrollIntoView({block:'start',behavior:'smooth'});
   } catch(error) { showError(error.message); }
 }
 function showError(message) { $("error").textContent = message || ""; $("error").hidden = !message; }
@@ -57,6 +59,7 @@ function renderBle() {
   $("ble-json").textContent=report?JSON.stringify(report,null,2):"No BLE job yet.";
   const results=[];
   if(report?.state==='done' && report.action==='ble-pair') results.push(resultCard('Pairing completed',report.already_paired?'The selected device was already paired.':'BlueZ confirmed pairing. You can now inspect its GATT services.'));
+  if(report?.state==='done' && report.action==='ble-advertise') results.push(resultCard('BLE beacon test',`${report.registered} registrations · ${report.seconds} seconds. ${report.note}`));
   if(report?.state==='done' && report.characteristics) results.push(resultCard('GATT inventory',`${report.services.length} services · ${report.characteristics.length} characteristics · ${report.descriptors?.length ?? 0} descriptors`));
   if(report?.state==="done" && report.action==="ble-foxhunt") {
     results.push(resultCard("Signal tracking",`${report.samples.length} fresh samples · latest ${report.latest ?? "—"} dBm · peak ${report.peak ?? "—"} dBm · ${report.trend}. RSSI is not a distance measurement.`));
@@ -82,6 +85,25 @@ function renderWorkspace() {
     if(mode.action){const button=elem('button','Run '+mode.name,'primary');button.disabled=!!(state.busy||state.mission||(mode.action==='ble-foxhunt'&&!state.settings.target));button.onclick=()=>action(mode.action);card.append(button);}
     return card;
   }));
+  const report=state.packet_lab, rows=[];
+  $('packet-status').textContent=(report?.state||'NO CAPTURE').toUpperCase();
+  $('packet-note').textContent=report?.error || (report?.state==='running'?'Receiving packets. The capture stops automatically.':report?.note || 'Run a mode above to receive packets.');
+  $('packet-json').textContent=report?JSON.stringify(report,null,2):'No capture yet.';
+  if(report?.state==='done') {
+    rows.push(resultCard('Receive evidence',`${report.captured} packets · ${report.reports} reports · ${report.malformed} malformed · ${report.incomplete} incomplete. ${report.capture_limit_reached?'Capture budget reached.':''}`));
+    for(const hit of report.detections||[]) rows.push(resultCard(hit.name||hit.address,hit.matches.join(' · ')+'. '+hit.note));
+    for(const item of report.remote_id||[]) {
+      const card=resultCard('Remote ID · '+item.type,item.address+' · '+item.transport+' · broadcast claim, unverified');
+      card.append(elem('pre',JSON.stringify(Object.fromEntries(Object.entries(item).filter(([k])=>!['raw','address','transport'].includes(k))),null,2))); rows.push(card);
+    }
+    if(report.action==='ble-sniff') for(const item of report.advertisements||[]) rows.push(resultCard(item.name||'Unnamed advertiser',`${item.address} · ${item.rssi??'unknown'} dBm · ${item.address_type} · ${Object.keys(item.manufacturer_data||{}).length} company fields`));
+    if(!report.detections?.length&&!report.remote_id?.length) rows.push(resultCard('No detector matches','No matching candidate or Remote ID message was received in this window. This does not establish absence.'));
+  }
+  $('packet-results').replaceChildren(...rows);
+  $('packet-download').replaceChildren();
+  if(report?.capture_session && /^[0-9a-f]{32}$/.test(report.capture_session)) for(const format of ['pcap','json']) {
+    const link=elem('a','Download '+format.toUpperCase(),'secondary'); link.href='/api/export/'+report.capture_session+'.'+format; link.download=''; $('packet-download').append(link);
+  }
 }
 if(new URLSearchParams(location.search).get('desktop')==='1') {document.body.classList.add('desktop-mode');showView('workspace');}
 function resultCard(title, description) {const node=elem("article",undefined,"result-card");node.append(elem("h3",title),elem("p",description));return node;}
@@ -167,7 +189,7 @@ function renderDiagnostics() {
     ["GPS RECEIVER",state.gps?"Fresh fix":"No fix","Local gpsd · coordinates never fabricated"],
     ["PLATFORM",c.platform,"Debian service + separate MCU display firmware"],
     ["USB RADIO DRIVER",c.interfaces.some(x=>x.driver === "mt7921u") ? "MT7921 USB attached" : c.kernel?.modules?.mt7921u?.available ? "MT7921 module installed" : c.kernel?.options?.MT7921U === "disabled" ? "MT7921 USB missing" : ["y","m"].includes(c.kernel?.options?.MT7921U) ? "MT7921 USB configured" : "Not measured","PC forwarding must remain connected; use Lab report for measured RF results"],
-    ["LAB HELPER",c.lab?.configured ? "Configured" : "Setup required",c.lab?.reason || "Fixed, bounded jobs for your configured lab AP"]
+    ["LAB HELPER",c.lab?.configured ? c.lab.interface_present===false?'BLE ready / Wi-Fi radio absent':'Configured' : "Setup required",c.lab?.reason || (c.lab?.interface_present===false?'Reconnect/configure the monitor radio, then refresh readiness. BLE capture remains available.':"Fixed, bounded radio jobs")]
   ];
   $("diagnostics").replaceChildren(...entries.map(([label,value,note])=>{const box=elem("article",undefined,"diagnostic");box.append(elem("label",label),elem("strong",value),elem("p",note));return box;}));
   $("iw-evidence").textContent=c.iw_evidence;
@@ -193,7 +215,7 @@ function render() {
   $("mission-button").textContent=state.mission?"Stop survey ■":"Start survey ↗";
   $("mission-button").dataset.action=state.mission?"mission-stop":"mission-start";
   $("mission-status").textContent=state.stopping?"STOPPING":state.mission?"RECORDING":"STANDBY";
-  document.querySelectorAll("[data-action]").forEach(button=>{button.disabled=button.dataset.action==="mission-stop"?state.stopping:!!(state.busy||state.mission);});
+  document.querySelectorAll("[data-action]").forEach(button=>{button.disabled=button.dataset.action==='ble-advert-stop'?state.busy!=='ble-advertise':button.dataset.action==="mission-stop"?state.stopping:!!(state.busy||state.mission);});
   showError(state.error);
   renderWorkspace();renderPairing();renderSettings();renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
 }

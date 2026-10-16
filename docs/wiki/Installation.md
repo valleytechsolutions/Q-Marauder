@@ -12,6 +12,10 @@ MCU sketch for the TFT. It does **not** erase the OS or use ESP32 flash offsets.
 7. If prompted, choose upright portrait orientation with USB at the bottom, then
    press and release the three touch calibration targets.
 8. Run `scripts/Enable-BLELab.cmd` once for Debian's D-Bus bindings.
+9. Run `scripts/Enable-LabRadio.cmd` → **1** for BLE packet capture. Existing helper
+   installs must be updated too. No Wi-Fi lab profile is needed for BLE capture.
+10. For Wi-Fi monitor jobs, attach a supported radio and choose **2** in that
+    launcher to select your adapter and authorized AP; enter the Debian password locally.
 
 The display uploader accepts the tested **Zephyr 0.11.0-rc5** core. It stops if the
 core differs; do not force a runtime downgrade. The installer saves a full MCU

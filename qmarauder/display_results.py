@@ -17,6 +17,8 @@ def readiness_rows(capabilities):
     usb_support = capabilities.get("kernel", {}).get("options", {}).get("MT7921U", "unknown")
     usb_module = capabilities.get("kernel", {}).get("modules", {}).get("mt7921u", {})
     usb_attached = any(r.get("driver") == "mt7921u" for r in interfaces)
+    helper = capabilities.get('lab', {})
+    wifi_absent = helper.get('configured') and helper.get('interface_present') is False
     return [
         ("Wi-Fi discovery", "Ready" if tools.get("nmcli") and interfaces else "Unavailable",
          adapters + ". AP discovery uses NetworkManager. Select Scan APs in Wi-Fi."),
@@ -25,8 +27,8 @@ def readiness_rows(capabilities):
         ("Monitor capture", monitor_text,
          f"Driver monitor support: {monitor_text}. NET_ADMIN: {'yes' if privileges.get('net_admin') else 'missing'}. "
          f"NET_RAW: {'yes' if privileges.get('net_raw') else 'missing'} in console. Use Lab packet recon for measured results from the separate radio worker."),
-        ("Lab helper", "Configured / test next" if capabilities.get("lab", {}).get("configured") else "Admin setup required",
-         "Run Lab packet recon, then Injection check. A response permits a bounded 3-frame deauth test. "
+        ("Lab helper", "Wi-Fi radio absent / BLE ready" if wifi_absent and helper.get('hci_capture') else "Configured / test next" if capabilities.get("lab", {}).get("configured") else "Admin setup required",
+         "BLE packet capture is available. Reconnect/configure the Wi-Fi monitor adapter before Wi-Fi tests." if wifi_absent else "Run Lab packet recon, then Injection check. A response permits a bounded 3-frame deauth test. "
          "Monitor support alone does not prove injection." if capabilities.get("lab", {}).get("configured")
          else capabilities.get("lab", {}).get("reason", "See docs/LAB.md for one-time admin setup. No raw radio job has been run.")),
         ("MT7921 USB adapter", "Attached / driver loaded" if usb_attached else "Module available" if usb_module.get("available") else "Driver missing" if usb_support == "disabled" else "Driver configured" if usb_support in ("y", "m") else "Not measured",
@@ -35,9 +37,14 @@ def readiness_rows(capabilities):
 
 
 def result_page(state, kind, page, controls=False):
-    if kind not in (1, 2, 3, 4, 5, 6) or not 0 <= page <= 2499:
+    if kind not in (1, 2, 3, 4, 5, 6, 7) or not 0 <= page <= 2499:
         raise ValueError("Invalid display result page")
-    if kind in (5, 6):
+    if kind == 7:
+        from .capture import display_rows
+        report = state.get('packet_lab') or {}
+        rows = display_rows(report)
+        status = 'Receiving / please wait' if report.get('state') == 'running' else 'Capture / tap for details'
+    elif kind in (5, 6):
         report = state.get('ble_lab') or {}
         status = 'BLE task running...' if report.get('state') == 'running' else 'BLE lab / tap details'
         if report.get('state') == 'error':
@@ -47,6 +54,8 @@ def result_page(state, kind, page, controls=False):
         elif kind == 6:
             rows = [(r.get('name') or 'Unnamed advertiser', ', '.join(r['matches']), r['address']+'. '+r['note']) for r in state.get('detections', [])]
             if not rows: rows = [('No watchlist matches', 'Configure rules in Settings', 'No match does not prove the absence of surveillance equipment.')]
+        elif report.get('action') == 'ble-advertise':
+            rows = [('BLE advertising test', 'Stopped' if report.get('state') == 'stopped' else str(report.get('registered',0))+' registrations', report.get('note',''))]
         elif report.get('action') == 'ble-foxhunt':
             signal = f"{report['latest']} dBm" if report.get('latest') is not None else 'No fresh signal'
             peak = f"{report['peak']} dBm" if report.get('peak') is not None else 'unavailable'

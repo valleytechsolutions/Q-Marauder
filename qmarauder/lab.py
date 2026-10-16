@@ -9,9 +9,10 @@ SOCKET = Path("/run/q-marauder-radio.sock")
 ACTIONS = {"lab-recon": "recon", "lab-injection": "injection", "lab-deauth": "deauth", 'wifi-capture':'capture'}
 
 
-def call(action):
-    if action not in ("status", "recon", "injection", "deauth", "capture"):
+def call(action, on_ready=None):
+    if action not in ('status','recon','injection','deauth','capture','wifi-discovery','ble-capture-0','ble-capture-1'):
         raise ValueError("Unknown lab action")
+    capture = action in ('capture','wifi-discovery','ble-capture-0','ble-capture-1')
     if SOCKET.exists():
         try:
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
@@ -19,8 +20,12 @@ def call(action):
                 connection.connect(str(SOCKET))
                 connection.sendall((action + "\n").encode("ascii"))
                 with connection.makefile("rb") as stream:
-                    payload = stream.readline(750001 if action == 'capture' else 16385)
-            if len(payload) > (750000 if action == 'capture' else 16384) or not payload.endswith(b"\n"):
+                    if action.startswith('ble-capture-'):
+                        ready = json.loads(stream.readline(1024))
+                        if ready != {'ready':True}: raise RuntimeError(ready.get('error','HCI capture could not start'))
+                        if on_ready: on_ready()
+                    payload = stream.readline(750001 if capture else 16385)
+            if len(payload) > (750000 if capture else 16384) or not payload.endswith(b"\n"):
                 raise ValueError("Invalid helper response")
             report = json.loads(payload)
         except (OSError, ValueError) as exc:
@@ -28,6 +33,8 @@ def call(action):
         if not isinstance(report, dict) or report.get("error"):
             raise RuntimeError(str(report.get("error", "Radio helper failed"))[:300] if isinstance(report, dict) else "Invalid helper report")
         return report
+    if action.startswith('ble-capture-'):
+        raise RuntimeError('BLE PCAP needs the updated local radio socket; run Enable-LabRadio first')
     if not HELPER.is_file():
         raise RuntimeError("One-time admin radio setup is required; see docs/LAB.md")
     try:

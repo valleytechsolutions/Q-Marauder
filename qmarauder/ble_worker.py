@@ -251,11 +251,14 @@ def main():
         radio = BlueZ(request['adapter'])
         if action in ('ble', 'ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt'):
             result = radio.scan(20 if action == 'ble-foxhunt' else 8, request['target'] if action == 'ble-foxhunt' else '')
+        elif action == 'ble-advertise':
+            from .advertising import run
+            result = run(radio)
         elif action in ('ble-gatt','ble-read','ble-write','ble-notify','ble-snapshot','ble-hid','ble-hid-listen'):
             result = radio.gatt(action, request)
         else: raise ValueError('Unknown BLE action')
-        result.update(action=action, state='done', kind='ble-lab', address=request['target'],
-                      note='BlueZ discovery may transmit scan requests. GATT jobs disconnect their own connection on completion.')
+        result.update(action=action, state='done', kind='ble-lab', address='' if action == 'ble-advertise' else request['target'])
+        result.setdefault('note','BlueZ discovery may transmit scan requests. GATT jobs disconnect their own connection on completion.')
         radio.close(); radio = None
         print(json.dumps(result))
     except Exception as exc:

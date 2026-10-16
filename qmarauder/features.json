@@ -155,8 +155,8 @@
     "id": "remote-id",
     "name": "Remote ID aircraft detection",
     "category": "Tracking",
-    "status": "planned",
-    "detail": "Needs packet/advertisement decoding and recorded validation fixtures. CSI additionally depends on driver telemetry.",
+    "status": "partial",
+    "detail": "BLE/Wi-Fi Remote ID transport and message decoder with reference-encoder fixtures. Broadcast positions and signatures are unverified; no physical drone validation.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/remote-id"
   },
   {
@@ -371,8 +371,8 @@
     "id": "flock-sniff",
     "name": "Flock heuristics",
     "category": "Bluetooth analysis",
-    "status": "planned",
-    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "status": "partial",
+    "detail": "Packet-based Flock BLE candidates with specific service/name/public-OUI evidence. Generic XUNTONG company alone is insufficient. No real Flock target validation.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/flock-sniff"
   },
   {
@@ -387,8 +387,8 @@
     "id": "meta-detect",
     "name": "Meta device heuristics",
     "category": "Bluetooth analysis",
-    "status": "planned",
-    "detail": "Needs manufacturer/service-data decoding and fixture-tested signatures. Advertisements alone cannot prove device identity.",
+    "status": "partial",
+    "detail": "Company 0D53 plus FD5F service in the same received HCI advertising report. Separate scan responses are never combined to form a match. Candidate identity remains unverified.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/meta-detect"
   },
   {
@@ -715,8 +715,8 @@
     "id": "unified-flock",
     "name": "Flock-You mode",
     "category": "Unified Blue parity",
-    "status": "planned",
-    "detail": "Wi-Fi IE/probe fingerprints, passive BLE signatures, duty cycling and persisted detector sessions pending.",
+    "status": "partial",
+    "detail": "Independent BLE service/name/public-OUI and Wi-Fi registered-transmitter-OUI candidates. 1/6/11 receive sampling implemented; live Wi-Fi validation blocked by missing external adapter. Broad community IE fingerprints and real Flock validation pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
@@ -724,23 +724,23 @@
     "name": "Unified Blue Wi-Fi PCAP mode",
     "category": "Unified Blue parity",
     "status": "partial",
-    "detail": "8-second radiotap PCAP export verified; 512 KiB / 2000-packet bound. Single configured lab channel, with rolling captures and general channel hopping pending.",
+    "detail": "Eight-second single-channel radiotap PCAP verified. Flock/Sky Spy separately implement 1/6/11 receive sampling, awaiting hardware validation. Rolling logging remains pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
     "id": "unified-skyspy",
     "name": "Sky Spy Remote ID",
     "category": "Unified Blue parity",
-    "status": "planned",
-    "detail": "Raw Wi-Fi capture integration, ASTM F3411 decoder and reference telemetry fixtures needed.",
+    "status": "partial",
+    "detail": "All six OpenDroneID message families, packs, BLE FFFA and Wi-Fi beacon/NAN framing decoded independently. Reference-encoder fixtures and real BLE captures pass; physical drone and Wi-Fi sampling validation pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
     "id": "unified-blesniff",
     "name": "BLE advertising PCAP",
     "category": "Unified Blue parity",
-    "status": "planned",
-    "detail": "BlueZ aggregated discovery is not passive raw advertising capture; HCI report capture and correct PCAP framing needed.",
+    "status": "partial",
+    "detail": "Twelve-second HCI advertising PCAP, linktype 201, with eight-second BlueZ discovery. Real 44-report capture verified. Scan requests may transmit; no link-layer or connection capture. Extended fragment reassembly pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
@@ -748,7 +748,15 @@
     "name": "AXEOFF mode",
     "category": "Unified Blue parity",
     "status": "partial",
-    "detail": "BLE Axon/TASER public identifier candidates with evidence labels. Active BlueZ discovery; Wi-Fi signatures, continuous headless operation and audio alerts pending.",
+    "detail": "BLE Axon/TASER identifier candidates plus separate Wi-Fi transmitter-OUI matching. Channel sampling needs live monitor-radio validation. Continuous headless/audio behavior remains pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "ble-advertise",
+    "name": "BLE laboratory beacon test",
+    "category": "Active BLE tests",
+    "status": "partial",
+    "detail": "Three QM-LAB names, two seconds each; controller registration and explicit-stop cleanup verified, but independent RF reception unconfirmed. No platform popup/crash payloads.",
+    "source": "https://bluez.readthedocs.io/en/latest/advertising-api/"
   }
 ]

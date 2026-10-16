@@ -17,7 +17,11 @@ if not proc.exists():
     print("Preview has already stopped")
     sys.exit(0)
 args = (proc / "cmdline").read_bytes().split(b"\0")
-if b"-m" not in args or b"qmarauder" not in args or (proc / "cwd").resolve() != root:
+record = pidfile.with_name('preview-root.txt')
+recorded = Path(record.read_text()).resolve() if record.exists() else root
+releases = (Path.home()/'.local/lib/q-marauder/releases').resolve()
+allowed = recorded == root or (recorded.parent == releases and len(recorded.name)==16 and all(c in '0123456789abcdef' for c in recorded.name))
+if b"-m" not in args or b"qmarauder" not in args or not allowed or (proc / "cwd").resolve() != recorded:
     raise SystemExit("PID no longer identifies this checkout's preview; refusing to signal it")
 os.kill(pid, signal.SIGINT)
 for _ in range(280):

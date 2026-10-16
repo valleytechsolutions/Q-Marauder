@@ -35,13 +35,19 @@ write even when it advertises writable flags.
 
 ## Detectors and capture
 
-**Counter surveillance** has detector presets, watchlists, RSSI tracking and
-Wi-Fi PCAP. Unimplemented entries display **PORT PLANNED**. PCAP files download
-from Field log in the browser/desktop; the TFT shows capture counts and limits.
+**Counter surveillance** includes Packet detector, Flock Wi-Fi, Flock BLE, Sky Spy
+Wi-Fi, Sky Spy BLE and BLE Sniff PCAP, alongside watchlists/RSSI/Wi-Fi PCAP. Tap a
+mode once; results appear after its bounded window. Tap rows for evidence or Remote
+ID telemetry and use PREV/NEXT for further pages. Zero matches still shows receive
+counts and coverage. PCAP files download from Field log in the browser/desktop.
+
+**Bluetooth → Bluetooth Attacks → BLE beacon test** registers three QM-LAB names,
+two seconds each. BACK → **Stop beacon test** stops it early. This is a bounded
+advertising test; platform popup/crash spam is not implemented or claimed.
 
 If touch coordinates are wrong, use **Settings → Calibrate touch**. The saved
 orientation and calibration are restored by the running Linux service.
 
 Watchlist editing and file export remain browser/desktop workflows. Continuous
-audio, raw BLE sniffing and every upstream attack are not available on the TFT
+audio, BLE link-layer/connection sniffing and every upstream attack are not available on the TFT
 merely because a corresponding label appears in the menu.

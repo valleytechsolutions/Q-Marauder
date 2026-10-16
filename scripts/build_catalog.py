@@ -92,5 +92,20 @@ for slug,name,status,detail in [
     ('unified-blesniff','BLE advertising PCAP','planned','BlueZ aggregated discovery is not passive raw advertising capture; HCI report capture and correct PCAP framing needed.'),
     ('unified-axeoff','AXEOFF mode','partial','BLE Axon/TASER public identifier candidates with evidence labels. Active BlueZ discovery; Wi-Fi signatures, continuous headless operation and audio alerts pending.')]:
     entries.append(dict(id=slug,name=name,category='Unified Blue parity',status=status,detail=detail,source='https://github.com/colonelpanichacks/oui-spy-unified-blue'))
+updates = {
+    'unified-axeoff': 'BLE Axon/TASER identifier candidates plus separate Wi-Fi transmitter-OUI matching. Channel sampling needs live monitor-radio validation. Continuous headless/audio behavior remains pending.',
+    'unified-flock': 'Independent BLE service/name/public-OUI and Wi-Fi registered-transmitter-OUI candidates. 1/6/11 receive sampling implemented; live Wi-Fi validation blocked by missing external adapter. Broad community IE fingerprints and real Flock validation pending.',
+    'flock-sniff': 'Packet-based Flock BLE candidates with specific service/name/public-OUI evidence. Generic XUNTONG company alone is insufficient. No real Flock target validation.',
+    'meta-detect': 'Company 0D53 plus FD5F service in the same received HCI advertising report. Separate scan responses are never combined to form a match. Candidate identity remains unverified.',
+    'unified-skyspy': 'All six OpenDroneID message families, packs, BLE FFFA and Wi-Fi beacon/NAN framing decoded independently. Reference-encoder fixtures and real BLE captures pass; physical drone and Wi-Fi sampling validation pending.',
+    'remote-id': 'BLE/Wi-Fi Remote ID transport and message decoder with reference-encoder fixtures. Broadcast positions and signatures are unverified; no physical drone validation.',
+    'unified-blesniff': 'Twelve-second HCI advertising PCAP, linktype 201, with eight-second BlueZ discovery. Real 44-report capture verified. Scan requests may transmit; no link-layer or connection capture. Extended fragment reassembly pending.',
+    'unified-pcap': 'Eight-second single-channel radiotap PCAP verified. Flock/Sky Spy separately implement 1/6/11 receive sampling, awaiting hardware validation. Rolling logging remains pending.'
+}
+for entry in entries:
+    if entry['id'] in updates: entry.update(status='partial',detail=updates[entry['id']])
+entries.append(dict(id='ble-advertise',name='BLE laboratory beacon test',category='Active BLE tests',status='partial',
+    detail='Three QM-LAB names, two seconds each; controller registration and explicit-stop cleanup verified, but independent RF reception unconfirmed. No platform popup/crash payloads.',
+    source='https://bluez.readthedocs.io/en/latest/advertising-api/'))
 (root / "qmarauder/features.json").write_text(json.dumps(entries, indent=2)+"\n", encoding="utf-8")
 print(f"Wrote {len(entries)} capability records")

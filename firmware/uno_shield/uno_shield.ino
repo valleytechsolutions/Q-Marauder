@@ -274,7 +274,7 @@ void render() {
       if(detailKey.length()) footerButton(214,"USE");
       else centered(112,442,198,"TAP BACK TO RETURN",p.muted,1);
     } else if(resultKind) {
-      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results"};
+      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results","Packet analysis"};
       label(14,76,titles[resultKind],p.text);
       label(14,100,resultStatus.substring(0,36),p.muted,1);
       label(270,100,String(viewPage+1)+"/"+String(max(1,(count+3)/4)),p.accent,1);
@@ -376,6 +376,14 @@ void activate(int target) {
   else if(entry.action==6) { touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=false; dirty=true; }
   else if(entry.action==12 || entry.action==13) requestResults(entry.action-11);
   else if(entry.action==24 || entry.action==38) { writeWithoutResponse=entry.action==38; inputMode=1; inputPage=0; inputValue=""; dirty=true; }
+  else if((entry.action>=39 && entry.action<=44) || entry.action==47) {
+    if(pendingAction) return;
+    queueAction(entry.action); requestResults(7);
+  }
+  else if(entry.action==45 || entry.action==46) {
+    if(pendingAction) return;
+    queueAction(entry.action); requestResults(5);
+  }
   else if(entry.action>=21 && entry.action<=37) {
     if(pendingAction) return;
     queueAction(entry.action);

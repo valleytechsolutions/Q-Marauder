@@ -101,6 +101,14 @@ class Store:
             rows = [json.loads(row['payload']) for row in db.execute('SELECT payload FROM observations WHERE session=? ORDER BY id LIMIT 1000',(session['id'],))]
             return rows, session['started']
 
+    def latest_packet(self):
+        with self.connect() as db:
+            row = db.execute("""SELECT o.payload FROM sessions s LEFT JOIN observations o ON o.session=s.id
+                WHERE s.mode IN ('flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi')
+                ORDER BY s.started DESC, o.id DESC LIMIT 1""").fetchone()
+        if row is None: return None
+        return json.loads(row['payload']) if row['payload'] else dict(state='error', error='Previous capture was interrupted; it was not restarted.')
+
     def export(self, identity, fmt):
         with self.connect() as db:
             if not db.execute("SELECT 1 FROM sessions WHERE id=?", (identity,)).fetchone():
