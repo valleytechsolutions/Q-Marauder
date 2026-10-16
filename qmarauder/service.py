@@ -55,6 +55,7 @@ class Service:
         if state["gps"] and not gps.validate_fix({"class":"TPV", **state["gps"]}):
             state["gps"] = None
         state["sessions"] = self.store.sessions()
+        state['linux_history'] = self.store.linux_history()
         state["features"] = self.features
         return state
 
@@ -69,7 +70,7 @@ class Service:
             if 'theme' in values: self.state['pending_theme'] = values['theme']
 
     def submit(self, action, parameters=None):
-        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", 'ble-advert-stop', *lab.ACTIONS, *ble.ACTIONS, *capture.ACTIONS, *linux_tools.ACTIONS):
+        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", 'ble-advert-stop', 'linux-open', *lab.ACTIONS, *ble.ACTIONS, *capture.ACTIONS, *linux_tools.ACTIONS):
             raise ValueError("Unknown action")
         with self.lock:
             if action == 'ble-advert-stop':
@@ -81,6 +82,10 @@ class Service:
                 return
             if self.state["busy"] or self.state["mission"]:
                 raise RuntimeError("A radio task is already running. Stop the survey before starting another task.")
+            if action == 'linux-open':
+                if not isinstance(parameters, dict) or set(parameters) != {'session'}: raise ValueError('Select a saved Linux report')
+                self.state['linux_report'] = self.store.linux_report(parameters['session'])
+                return
             request = ble.request_for(action, self.state['settings'], parameters) if action in ble.ACTIONS else None
             if parameters and action not in ble.ACTIONS: raise ValueError('This action accepts no parameters')
             self.state.update(busy=action, error=None)
@@ -156,7 +161,9 @@ class Service:
                         self.state["capabilities"] = capabilities
                 elif action in linux_tools.ACTIONS:
                     session = self.store.start(action)
-                    report = linux_tools.run(action, self.state['settings'])
+                    if action == 'wifi-changes':
+                        report = linux_tools.run(action, self.state['settings'], self.store.latest_wifi_report())
+                    else: report = linux_tools.run(action, self.state['settings'])
                     report.update(updated=utcnow(), session=session)
                     self.store.append(session, [report])
                     with self.lock:

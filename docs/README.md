@@ -1,5 +1,7 @@
 # Q-Marauder documentation
 
+[New survey tools and touchscreen report history](SURVEY-TOOLS.md)
+
 [UI gallery](GALLERY.md) · [Credits](../CREDITS.md) · [Downloads](https://github.com/valleytechsolutions/Q-Marauder/releases) · [GitHub wiki](https://github.com/valleytechsolutions/Q-Marauder/wiki)
 
 Start with the illustrated installation guide, then use the guides for your screen

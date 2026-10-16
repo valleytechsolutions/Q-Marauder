@@ -102,6 +102,18 @@ class BlueZ:
         rows = sorted(seen.values(), key=lambda row: row['rssi'] if row['rssi'] is not None else -999, reverse=True)
         return dict(rows=rows, **proximity(samples))
 
+    def saved_devices(self):
+        rows = []
+        for path, interfaces in self.objects().items():
+            if not str(path).startswith(self.path+'/dev_'): continue
+            props = interfaces.get('org.bluez.Device1', {})
+            if not props.get('Address'): continue
+            rows.append(dict(address=str(props['Address']), name=str(props.get('Alias', props.get('Name','')))[:248],
+                             paired=bool(props.get('Paired')), trusted=bool(props.get('Trusted')),
+                             connected=bool(props.get('Connected')), blocked=bool(props.get('Blocked')),
+                             uuids=[str(value) for value in props.get('UUIDs', [])][:64]))
+        return dict(rows=sorted(rows, key=lambda row:(not row['paired'], row['name'], row['address']))[:500])
+
     def connect(self, address):
         path = self.path+'/dev_'+address.replace(':', '_')
         if path not in self.objects(): self.scan(5, address)
@@ -252,7 +264,9 @@ def main():
         validate({k: request[k] for k in ('target','adapter')})
         action = request['action']
         radio = BlueZ(request['adapter'])
-        if action == 'bt-classic':
+        if action == 'bt-devices':
+            result = radio.saved_devices()
+        elif action == 'bt-classic':
             result = radio.scan(8, transport='bredr')
         elif action in ('ble', 'ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt'):
             result = radio.scan(20 if action == 'ble-foxhunt' else 8, request['target'] if action == 'ble-foxhunt' else '')

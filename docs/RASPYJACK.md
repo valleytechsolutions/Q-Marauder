@@ -2,8 +2,8 @@
 
 Q-Marauder is beginning a Wi-Fi/Bluetooth workflow port of
 [Raspyjack by 7h30th3r0n3](https://github.com/7h30th3r0n3/Raspyjack), inspected at
-`8cbb74c1e2198bf477631c0903c19c35efb432fa`. The first slice adds four real Linux
-radio jobs, a shared portrait menu and a native Debian application shell.
+`8cbb74c1e2198bf477631c0903c19c35efb432fa`. The integration now has eight Linux
+radio jobs, shared report history, a portrait menu and a native Debian application shell.
 **This is not complete Raspyjack parity.**
 
 ![Linux radio tools in the local console](images/linux-tools.jpg)
@@ -35,6 +35,14 @@ This is a software render from the current firmware drawing code, not a panel ph
 | Wi-Fi security survey | NetworkManager AP discovery and local summary | Security modes, hidden-name count, channels and mixed-security SSIDs. May transmit probes. Counts are not airtime; mixed modes do not establish an evil twin. |
 | Bluetooth controllers | `bluetoothctl list` / `show` | Reads power, discoverability, pairing mode and supported roles for up to four controllers. Changes no controller settings. |
 | Bluetooth Classic scan | BlueZ D-Bus `bredr` discovery for eight seconds | Selected adapter from Settings; no pairing or connections. Only fresh events enter the report. No SDP service enumeration yet. |
+| Wi-Fi channel survey | NetworkManager discovery grouped by band/channel | AP counts and signal quality; no airtime, channel-width or interference measurement. |
+| Wi-Fi scan changes | New discovery compared with the previous successful Linux Wi-Fi tool report | New/not-seen BSSIDs and changed names, channels, security or signal. No attack inference. |
+| BLE advert summary | Eight-second BlueZ LE discovery | Company/service/address-type summaries; counts addresses, not unique physical devices or packets. |
+| Saved Bluetooth devices | BlueZ local Device1 properties | Pairing, trust, connection and cached service UUIDs; does not initiate connections or change settings. |
+
+See [Survey tools and report history](SURVEY-TOOLS.md) for step-by-step touchscreen
+and desktop instructions. **Saved Linux reports** opens up to 100 recent reports
+without restarting a job; on the TFT tap a row, then **OPEN**.
 
 Jobs use the same serialized queue as existing Wi-Fi and BLE work. Reports remain
 in the local session archive and survive application restarts. Desktop JSON exports
@@ -47,7 +55,7 @@ interrupted jobs are reported rather than silently restarted.
 every Python payload in the pinned upstream `wifi/` and `bluetooth/` directories,
 plus selected related reconnaissance and radio utilities. Search **Raspyjack** in
 **Modules** to see each entry's source and current status. A planned entry has no
-executable backend. The four working Linux tools have their own catalog records.
+executable backend. The eight working Linux tools have their own catalog records.
 
 | Area | Current position | Next work |
 | --- | --- | --- |
@@ -56,7 +64,7 @@ executable backend. The four working Linux tools have their own catalog records.
 | Wireless capture and detection | Existing bounded PCAP, Flock/Meta/Axon candidates and Remote ID decoder | External-radio validation and continuous, cancellable capture workflows |
 | Wi-Fi active tests | Existing bounded configured-lab test remains; injection unverified | Adapter validation before adding additional upstream workflows |
 | BLE advertising / active tools | Existing bounded lab beacon test; broader upstream modes unported | Explicit controller support and owned-device validation for each mode |
-| Report browsing | Local session archive with JSON/CSV/PCAP exports | Filtered report browser and saved analysis views |
+| Report browsing | Local session archive and desktop/TFT Linux report history | More saved analysis views and broader report-type coverage |
 | Payload IDE / arbitrary upstream scripts | Not imported | Each future integration needs its own parameters, dependencies and status; no unrestricted root payload runner is supplied |
 
 RFID, NFC, sub-GHz and SDR are outside this integration's scope, as are the unrelated
@@ -68,7 +76,7 @@ The desktop and portrait renderers share actions and reports rather than screen 
 
 Use the existing [Windows USB installer](GETTING-STARTED.md) from a checkout that
 contains this integration. Updating both the Debian app and TFT is required for the
-new native **Linux tools** menu; the firmware advertises `qm-display/9`.
+new native **Linux tools** menu; the firmware advertises `qm-display/10`.
 An app-only update adds desktop tools but cannot add menus to an older MCU sketch.
 The tested factory Zephyr core requirement still applies.
 

@@ -45,18 +45,18 @@ def main():
     drawing=drawing.replace('#include <Arduino_RouterBridge.h>','')
     drawing=drawing.replace('#include "Parallel9486.h"','#include "Panel.h"')
     drawing=drawing.replace('#include "TouchControls.h"','')
-    scenes={'bwm-home':(0,0),'marauder-detection':(1,13),
-            'biscuit-settings':(2,12),'valleytech-ble':(3,15),'theme-picker':(0,14),
-            'linux-tools':(3,18)}
+    scenes={'bwm-home':(0,0,0),'marauder-detection':(1,13,0),
+            'biscuit-settings':(2,12,0),'valleytech-ble':(3,15,0),'theme-picker':(0,14,0),
+            'linux-tools':(3,18,0),'linux-analysis':(1,18,1),'linux-history-menu':(0,18,2)}
     output.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='qm-tft-gallery-') as scratch:
         temporary=Path(scratch)
         main_cpp=drawing+'''
 int main(int argc,char **argv) {
-  if(argc!=4) return 2;
-  theme=std::atoi(argv[1]); menu=std::atoi(argv[2]);
+  if(argc!=5) return 2;
+  theme=std::atoi(argv[1]); menu=std::atoi(argv[2]); page=std::atoi(argv[3]);
   orientation=0; touch.calibrated=true; connected=false;
-  render(); lcd.save(argv[3]);
+  render(); lcd.save(argv[4]);
 }
 '''
         cpp=temporary/'preview.cpp';cpp.write_text(main_cpp)
@@ -64,9 +64,9 @@ int main(int argc,char **argv) {
         subprocess.run([args.compiler,'-std=c++17','-DARDUINO=10800',
             '-I',str(root/'scripts/tft-preview'),'-I',str(root/'firmware/uno_shield'),'-I',str(gfx),
             str(cpp),str(gfx/'Adafruit_GFX.cpp'),'-o',str(binary)],check=True)
-        for name,(theme,menu) in scenes.items():
+        for name,(theme,menu,page) in scenes.items():
             ppm=temporary/(name+'.ppm')
-            subprocess.run([str(binary),str(theme),str(menu),str(ppm)],check=True)
+            subprocess.run([str(binary),str(theme),str(menu),str(page),str(ppm)],check=True)
             (output/(name+'.png')).write_bytes(png(ppm.read_bytes()))
     manifest=dict(kind='software-render',resolution=[320,480],observations='none; zero counters; bridge disconnected',
         source='firmware/uno_shield/uno_shield.ino',

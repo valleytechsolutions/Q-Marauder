@@ -21,9 +21,10 @@ async function action(name, parameters) {
     if (name.startsWith("ble-")) showView("ble");
     if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) showView('workspace');
     if (name === "wifi-capture") showView("system");
-    if ((state?.linux_tools||[]).some(tool=>tool.id===name)) showView('workspace');
+    if (name==='linux-open' || (state?.linux_tools||[]).some(tool=>tool.id===name)) showView('workspace');
     if (name.startsWith("mission")) showView("survey");
     await refresh();
+    if (name==='linux-open' || (state?.linux_tools||[]).some(tool=>tool.id===name)) $('linux-status').scrollIntoView({block:'start',behavior:'smooth'});
     if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) $('packet-status').scrollIntoView({block:'start',behavior:'smooth'});
   } catch(error) { showError(error.message); }
 }
@@ -81,7 +82,7 @@ function renderBle() {
   if(!(state.detections||[]).length) $("detection-list").append(elem("p","No watchlist matches in the last detector scan.","footnote"));
 }
 function renderWorkspace() {
-  $('linux-tools').replaceChildren(...(state.linux_tools||[]).map(tool=>{
+  $('linux-tools').replaceChildren(...(state.linux_tools||[]).filter(tool=>$('linux-filter').value==='all'||tool.group===$('linux-filter').value).map(tool=>{
     const card=resultCard(tool.name,tool.detail);
     const button=elem('button','Run '+tool.name,'primary');
     button.disabled=!!(state.busy||state.mission);
@@ -89,7 +90,13 @@ function renderWorkspace() {
     card.append(elem('span',tool.group,'tag'),button);return card;
   }));
   const linux=state.linux_report;
-  $('linux-status').textContent=(linux?.state||'NO REPORT').toUpperCase();
+  $('linux-status').textContent=(linux?.viewing_saved?'SAVED / ':'')+(linux?.state||'NO REPORT').toUpperCase();
+  const toolNames=Object.fromEntries((state.linux_tools||[]).map(tool=>[tool.id,tool.name]));
+  $('linux-history').replaceChildren(...(state.linux_history||[]).map(report=>{
+    const button=elem('button',(toolNames[report.action]||report.action)+' · '+new Date(report.updated).toLocaleString()+' · '+report.state,'secondary');
+    button.disabled=!!(state.busy||state.mission);button.onclick=()=>action('linux-open',{session:report.id});return button;
+  }));
+  if(!(state.linux_history||[]).length) $('linux-history').append(elem('p','Run a Linux tool to create your first saved report.','footnote'));
   $('linux-note').textContent=linux?.error||(linux?.state==='running'?'Linux tool is running. Results appear here when it finishes.':linux?.note||'Choose a Linux radio tool. Reports are saved locally in Field log.');
   $('linux-results').replaceChildren(...(linux?.rows||[]).map(row=>resultCard(row.title,row.summary+'. '+row.detail)));
   $('linux-json').textContent=linux?JSON.stringify(linux,null,2):'No Linux report yet.';
@@ -124,6 +131,7 @@ function renderWorkspace() {
 }
 if(new URLSearchParams(location.search).get('desktop')==='1') {document.body.classList.add('desktop-mode');showView('workspace');}
 $('raspyjack-inventory').onclick=()=>{$('module-filter').value='Raspyjack';showView('modules');if(state)renderModules();};
+$('linux-filter').onchange=()=>{if(state)renderWorkspace();};
 function resultCard(title, description) {const node=elem("article",undefined,"result-card");node.append(elem("h3",title),elem("p",description));return node;}
 function renderPairing() {
   const prompt=state.pairing, active=state.busy==='ble-pair';

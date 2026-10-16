@@ -15,6 +15,27 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 
 **[Flock / Sky Spy / BLE capture how-to](docs/DETECTION.md)** · **[Active test status](docs/ACTIVE-TESTS.md)**
 
+**[Interface gallery](docs/GALLERY.md)** · **[Linux survey tools](docs/SURVEY-TOOLS.md)** ·
+**[Raspyjack integration](docs/RASPYJACK.md)** · **[Projects and developers](CREDITS.md)**
+
+## Handheld and desktop interfaces
+
+<table>
+  <tr><th>Portrait touchscreen</th><th>Desktop workspace</th></tr>
+  <tr>
+    <td><img src="docs/images/tft/linux-analysis.png" width="240" alt="Current portrait firmware menu with channel survey, scan changes and Bluetooth summaries"></td>
+    <td><img src="docs/images/desktop-wifi-tools.jpg" width="680" alt="Running desktop console showing four Wi-Fi tools"></td>
+  </tr>
+</table>
+
+Left: a render from the actual TFT drawing code; the owner confirmed channel
+survey and saved-report navigation on the physical screen. Right: the running
+console captured in a browser, showing the interface hosted by the Debian app.
+An HDMI-connected monitor has not yet been physically validated. See the
+[gallery](docs/GALLERY.md) for more themes, Bluetooth tools and image provenance.
+
+## Development hardware
+
 <img src="docs/images/uno-q-shield-side.webp" width="500" alt="Actual UNO Q and red parallel TFT shield assembly, connected to a PC by USB">
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
@@ -50,7 +71,10 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  18 menu groups, and 182 selections. Unported functions are explicitly marked planned.
+  19 menu groups, and 197 selections. Unported functions are explicitly marked planned.
+- Eight shared Linux radio tools, including channel surveys, Wi-Fi scan comparisons,
+  BLE advertisement summaries and saved Bluetooth device inspection. The TFT can
+  reopen saved Linux reports without repeating scans. [How to use them](docs/SURVEY-TOOLS.md).
 - **Settings → Themes**: BWM, Marauder, Biscuit Shop and Valleytech, shared between
   the browser and TFT with supplied background artwork and saved preferences.
 - Native Wi-Fi/BLE result pages with tap-to-open details, saved scan restoration,

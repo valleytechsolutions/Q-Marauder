@@ -37,6 +37,8 @@ bool splashPending=false,calibrationRestoreAllowed=false;
 struct ResultRow { String title,summary,detail,key; };
 ResultRow resultRows[4];
 int resultKind=0,resultPage=0,resultTotal=0,resultSequence=0;
+bool historyReturn=false;
+int historyPage=0;
 String resultStatus="Loading...",resultPayload="";
 String incomingResults="";
 int incomingSequence=-1;
@@ -271,10 +273,10 @@ void render() {
       wrapped(16,76,infoTitle,p.accent,24,2);
       wrapped(20,145,infoText,p.text,23,11);
       footerButton(10,"BACK");
-      if(detailKey.length()) footerButton(214,"USE");
+      if(detailKey.length()) footerButton(214,resultKind==10?"OPEN":"USE");
       else centered(112,442,198,"TAP BACK TO RETURN",p.muted,1);
     } else if(resultKind) {
-      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results","Packet analysis","Linux tools report","Raspyjack inventory"};
+      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results","Packet analysis","Linux tools report","Raspyjack inventory","Saved Linux reports"};
       label(14,76,titles[resultKind],p.text);
       label(14,100,resultStatus.substring(0,36),p.muted,1);
       label(270,100,String(viewPage+1)+"/"+String(max(1,(count+3)/4)),p.accent,1);
@@ -322,6 +324,7 @@ void requestResults(int kind,int targetPage=0) {
 }
 void goBack() {
   if(infoTitle.length()) { infoTitle=""; infoText=""; detailKey=""; dirty=true; return; }
+  if(resultKind==8 && historyReturn) { historyReturn=false; requestResults(10,historyPage); return; }
   if(resultKind) { resultKind=0; ++resultSequence; dirty=true; return; }
   if(menu==0) { openMenu(12); return; }
   if(menu==14) { openMenu(themeReturnMenu); return; }
@@ -354,6 +357,9 @@ void activate(int target) {
   }
   if(target==20 && detailKey.length()) {
     if(pendingAction) return;
+    if(resultKind==10) {
+      queueAction(59,detailKey); historyPage=resultPage; historyReturn=true; requestResults(8); return;
+    }
     queueAction(resultKind==2?30:31,detailKey);
     int next=resultKind==2?15:16; resultKind=0; ++resultSequence; openMenu(next); return;
   }
@@ -385,7 +391,9 @@ void activate(int target) {
     queueAction(entry.action); requestResults(5);
   }
   else if(entry.action==53) requestResults(9);
-  else if(entry.action>=48 && entry.action<=52) {
+  else if(entry.action==58) requestResults(10);
+  else if((entry.action>=48 && entry.action<=52) || (entry.action>=54 && entry.action<=57)) {
+    historyReturn=false;
     if(entry.action!=52) { if(pendingAction) return; queueAction(entry.action); }
     requestResults(8);
   }
@@ -443,7 +451,7 @@ void pollTouch() {
     if(pressedHit>=10 && pressedHit<=13) lcd.drawRoundRect(10,Layout::rowTop+(pressedHit-10)*Layout::rowStride,300,64,6,themes[theme].accent);
   }
 }
-String protocol() { return "qm-display/9;portrait;direct-touch;themes;results;ble-lab;keypad;linux-tools"; }
+String protocol() { return "qm-display/10;portrait;direct-touch;themes;results;ble-lab;keypad;linux-tools;history"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
       +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";page="+page

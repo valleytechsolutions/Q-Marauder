@@ -6,32 +6,48 @@
   ],
   "observations": "none; zero counters; bridge disconnected",
   "source": "firmware/uno_shield/uno_shield.ino",
-  "source_sha256": "0a36f2128ac6285697f151018e80250c76a58fbf0aed16ca7d9ac8f245f9b527",
+  "source_sha256": "a758d730d25231cd7b821c64333c757fdb77b3e7fdd3ce793ed707e3dc742257",
   "gfx_version": "1.12.6",
   "scenes": {
     "bwm-home": [
+      0,
       0,
       0
     ],
     "marauder-detection": [
       1,
-      13
+      13,
+      0
     ],
     "biscuit-settings": [
       2,
-      12
+      12,
+      0
     ],
     "valleytech-ble": [
       3,
-      15
+      15,
+      0
     ],
     "theme-picker": [
       0,
-      14
+      14,
+      0
     ],
     "linux-tools": [
       3,
-      18
+      18,
+      0
+    ],
+    "linux-analysis": [
+      1,
+      18,
+      1
+    ],
+    "linux-history-menu": [
+      0,
+      18,
+      2
     ]
   }
 }

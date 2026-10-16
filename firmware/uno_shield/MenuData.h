@@ -193,7 +193,12 @@ const MenuEntry menuEntries[] = {
   {18,"Wi-Fi security survey",-1,49},
   {18,"Bluetooth controllers",-1,50},
   {18,"Bluetooth Classic scan",-1,51},
+  {18,"Wi-Fi channel survey",-1,54},
+  {18,"Wi-Fi scan changes",-1,55},
+  {18,"BLE advert summary",-1,56},
+  {18,"Saved Bluetooth devices",-1,57},
   {18,"Linux report",-1,52},
+  {18,"Saved Linux reports",-1,58},
   {18,"Port inventory",-1,53},
 };
-constexpr int MENU_ENTRY_COUNT = 192;
+constexpr int MENU_ENTRY_COUNT = 197;

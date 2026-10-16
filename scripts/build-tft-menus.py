@@ -42,7 +42,7 @@ actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "hci0 / onboard":34,"hci1 / secondary":35,"Listen HID reports":36,"Wi-Fi PCAP":37,"Write no response":38,
          "Flock Wi-Fi":39,"Flock BLE":40,"Sky Spy Wi-Fi":41,"Sky Spy BLE":42,"BLE Sniff PCAP":43,"Packet detector":44,
          "BLE beacon test":45,"Stop beacon test":46,"AXEOFF Wi-Fi":47,
-         "Linux report":52,"Port inventory":53}
+         "Linux report":52,"Port inventory":53,"Saved Linux reports":58}
 import sys
 sys.path.insert(0,str(root))
 from qmarauder.linux_tools import TOOLS
@@ -74,7 +74,7 @@ for index,(key,title,parent) in enumerate(menus):
     if index==16: found=["Back","Read value","Listen notifications","Write hex value","Write no response"]
     if index==17: found=["Back","hci0 / onboard","hci1 / secondary"]
     if index in (0,1,6): found.append('Linux tools')
-    if index==18: found=['Back', *[tool['name'] for tool in TOOLS], 'Linux report', 'Port inventory']
+    if index==18: found=['Back', *[tool['name'] for tool in TOOLS], 'Linux report', 'Saved Linux reports', 'Port inventory']
     if index==10 and "Calibrate touch" not in found: found.append("Calibrate touch")
     if index and "Back" not in found: found.insert(0,"Back")
     for value in found:

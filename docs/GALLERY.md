@@ -8,6 +8,18 @@ hardware is fully validated. See the feature-status guides for that evidence.
 
 ## Browser workspace
 
+### Linux Wi-Fi and Bluetooth tools
+
+![Current Wi-Fi survey tools in the desktop console](images/desktop-wifi-tools.jpg)
+![Current Bluetooth tools in the desktop console](images/desktop-bluetooth-tools.jpg)
+
+Actual captures of the shared console, with radio filtering and four tools per view.
+The native Debian application hosts this interface. These images were captured in
+a browser; they are not evidence of an HDMI hardware test. The [survey guide](SURVEY-TOOLS.md)
+explains the new analysis tools and saved-report controls.
+
+### Full workspace
+
 ![Actual Q-Marauder browser workspace using the Marauder theme](images/console-workspace.jpg)
 
 Actual screenshot of the running console on October 16, 2026. The desktop workspace
@@ -39,12 +51,18 @@ counters are zero and the bridge indicator is disconnected in these preview scen
     <td><img src="images/tft/biscuit-settings.png" width="256" alt="Portrait Biscuit Shop settings menu rendered from firmware"></td>
     <td><img src="images/tft/valleytech-ble.png" width="256" alt="Portrait Valleytech BLE Lab menu rendered from firmware"></td>
   </tr>
+  <tr><th>Marauder · Survey tools</th><th>BWM · Report history</th></tr>
+  <tr>
+    <td><img src="images/tft/linux-analysis.png" width="256" alt="Portrait Wi-Fi and Bluetooth analysis menu rendered from firmware"></td>
+    <td><img src="images/tft/linux-history-menu.png" width="256" alt="Portrait saved-report menu rendered from firmware"></td>
+  </tr>
 </table>
 
 The interface uses direct row taps with large Back and page controls. On the
 physical test shield, upright orientation, direct taps, themes, BLE selection and
-GATT Read value were previously confirmed by the owner. These new renders do not
-constitute another physical acceptance test. Wiring, calibration, refresh rate,
+GATT Read value were previously confirmed by the owner. On October 16, the owner
+also confirmed the new channel survey and saved-report OPEN flows. The images
+themselves are software renders. Wiring, calibration, refresh rate,
 panel color reproduction and real touch response cannot be assessed from them.
 
 <details>

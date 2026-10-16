@@ -117,6 +117,36 @@ class Store:
         if row is None: return None
         return json.loads(row['payload']) if row['payload'] else dict(state='error', error='Previous Linux tool was interrupted; it was not restarted.')
 
+    def latest_wifi_report(self):
+        with self.connect() as db:
+            for row in db.execute("""SELECT o.payload FROM sessions s JOIN observations o ON o.session=s.id
+                WHERE s.mode IN ('wifi-audit','wifi-channels','wifi-changes') AND s.ended IS NOT NULL
+                ORDER BY s.started DESC,o.id DESC"""):
+                report = json.loads(row['payload'])
+                if report.get('state') == 'done' and 'networks' in report: return report
+        return None
+
+    def linux_history(self):
+        from .linux_tools import ACTIONS
+        with self.connect() as db:
+            marks = ','.join('?' for _ in ACTIONS)
+            rows = db.execute(f"""SELECT s.id,s.mode,s.started,s.ended,o.payload FROM sessions s
+                LEFT JOIN observations o ON o.session=s.id WHERE s.mode IN ({marks})
+                ORDER BY s.started DESC,o.id DESC LIMIT 100""", ACTIONS)
+            return [dict(id=row['id'], action=row['mode'], updated=row['started'],
+                         state=json.loads(row['payload']).get('state','unknown') if row['payload'] else 'interrupted' if row['ended'] else 'running') for row in rows]
+
+    def linux_report(self, identity):
+        from .linux_tools import ACTIONS
+        if not isinstance(identity, str) or not re.fullmatch(r'[0-9a-f]{32}', identity): raise ValueError('Invalid report identity')
+        with self.connect() as db:
+            row = db.execute("""SELECT s.mode,s.started,o.payload FROM sessions s LEFT JOIN observations o ON o.session=s.id
+                WHERE s.id=? ORDER BY o.id DESC LIMIT 1""", (identity,)).fetchone()
+        if row is None or row['mode'] not in ACTIONS: raise ValueError('Saved Linux report not found')
+        report = json.loads(row['payload']) if row['payload'] else dict(state='error', error='This job ended without a report. It has not been rerun.')
+        report.update(session=identity, updated=report.get('updated',row['started']), action=row['mode'], viewing_saved=True)
+        return report
+
     def export(self, identity, fmt):
         with self.connect() as db:
             if not db.execute("SELECT 1 FROM sessions WHERE id=?", (identity,)).fetchone():

@@ -8,6 +8,11 @@ or a claim that every upstream firmware feature has been ported.
 
 ![Desktop Lab workspace running against the UNO Q](images/desktop-lab.jpg)
 
+The [current interface gallery](GALLERY.md) includes Wi-Fi/Bluetooth tool views and
+portrait menus. Use **Show tools** to filter Linux tools by radio, and **Saved Linux
+reports** to reopen earlier results without running another job. See the
+[survey tools guide](SURVEY-TOOLS.md).
+
 ## Connect
 
 1. Stop radio work and shut down Debian before changing the power arrangement.

@@ -37,16 +37,24 @@ def readiness_rows(capabilities):
 
 
 def result_page(state, kind, page, controls=False):
-    if kind not in (1, 2, 3, 4, 5, 6, 7, 8, 9) or not 0 <= page <= 2499:
+    if kind not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10) or not 0 <= page <= 2499:
         raise ValueError("Invalid display result page")
-    if kind == 9:
+    if kind == 10:
+        from .linux_tools import TOOLS
+        labels = {tool['id']:tool['name'] for tool in TOOLS}
+        rows = [(labels.get(entry['action'],entry['action']), entry['state'].upper()+' / '+entry['updated'][:16].replace('T',' '),
+                 entry['updated']+' UTC. Saved report; OPEN does not repeat the radio job.', entry['id'])
+                for entry in state.get('linux_history', [])]
+        status = 'Saved reports / newest first'
+        if not rows: rows = [('No saved Linux reports','Run a Linux tool first','Reports are saved locally after each job.')]
+    elif kind == 9:
         rows = [(entry['name'], entry['status'].upper(), entry['detail']) for entry in state.get('features', []) if entry['category'].startswith('Raspyjack / ')]
         status = 'Port status / not a tool launcher'
     elif kind == 8:
         from .linux_tools import display_rows
         report = state.get('linux_report') or {}
         rows = display_rows(report)
-        status = 'Linux task running...' if report.get('state') == 'running' else 'Linux report / tap details'
+        status = 'Linux task running...' if report.get('state') == 'running' else 'Saved report / tap details' if report.get('viewing_saved') else 'Linux report / tap details'
     elif kind == 7:
         from .capture import display_rows
         report = state.get('packet_lab') or {}

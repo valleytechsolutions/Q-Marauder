@@ -17,6 +17,14 @@ TOOLS = (
          detail='Controller power, discoverability, pairing state and supported roles. Read only.'),
     dict(id='bt-classic', name='Bluetooth Classic scan', group='Bluetooth', display_action=51,
          detail='Eight-second BR/EDR discovery on the selected Bluetooth adapter. No pairing or connections.'),
+    dict(id='wifi-channels', name='Wi-Fi channel survey', group='Wi-Fi', display_action=54,
+         detail='Observed AP counts and signal quality by band/channel. Counts are not channel utilization.'),
+    dict(id='wifi-changes', name='Wi-Fi scan changes', group='Wi-Fi', display_action=55,
+         detail='Compare with the previous successful Linux Wi-Fi survey: new, not seen and changed BSSIDs.'),
+    dict(id='ble-summary', name='BLE advert summary', group='Bluetooth', display_action=56,
+         detail='Eight-second LE discovery with company, service and address-type summaries. Scan requests may transmit.'),
+    dict(id='bt-devices', name='Saved Bluetooth devices', group='Bluetooth', display_action=57,
+         detail='Read cached devices, pairing, trust and connection state on the selected adapter. No scanning or changes.'),
 )
 ACTIONS = tuple(tool['id'] for tool in TOOLS)
 
@@ -106,11 +114,20 @@ def controllers():
     return dict(rows=rows, controllers=devices, note='Controller properties only. No power, pairing or discoverability settings were changed.')
 
 
-def run(action, preferences):
+def run(action, preferences, baseline=None):
+    from . import survey_analysis
     if action not in ACTIONS: raise ValueError('Unknown Linux radio tool')
     if action == 'linux-interfaces': report = interfaces()
     elif action == 'wifi-audit': report = wifi_summary(radio.wifi_scan())
     elif action == 'bt-controllers': report = controllers()
+    elif action == 'wifi-channels': report = survey_analysis.channels(radio.wifi_scan())
+    elif action == 'wifi-changes': report = survey_analysis.changes(radio.wifi_scan(), baseline)
+    elif action == 'ble-summary':
+        result = ble.call(dict(action='ble', adapter=preferences['adapter'], target=''))
+        report = survey_analysis.advertisements(result['rows'])
+    elif action == 'bt-devices':
+        result = ble.call(dict(action='bt-devices', adapter=preferences['adapter'], target=''))
+        report = survey_analysis.known_devices(result['rows'])
     else:
         result = ble.call(dict(action='bt-classic', adapter=preferences['adapter'], target=''))
         devices = result['rows']

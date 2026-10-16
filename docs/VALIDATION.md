@@ -50,3 +50,21 @@ still require a physical monitor/session acceptance check. No HDMI test is claim
 The suite passed 115 tests on Debian, with one POSIX-only skip on Windows.
 The current portrait menu render is generated from the firmware drawing code;
 it is not a photograph or physical touch acceptance evidence.
+
+## Touchscreen survey and history update — October 16, 2026
+
+- 123 tests passed on UNO Q Debian; Windows passed with one POSIX-only skip.
+- Live channel survey: 19 APs over 9 band/channel groups. Comparison used that
+  saved session as its baseline and completed successfully.
+- Eight-second LE summary: 27 observed addresses. Local BlueZ device cache: 20
+  entries. Neither count establishes a number of unique physical devices.
+- All four new reports exported through the local HTTP API. Opening a saved report
+  preserved the session count and left the radio worker idle.
+- The owner confirmed both channel-survey results and saved-report OPEN using the
+  physical portrait TFT. Protocol `qm-display/10` reconnected with calibration intact.
+- MCU build/upload: 120,944-byte sketch, 3,648-byte globals, tested factory core.
+- Eight gallery scenes render from current firmware code with recorded source
+  provenance. Desktop captures show the actual browser console; native window,
+  HDMI/hub and UPS hardware acceptance remain outstanding.
+
+No new attack or injection validation was performed for this update.

@@ -1150,5 +1150,37 @@
     "status": "implemented",
     "detail": "Eight-second BR/EDR discovery on the selected Bluetooth adapter. No pairing or connections. Shared desktop/TFT report with local JSON history.",
     "source": "https://github.com/7h30th3r0n3/Raspyjack"
+  },
+  {
+    "id": "wifi-channels",
+    "name": "Wi-Fi channel survey",
+    "category": "Linux radio tools",
+    "status": "implemented",
+    "detail": "Observed AP counts and signal quality by band/channel. Counts are not channel utilization. Shared desktop/TFT report with local JSON history.",
+    "source": "https://github.com/7h30th3r0n3/Raspyjack"
+  },
+  {
+    "id": "wifi-changes",
+    "name": "Wi-Fi scan changes",
+    "category": "Linux radio tools",
+    "status": "implemented",
+    "detail": "Compare with the previous successful Linux Wi-Fi survey: new, not seen and changed BSSIDs. Shared desktop/TFT report with local JSON history.",
+    "source": "https://github.com/7h30th3r0n3/Raspyjack"
+  },
+  {
+    "id": "ble-summary",
+    "name": "BLE advert summary",
+    "category": "Linux radio tools",
+    "status": "implemented",
+    "detail": "Eight-second LE discovery with company, service and address-type summaries. Scan requests may transmit. Shared desktop/TFT report with local JSON history.",
+    "source": "https://github.com/7h30th3r0n3/Raspyjack"
+  },
+  {
+    "id": "bt-devices",
+    "name": "Saved Bluetooth devices",
+    "category": "Linux radio tools",
+    "status": "implemented",
+    "detail": "Read cached devices, pairing, trust and connection state on the selected adapter. No scanning or changes. Shared desktop/TFT report with local JSON history.",
+    "source": "https://github.com/7h30th3r0n3/Raspyjack"
   }
 ]
