@@ -15,7 +15,7 @@ are omitted because they vary; verify the exact part and connector before orderi
 
 | Qty | Part | Purpose / limitation |
 | --- | --- | --- |
-| 1 | ALFA USB adapter with MediaTek `0e8d:7961` ID | Experimental PC-forwarded scanning/receive observed; reconnect fault under investigation and injection unverified. USB ID identifies the chipset family, not exact AXM/AXML retail model. See [live support evidence](USB-RADIO.md) before purchasing. |
+| 1 | ALFA USB adapter with MediaTek `0e8d:7961` ID | PC-forwarded scanning/receive and two reconnects verified with scatter/gather disabled; injection unverified. Extended stability testing remains. USB ID identifies the chipset family, not exact AXM/AXML retail model. See [live support evidence](USB-RADIO.md) before purchasing. |
 | 1 | Powered USB-C hub with USB-A and suitable power input | Future direct-radio connection to UNO Q. Exact hub, power supply and simultaneous management path are not yet validated. Not needed for the PC-forwarding setup. |
 | 1 | GNSS receiver supported by gpsd | Future wardriving coordinates; no receiver is validated and no position is invented without a fix. |
 | 1 | Nonconductive enclosure, spacers and fasteners | Protect the exposed boards while leaving connectors accessible. No enclosure dimensions or printable design are validated yet. |

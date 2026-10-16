@@ -71,6 +71,12 @@ flasher for every UNO Q software version. See [firmware setup](../firmware/READM
 After upload, follow the TFT's orientation selection and three-circle touch calibration. Start the Linux
 console to enable live menu actions and save calibration across MCU resets.
 
+For a previously working screen that remains blank after a restart, use
+**Repair-Display.cmd** on Windows, or `sh scripts/reset-display.sh` on the board
+with the console running. This restarts only the MCU through Arduino's OpenOCD
+reset path; it does not write flash. The bridge restores saved display settings.
+The reset helper disables OpenOCD's network listeners during this operation.
+
 ## Image recovery and future web installation
 
 Arduino's [official flasher](https://docs.arduino.cc/software/app-lab/configure/flash/)

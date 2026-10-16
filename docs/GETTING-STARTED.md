@@ -80,6 +80,11 @@ After rebooting the board, double-click **Start-QMarauder.cmd** to start the con
 and reopen USB forwarding. Keep the folder and Platform-Tools together. The display
 sketch remains installed, but live radio actions need the Linux console running.
 
+If a previously working screen stays blank, double-click **Repair-Display.cmd**.
+It starts the console and resets only the display MCU, without uploading firmware
+or erasing calibration. Allow about 15 seconds for the saved portrait, touch and
+theme settings to return. This cannot repair a loose shield or a different pinout.
+
 Automatic boot is an optional, separate [service setup](INSTALL.md#start-on-boot).
 For updates, extract the new release and rerun the installer. Saved observations
 and calibration remain on the board. The first MCU backup is retained, not overwritten.
@@ -101,7 +106,8 @@ Advanced PowerShell examples from the extracted folder:
 | --- | --- |
 | Board not found | Complete Arduino setup, use a data cable, close competing serial tools, check `adb devices`. An unauthorized device must be authorized through Arduino's setup flow. |
 | Unsupported core | Use `-AppOnly`; record `arduino-cli core list` and consult [firmware notes](../firmware/README.md). The uploader deliberately stops before changing an untested runtime. |
-| White panel | Backlight power alone is not a working GUI. Check that the TFT sketch was successfully uploaded and the shield matches the supported parallel wiring. |
+| Previously working screen goes blank | Run **Repair-Display.cmd** and wait about 15 seconds. If still blank, check power and header seating with the board unplugged. Report whether it is white, black or unlit. |
+| White panel on first install | Backlight power alone is not a working GUI. Check that the TFT sketch was successfully uploaded and the shield matches the supported parallel wiring. |
 | Mirrored/upside-down text | Select the readable orientation during setup; use the display's recalibration option if needed. |
 | Touch misses buttons | Recalibrate using press **and release** at all three circles. Avoid holding a finger across targets. |
 | Scan starts without rows | Wait for completion; check the browser console and board diagnostics. Both Linux console and native bridge must be running. |

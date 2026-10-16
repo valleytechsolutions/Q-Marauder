@@ -60,11 +60,21 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 - 57 Python tests passed on Debian; Windows passed 56 with the POSIX lock test skipped.
 - The socket-activated worker returned real external-radio capture counters through
   the console API, with report persistence and NetworkManager ownership restored.
-- These results do not validate cold boot, GPS, injection, or console boot startup.
+- These results do not validate GPS, injection, or automatic console boot startup.
 - A later USB/IP detach caused an ARM64 kernel fault in scatter/gather DMA cleanup.
-  The `mt76_usb disable_usb_sg=1` compatibility option is implemented; the subsequent
-  software restart lost ADB and physical recovery/reconnect validation is pending.
-  This external-radio path is experimental. Initial receive evidence remains valid.
+  The subsequent software restart lost ADB. The owner power-cycled the board, and
+  ADB returned. With `mt76_usb disable_usb_sg=1`, two subsequent detach/reconnect
+  cycles completed without a new kernel fault (taint remained 4096). Capture still
+  worked after each cycle. Extended USB forwarding stability remains unvalidated.
+- Post-recovery checks returned 32 Wi-Fi APs across both bands and 27 BLE devices.
+  Eight-second external-radio recon received 475 frames, including 88 lab frames
+  and 78 beacons. The 5 GHz check received 221 frames, including 95 lab frames;
+  ten probes on each band still produced no matching responses.
+- The owner reported a blank TFT after the cold boot. The source console was
+  restarted, then the display MCU reset without writing flash. Protocol 6, portrait
+  profile 2, saved touch calibration and theme all responded/restored correctly.
+  Physical appearance after recovery still needs owner confirmation. The new
+  `Repair-Display.cmd` recovery path was exercised on the board.
 
 `iw` was initially absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This

@@ -16,8 +16,9 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 > Upright portrait, direct touch and theme switching are confirmed on the test shield; see [display setup](docs/DISPLAY.md) for the remaining checks.
 >
 > **External USB radio is experimental:** initial capture worked, but a detach test
-> exposed a kernel fault. A driver compatibility setting is included; recovery and
-> reconnect validation are pending. See [current radio evidence](docs/USB-RADIO.md).
+> exposed a kernel fault. With scatter/gather disabled, two subsequent detach/reconnect
+> cycles and capture passed. Injection is still unverified; extended stability testing
+> remains. See [current radio evidence](docs/USB-RADIO.md).
 
 ## Works today
 
@@ -43,6 +44,8 @@ Platform-Tools in `.tools/platform-tools`. Double-click **Install-QMarauder.cmd*
 It detects the board, installs the console, backs up and uploads the portrait TFT
 sketch, and opens the dashboard. Only the tested factory display core is accepted.
 After a reboot, **Start-QMarauder.cmd** starts the console again.
+For a previously working screen that stays blank, **Repair-Display.cmd** restarts
+the display MCU and restores saved settings through the console.
 
 Follow the [illustrated getting-started guide](docs/GETTING-STARTED.md) for exact
 steps, calibration, troubleshooting, and the console-only option. No replacement

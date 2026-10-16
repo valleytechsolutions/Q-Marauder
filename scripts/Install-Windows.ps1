@@ -2,11 +2,13 @@ param(
     [string]$AdbPath,
     [ValidatePattern('^[A-Za-z0-9._:-]+$')][string]$Serial,
     [switch]$StartOnly,
+    [switch]$ResetDisplay,
     [switch]$AppOnly,
     [switch]$NoBrowser
 )
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+if ($ResetDisplay -and -not $StartOnly) { throw '-ResetDisplay requires -StartOnly.' }
 if (-not $AdbPath) {
     $bundled = Join-Path $root '.tools\platform-tools\adb.exe'
     if (Test-Path -LiteralPath $bundled) { $AdbPath = $bundled }
@@ -39,6 +41,10 @@ $who = Board shell id -un
 if ("$who".Trim() -ne 'arduino') { throw 'This installer requires the standard arduino Linux account.' }
 if ($StartOnly) {
     Board shell 'cd /home/arduino/q-marauder && python3 scripts/start.py'
+    if ($ResetDisplay) {
+        Board push (Join-Path $PSScriptRoot 'reset-display.sh') '/home/arduino/q-marauder/scripts/reset-display.sh'
+        Board shell 'sh /home/arduino/q-marauder/scripts/reset-display.sh'
+    }
 } else {
     Write-Host 'Installing the Linux console. Your Debian image and saved surveys stay in place.'
     if (-not $AppOnly) {
@@ -57,6 +63,6 @@ if ($StartOnly) {
 }
 Board forward 'tcp:8788' 'tcp:8787'
 Write-Host 'Ready: http://127.0.0.1:8788'
-Write-Host 'On the TFT: choose upright text, then tap and release the three touch circles.'
+Write-Host 'Saved display settings restore through the console. If setup appears, select upright text and tap/release the three circles.'
 Write-Host 'After a board reboot, double-click Start-QMarauder.cmd. Boot-service setup is optional; see docs/INSTALL.md.'
 if (-not $NoBrowser) { Start-Process 'http://127.0.0.1:8788' }

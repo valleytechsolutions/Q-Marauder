@@ -29,7 +29,7 @@ Development evidence, 2026-10-15. Counts describe bounded samples, not benchmark
 | 5 GHz monitor reception | Sample: 233 received frames, 111 from the configured lab AP, 78 beacons |
 | Injection | Ten-probe checks on both lab bands received zero matching replies; independent Aircrack-ng check received 0/30 replies |
 | Deauthentication | Not transmitted: the successful-injection gate remains unsatisfied |
-| Reconnect stability | The first scatter/gather-enabled detach triggered a kernel fault. The compatibility setting below is implemented; recovery and repeat-detach validation are pending |
+| Reconnect stability | Initial scatter/gather-enabled detach faulted. After physical recovery and `disable_usb_sg=1`, two detach/reconnect cycles passed with unchanged kernel taint and successful subsequent capture; extended testing remains |
 | 6 GHz / Bluetooth attacks / standalone hub | Not validated |
 
 Normal Windows Wi-Fi drivers are not used for this route: usbipd shares the USB
@@ -88,9 +88,14 @@ path: the initial ARM64 USB/IP detach fault occurred while unmapping scatter/gat
 transfers. The attach helper refuses to continue if the module was already loaded
 with scatter/gather enabled; restart the board once so the option takes effect.
 This changes USB transfer buffering, not the kernel image or RF restrictions.
-Alpha 2 did not include this setting. The mitigation has not yet passed a fresh
-attach/detach cycle, so this external-radio path remains an experimental developer
-setup. The regular console/TFT installer does not install or attach external radios.
+Alpha 2 did not include this setting. After physical recovery, two fresh
+detach/reconnect cycles passed with the setting enabled. Kernel taint remained
+4096 (external modules only, no new oops); subsequent eight-second recon received
+475 frames, including 88 from the configured lab AP and 78 beacons. A fresh 5 GHz
+check received 221 frames, including 95 lab frames. Both bands still returned zero
+matching injection replies. These short tests do not establish long-term stability
+or successful attacks. The regular console/TFT installer does not install or attach
+external radios.
 
 ## 3. Connect and reconnect
 

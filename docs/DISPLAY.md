@@ -104,6 +104,12 @@ orientation are intentionally ignored. The MCU also rejects saved calibration
 after a manual orientation choice, so a fresh setup cannot silently reuse old values.
 Without the Linux service, setup repeats after MCU reset.
 
+For a previously working display that remains blank after restart, use
+**Repair-Display.cmd** on Windows. It starts the Linux console and resets the MCU
+without reflashing. Saved orientation, calibration and theme restored over RPC in
+the recovery test; physical appearance after the reported cold-boot blank screen
+still requires owner confirmation. See [recovery instructions](GETTING-STARTED.md#if-something-looks-wrong).
+
 Flashing interrupts the serial RPC stream. Close and reopen it through the router's
 documented `$/serial/close` and `$/serial/open` calls around upload. Do not change
 socket permissions or replace the router service to make communication work.
