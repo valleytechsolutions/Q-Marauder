@@ -27,6 +27,9 @@ def main():
         temporary.chmod(0o644)
         temporary.replace(dest / module.name)
     subprocess.run(["depmod", "-a", release], check=True)
+    option = Path('/etc/modprobe.d/q-marauder-usb.conf')
+    option.write_text('options mt76_usb disable_usb_sg=1\n')
+    option.chmod(0o644)
     for name in ("vhci_hcd", "mt7921u"):
         subprocess.run(["modprobe", name], check=True)
     print("Modules installed and loaded. Original kernel files are retained. See docs/USB-RADIO.md to attach the Alfa.")

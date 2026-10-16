@@ -14,6 +14,10 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
 > Runs on the UNO Q's existing Debian installation. The native ILI9486 display now renders.
 > Upright portrait, direct touch and theme switching are confirmed on the test shield; see [display setup](docs/DISPLAY.md) for the remaining checks.
+>
+> **External USB radio is experimental:** initial capture worked, but a detach test
+> exposed a kernel fault. A driver compatibility setting is included; recovery and
+> reconnect validation are pending. See [current radio evidence](docs/USB-RADIO.md).
 
 ## Works today
 
@@ -89,7 +93,7 @@ mode support. Live monitor tests returned zero packets; ten directed probe
 submissions returned no responses. Capture and injection remain **unverified**.
 Advanced Marauder functions remain individually tracked in
 [the parity plan](docs/PARITY.md) and the Modules view. A compatible external radio
-now works for scanning and monitor reception: the PC-connected MT7921 uses USB/IP
+now works experimentally for scanning and monitor reception: the PC-connected MT7921 uses USB/IP
 and supplemental modules built for this board's exact kernel. Injection checks have
 not received replies. See
 [USB radio support](docs/USB-RADIO.md).

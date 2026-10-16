@@ -1,6 +1,6 @@
 # Use a PC-connected Alfa with the UNO Q
 
-**USB forwarding, Wi-Fi scanning and monitor reception work on the development
+**Experimental USB forwarding, Wi-Fi scanning and monitor reception work on the development
 unit. Injection has not been verified.** The adapter stays plugged into the Windows
 PC. The UNO Q imports it through the existing USB ADB connection and runs the Linux
 driver and radio jobs itself. No WSL or virtual machine is required.
@@ -29,6 +29,7 @@ Development evidence, 2026-10-15. Counts describe bounded samples, not benchmark
 | 5 GHz monitor reception | Sample: 233 received frames, 111 from the configured lab AP, 78 beacons |
 | Injection | Ten-probe checks on both lab bands received zero matching replies; independent Aircrack-ng check received 0/30 replies |
 | Deauthentication | Not transmitted: the successful-injection gate remains unsatisfied |
+| Reconnect stability | The first scatter/gather-enabled detach triggered a kernel fault. The compatibility setting below is implemented; recovery and repeat-detach validation are pending |
 | 6 GHz / Bluetooth attacks / standalone hub | Not validated |
 
 Normal Windows Wi-Fi drivers are not used for this route: usbipd shares the USB
@@ -81,6 +82,16 @@ kernel modules, bootloader and kernel image stay in place. Linux marks these as
 out-of-tree modules. Do not repeat the installer while an mt76 radio is loaded.
 After a kernel upgrade, this module set needs a matching rebuild.
 
+The installer writes `options mt76_usb disable_usb_sg=1` to
+`/etc/modprobe.d/q-marauder-usb.conf`. This uses the driver's supported linear-buffer
+path: the initial ARM64 USB/IP detach fault occurred while unmapping scatter/gather
+transfers. The attach helper refuses to continue if the module was already loaded
+with scatter/gather enabled; restart the board once so the option takes effect.
+This changes USB transfer buffering, not the kernel image or RF restrictions.
+Alpha 2 did not include this setting. The mitigation has not yet passed a fresh
+attach/detach cycle, so this external-radio path remains an experimental developer
+setup. The regular console/TFT installer does not install or attach external radios.
+
 ## 3. Connect and reconnect
 
 Double-click **scripts/Connect-Alfa.cmd**. Enter the Arduino Debian password if
@@ -127,6 +138,11 @@ directory after detaching/unloading, followed by `sudo depmod -a`, restores the
 original module selection. The two port-3240 rules disappear at reboot; remove
 them manually with the same `iptables-legacy` / `ip6tables-legacy` rule arguments
 using `-D INPUT` if needed.
+
+If the driver fault leaves USB absent during restart, a physical board power cycle
+may be necessary. The observed software reboot did not restore ADB by itself.
+Keep the source preview startup launcher available; automatic console boot is a
+separate setup step.
 
 ## Other hardware paths
 

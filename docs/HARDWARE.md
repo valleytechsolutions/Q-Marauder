@@ -61,6 +61,10 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 - The socket-activated worker returned real external-radio capture counters through
   the console API, with report persistence and NetworkManager ownership restored.
 - These results do not validate cold boot, GPS, injection, or console boot startup.
+- A later USB/IP detach caused an ARM64 kernel fault in scatter/gather DMA cleanup.
+  The `mt76_usb disable_usb_sg=1` compatibility option is implemented; the subsequent
+  software restart lost ADB and physical recovery/reconnect validation is pending.
+  This external-radio path is experimental. Initial receive evidence remains valid.
 
 `iw` was initially absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This

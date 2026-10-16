@@ -22,6 +22,14 @@ def main():
             subprocess.run([firewall, "-w", "5", "-I", "INPUT", "1", *rule], check=True)
         elif exists.returncode:
             raise SystemExit(f"Cannot inspect {firewall}; refusing an exposed reverse tunnel.")
+    # The factory ARM64 USB/IP teardown faults on mt76 scatter/gather URBs.
+    # Use the driver's supported linear-buffer path before importing any radio.
+    option = Path('/etc/modprobe.d/q-marauder-usb.conf')
+    option.write_text('options mt76_usb disable_usb_sg=1\n')
+    option.chmod(0o644)
+    subprocess.run(["modprobe", "mt76_usb", "disable_usb_sg=1"], check=True)
+    if Path('/sys/module/mt76_usb/parameters/disable_usb_sg').read_text().strip() != 'Y':
+        raise SystemExit("mt76_usb was already loaded with scatter/gather enabled. Restart the board before attaching; the persistent option is now installed.")
     for module in ("vhci_hcd", "mt7921u"):
         subprocess.run(["modprobe", module], check=True)
     current = radios()
