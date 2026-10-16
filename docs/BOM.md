@@ -25,3 +25,11 @@ Wi-Fi, Bluetooth and storage. Connecting the shield does not make it a Linux HDM
 display. Read [hardware evidence](HARDWARE.md) and [display wiring](DISPLAY.md).
 
 For photos and assembly instructions, see [Get started](GETTING-STARTED.md).
+
+## Handheld and desk power
+
+See [UPS and power selection](POWER.md) for the handheld Waveshare UPS Module 3S
+candidate, a PD bank comparison, and a conventional AC UPS for the desk. None of
+these power systems has been physically validated with this complete assembly.
+For HDMI, add a USB-C hub with DP Alt Mode video, power input and USB-A peripherals;
+see [the desktop lab guide](DESKTOP.md).

@@ -10,7 +10,9 @@ from . import settings
 
 ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop", 14: "diagnostics",
            15: "lab-recon", 16: "lab-injection", 17: "lab-deauth",
-           18: 'ble-detect', 19: 'ble-foxhunt', 20: 'ble-gatt'}
+           18: 'ble-detect', 19: 'ble-foxhunt', 20: 'ble-gatt', 21: 'ble-pair',
+           22: 'ble-read', 23: 'ble-notify', 24: 'ble-write', 25: 'ble-snapshot',
+           26: 'ble-hid', 27: 'ble-axon', 28: 'ble-detector', 36: 'ble-hid-listen', 37: 'wifi-capture', 38:'ble-write'}
 ORIENTATIONS = (0, 1, 2, 3)  # Software reflections: bit 0 = X, bit 1 = Y.
 
 
@@ -69,6 +71,10 @@ class DisplayLink:
         self.saved_orientation = None
         self.saved_theme = None
         self.last_result = None
+        self.controls = False
+        self.characteristic = ''
+        self.characteristic_target = ''
+        self.pair_prompt = None
 
     def start(self):
         if not shutil.which("arduino-router-cli") or not Path("/var/run/arduino-router.sock").exists():
@@ -81,21 +87,44 @@ class DisplayLink:
             self.service.state["display"].update(values)
 
     def handle_action(self, value):
-        if not isinstance(value, str) or not re.fullmatch(r"\d{1,10},\d{1,2}", value):
+        if not isinstance(value, str) or not re.fullmatch(r"\d{1,10},\d{1,2}(?:,[ -~]{0,132})?", value):
             raise ValueError("Invalid display action")
-        sequence, action = map(int, value.split(","))
+        parts = value.split(',', 2)
+        sequence, action = map(int, parts[:2])
+        argument = parts[2] if len(parts) > 2 else ''
         if action == 0:
             self.handled = None
             return
         if self.handled != (sequence, action):
-            if action not in ACTIONS:
-                self.reply = "This action is not supported."
-            else:
-                try:
-                    self.service.submit(ACTIONS[action])
-                    self.reply = "Task accepted."
-                except (RuntimeError, ValueError) as exc:
-                    self.reply = str(exc)[:120]
+            try:
+                if action == 30:
+                    self.service.set_settings({'target': argument})
+                    self.characteristic = ''
+                elif action == 31:
+                    from .ble_data import uuid
+                    candidate = uuid(argument)
+                    state = self.service.snapshot()
+                    report = state.get('ble_lab') or {}
+                    if not state['settings']['target'] or report.get('address') != state['settings']['target'] or candidate not in [c['uuid'] for c in report.get('characteristics', [])]:
+                        raise ValueError('GATT results expired. Inspect the selected device again.')
+                    self.characteristic = candidate
+                    self.characteristic_target = state['settings']['target']
+                elif action == 32:
+                    identity, code = argument.split(':', 1)
+                    self.service.pairing_reply(dict(id=identity, accept=True, **({'code':code} if code else {})))
+                elif action == 33: self.service.cancel_pairing()
+                elif action in (34, 35): self.service.set_settings({'adapter': 'hci'+str(action-34)})
+                elif action in (22,23,24,38):
+                    if not self.characteristic or self.service.snapshot()['settings']['target'] != self.characteristic_target:
+                        raise ValueError('Choose a characteristic from the current GATT results first.')
+                    parameters = {'uuid': self.characteristic}
+                    if action in (24,38): parameters.update(value=argument, write_type='command' if action==38 else 'request')
+                    self.service.submit(ACTIONS[action], parameters)
+                elif action in ACTIONS: self.service.submit(ACTIONS[action])
+                else: raise ValueError('This action is not supported.')
+                self.reply = 'Task accepted.'
+            except (RuntimeError, ValueError) as exc:
+                self.reply = str(exc)[:120]
             # Keep the result until acknowledged, even across a transient RPC error.
             self.handled = (sequence, action)
         if self.call("qm.ack", sequence, self.reply) is not True:
@@ -196,7 +225,7 @@ class DisplayLink:
         if kind == 0:
             self.last_result = None
             return
-        total, status, payload = result_page(state, kind, page)
+        total, status, payload = result_page(state, kind, page, controls=self.controls)
         current = (sequence, total, status, payload)
         if current != self.last_result:
             # Factory RouterBridge accepts only 256-byte RPC packets. Stage ASCII
@@ -211,7 +240,7 @@ class DisplayLink:
     def cycle(self):
         state = self.service.snapshot()
         if state["error"]:
-            headline = "Task failed - check USB console"
+            headline = str(state['error'])[:68]
         elif state["stopping"]:
             headline = "Stopping survey"
         elif state["busy"]:
@@ -226,6 +255,11 @@ class DisplayLink:
         if accepted is not True:
             raise ConnectionError("Display rejected its view model")
         self.handle_action(self.call("qm.action"))
+        if self.controls:
+            prompt = state.get('pairing') or {}
+            current = (prompt.get('id',''), prompt.get('kind',''), str(prompt.get('code','')), bool(prompt.get('answered')))
+            if current != self.pair_prompt:
+                if self.call('qm.pairPrompt', *current) is True: self.pair_prompt = current
         if self.sync_orientation():
             self.sync_theme()
             self.sync_calibration()
@@ -239,8 +273,10 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/7;"):
+                    if not isinstance(protocol, str) or not protocol.startswith(("qm-display/7;", "qm-display/8;")):
                         raise ConnectionError("Compatible portrait display firmware is required")
+                    self.controls = protocol.startswith('qm-display/8;')
+                    self.pair_prompt = None
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)
                     uptime = int(match[1]) if match else 0

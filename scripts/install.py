@@ -5,6 +5,7 @@ from pathlib import Path
 import os
 import shutil
 import sys
+import subprocess
 
 if sys.platform != "linux":
     raise SystemExit("Run this installer on the UNO Q's Debian system.")
@@ -41,7 +42,23 @@ binary = Path.home() / ".local/bin/q-marauder"
 binary.parent.mkdir(parents=True, exist_ok=True)
 binary.write_text("#!/usr/bin/python3\nimport sys\nsys.path.insert(0, " + repr(str(base / "current")) + ")\nfrom qmarauder.__main__ import main\nmain()\n")
 binary.chmod(0o755)
+applications = Path.home()/'.local/share/applications'
+applications.mkdir(parents=True, exist_ok=True)
+icon = Path.home()/'.local/share/icons/q-marauder.png'
+icon.parent.mkdir(parents=True, exist_ok=True)
+shutil.copyfile(source/'web/assets/bwm.png', icon)
+# Desktop Entry quoting is distinct from shell quoting; Exec is not a shell.
+def desktop_quote(value):
+    return '"'+str(value).replace('\\','\\\\').replace('"','\\"').replace('`','\\`').replace('$','\\$')+'"'
+(applications/'q-marauder.desktop').write_text('[Desktop Entry]\nType=Application\nName=Q-Marauder Lab\n'
+    'Comment=Wireless security toolkit for the UNO Q\nExec='+desktop_quote(binary)+' desktop\n'
+    'Icon='+str(icon)+'\nTerminal=false\nCategories=Network;\nStartupNotify=true\n', encoding='utf-8')
 data = Path.home() / ".local/share/q-marauder"
 data.mkdir(parents=True, exist_ok=True, mode=0o700)
+try:
+    subprocess.run([sys.executable,str(root/'scripts/update-vendors.py'),'--if-missing'],check=True,timeout=45)
+except (OSError,subprocess.SubprocessError):
+    print('OUI download unavailable. Scans still work; run python3 scripts/update-vendors.py when online.')
 print(f"Installed revision {revision}\nRun: {binary} serve\nData stays in: {data}\nPrevious revisions are retained in: {release.parent}")
+print('Desktop: Applications > Q-Marauder Lab, or q-marauder desktop. No boot service is enabled by this installer.')
 print("For boot startup on the standard arduino account: sh scripts/enable-boot.sh (requires sudo).")

@@ -17,6 +17,24 @@ def wait_for(predicate):
 
 
 class ServiceTests(unittest.TestCase):
+    def test_saved_scans_restore_as_cached_without_radio_activity(self):
+        with tempfile.TemporaryDirectory() as data, patch('qmarauder.radio.diagnostics',return_value={}), patch('qmarauder.radio.wifi_scan') as wifi, patch('qmarauder.ble.call') as ble:
+            from qmarauder.storage import Store
+            store=Store(data)
+            for kind in ('wifi','ble'):
+                session=store.start(kind)
+                store.append(session,[dict(kind=kind,name='fixture',address='00:11:22:33:44:55',address_type='public')])
+                store.stop(session)
+            service=Service(data)
+            try:
+                state=service.snapshot()
+                for kind in ('wifi','ble'):
+                    self.assertEqual(state[kind][0]['name'],'fixture')
+                    self.assertEqual(state['scan_status'][kind]['state'],'cached')
+                self.assertIsNone(state['busy'])
+                wifi.assert_not_called();ble.assert_not_called()
+            finally: service.close()
+
     def test_ble_job_freezes_target_and_persists_report(self):
         entered, release=threading.Event(),threading.Event()
         def run(request):

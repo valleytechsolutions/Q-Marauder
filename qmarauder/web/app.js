@@ -19,6 +19,7 @@ async function action(name, parameters) {
     if (!response.ok) throw Error(result.error || "Request failed");
     if (name === "wifi" || name === "ble") showView(name);
     if (name.startsWith("ble-")) showView("ble");
+    if (name === "wifi-capture") showView("system");
     if (name.startsWith("mission")) showView("survey");
     await refresh();
   } catch(error) { showError(error.message); }
@@ -29,7 +30,7 @@ function renderWifi() {
   const rows = state.wifi.filter(row => `${row.name} ${row.address} ${row.band}`.toLowerCase().includes(filter));
   $("wifi-rows").replaceChildren(...rows.map(row => {
     const tr = elem("tr");
-    const name = elem("td", row.name || "Hidden SSID"); name.append(elem("small", row.address));
+    const name = elem("td", row.name || "Hidden SSID"); name.append(elem("small", row.address+(row.oui_vendor?' · '+row.oui_vendor:'')));
     const signal = elem("td"); const box = elem("div", undefined, "signal"); const meter = elem("meter"); meter.min=0; meter.max=100; meter.value=row.signal; meter.setAttribute("aria-label", `${row.signal}% signal`); box.append(meter, elem("span", `${row.signal}%`)); signal.append(box);
     tr.append(name, elem("td",row.band),elem("td",row.channel),signal,elem("td",row.security)); return tr;
   }));
@@ -40,34 +41,49 @@ function renderBle() {
   const target=state.settings?.target;
   $("ble-rows").replaceChildren(...state.ble.map(row => {
     const tr=elem("tr"), name=elem("td",row.name || "Unnamed advertiser"), details=elem("details"), metadata=elem("pre",JSON.stringify({address_type:row.address_type,uuids:row.uuids,manufacturer_data:row.manufacturer_data,service_data:row.service_data},null,2));
-    name.append(elem("small",row.fingerprint || "Advertising metadata unavailable")); details.append(elem("summary","Advertising metadata"),metadata);name.append(details);
+    name.append(elem("small",row.fingerprint || "Advertising metadata unavailable")); if(row.oui_vendor)name.append(elem('small','OUI vendor: '+row.oui_vendor+' · unverified')); details.append(elem("summary","Advertising metadata"),metadata);name.append(details);
     const td=elem("td"),button=elem("button",target===row.address?"Selected":"Use as target","secondary");button.disabled=!!(state.busy||state.mission);button.onclick=()=>saveSettings({target:row.address});td.append(button);
     tr.append(name,elem("td",row.address),elem("td",row.rssi == null ? "—" : `${row.rssi} dBm`),td);return tr;
   }));
   $("ble-empty").hidden=state.ble.length>0;
+  $('ble-cache-note').textContent=state.scan_status?.ble?.state==='cached'?'Showing saved observations from '+new Date(state.scan_status.ble.updated).toLocaleString()+'. Discover BLE for current results.':'';
   const selected=state.ble.find(row=>row.address===target);
   const description=target?`${selected?.name || "Selected device"} · ${target}`:"No device selected. Discover BLE, then tap Use as target.";
   $("ble-target-name").textContent=description;$("settings-target").textContent=description;
   $("ble-target-status").textContent=state.busy?.startsWith("ble-")?"WORKING":target?"TARGET SELECTED":"SELECT A DEVICE";
-  document.querySelectorAll('[data-ble-op], [data-action="ble-foxhunt"], [data-action="ble-gatt"], [data-action="ble-pair"]').forEach(button=>button.disabled=!!(state.busy||state.mission||!target));
+  document.querySelectorAll('[data-ble-op], [data-action="ble-foxhunt"], [data-action="ble-gatt"], [data-action="ble-pair"], [data-action="ble-snapshot"], [data-action="ble-hid"], [data-action="ble-hid-listen"]').forEach(button=>button.disabled=!!(state.busy||state.mission||!target));
   const report=state.ble_lab;
   $("ble-lab-outcome").textContent=report?.error || (report?.state==="running"?"BLE job running. Results appear when the bounded window finishes.":report?.note || "Each GATT job opens its own connection and disconnects afterward. Pairing-dependent access may be refused by the device.");
   $("ble-json").textContent=report?JSON.stringify(report,null,2):"No BLE job yet.";
   const results=[];
   if(report?.state==='done' && report.action==='ble-pair') results.push(resultCard('Pairing completed',report.already_paired?'The selected device was already paired.':'BlueZ confirmed pairing. You can now inspect its GATT services.'));
-  if(report?.state==='done' && report.characteristics) results.push(resultCard('GATT inventory',`${report.services.length} services · ${report.characteristics.length} characteristics`));
+  if(report?.state==='done' && report.characteristics) results.push(resultCard('GATT inventory',`${report.services.length} services · ${report.characteristics.length} characteristics · ${report.descriptors?.length ?? 0} descriptors`));
   if(report?.state==="done" && report.action==="ble-foxhunt") {
     results.push(resultCard("Signal tracking",`${report.samples.length} fresh samples · latest ${report.latest ?? "—"} dBm · peak ${report.peak ?? "—"} dBm · ${report.trend}. RSSI is not a distance measurement.`));
   }
   if(report?.state==="done") (report.characteristics||[]).forEach(c=>{
-    const card=resultCard(c.uuid,`${c.flags.join(" / ")} · service ${c.service}${c.value!==undefined?" · value "+c.value:""}${c.write_completed?" · write completed":""}`);
+    const card=resultCard(c.uuid,`${c.flags.join(" / ")} · service ${c.service}${c.value!==undefined?" · value "+c.value:""}${c.read_error?" · read: "+c.read_error:""}${c.write_completed?" · write completed":""}`);
     const button=elem("button","Use UUID","secondary");button.onclick=()=>{$("ble-uuid").value=c.uuid;$("ble-uuid").focus();};card.append(button);results.push(card);
   });
-  if(report?.state==='done' && report.action==='ble-notify') results.unshift(resultCard('Notification window complete',report.notifications.length?`${report.notifications.length} events saved in the JSON report and Field log.`:'Subscribed for 10 seconds; the device sent no value changes. Subscription was closed successfully.'));
+  if(report?.state==='done' && ['ble-notify','ble-hid-listen'].includes(report.action)) results.unshift(resultCard('Notification window complete',report.notifications.length?`${report.notifications.length} events saved in the JSON report and Field log.`:'Subscribed for 10 seconds; the device sent no value changes. Subscription was closed successfully.'));
+  if(report?.state==='done' && report.read_attempts!==undefined) results.unshift(resultCard('Value snapshot',`${report.read_attempts} read attempts. Per-value outcomes are shown below and saved in Field log.`));
+  if(report?.state==='done') {
+    (report.descriptors||[]).forEach(d=>results.push(resultCard('Descriptor '+d.uuid,`${d.characteristic}${d.value!==undefined?' · value '+d.value:''}${d.read_error?' · read: '+d.read_error:''}`)));
+    Object.values(report.hid||{}).forEach(layout=>results.unshift(resultCard('HID report map',layout.reports.map(r=>`${r.kind} ID ${r.id}: ${r.bytes} bytes`).join(' · ')+(layout.warnings.length?' · '+layout.warnings.join('; '):''))));
+    (report.notifications||[]).filter(e=>e.decoded||e.decode_error).slice(-8).forEach(e=>results.push(resultCard('HID input',e.decode_error||e.decoded.fields.filter(f=>f.value).map(f=>`page ${f.page}, usage ${f.usage}: ${f.value}`).join(' · ')||'All observed values are zero.')));
+  }
   $("ble-result-list").replaceChildren(...results);
   $("detection-list").replaceChildren(...(state.detections||[]).map(row=>resultCard(row.name||row.address,`${row.matches.join("; ")} · ${row.rssi ?? "—"} dBm · ${row.note}`)));
   if(!(state.detections||[]).length) $("detection-list").append(elem("p","No watchlist matches in the last detector scan.","footnote"));
 }
+function renderWorkspace() {
+  $('detector-modes').replaceChildren(...(state.detector_modes||[]).map(mode=>{
+    const card=resultCard(mode.name,mode.detail);card.append(elem('span',mode.status.toUpperCase(),'badge '+mode.status));
+    if(mode.action){const button=elem('button','Run '+mode.name,'primary');button.disabled=!!(state.busy||state.mission||(mode.action==='ble-foxhunt'&&!state.settings.target));button.onclick=()=>action(mode.action);card.append(button);}
+    return card;
+  }));
+}
+if(new URLSearchParams(location.search).get('desktop')==='1') {document.body.classList.add('desktop-mode');showView('workspace');}
 function resultCard(title, description) {const node=elem("article",undefined,"result-card");node.append(elem("h3",title),elem("p",description));return node;}
 function renderPairing() {
   const prompt=state.pairing, active=state.busy==='ble-pair';
@@ -104,6 +120,8 @@ async function saveSettings(values) {
 }
 function renderSettings() {
   const preferences=state.settings||{theme:0,rules:[],adapter:"hci0"};
+  const vendor=state.vendor_database;
+  $('oui-status').textContent=vendor?.available?`${vendor.entries.toLocaleString()} MA-L prefixes · installed ${new Date(vendor.updated).toLocaleDateString()}`:'Registry not installed. Run scripts/update-vendors.py on the UNO Q when online.';
   document.body.dataset.theme=preferences.theme;
   document.querySelectorAll('.theme-card').forEach(button=>{const active=Number(button.dataset.theme)===preferences.theme;button.classList.toggle("selected",active);button.setAttribute("aria-pressed",active);});
   $("theme-status").textContent=state.pending_theme!=null?"SAVED · WAITING FOR TFT":"SAVED";
@@ -130,7 +148,7 @@ function renderChart() {
   $("channel-chart").replaceChildren(svg);
 }
 function renderSessions() {
-  $("session-list").replaceChildren(...state.sessions.map(session=>{const box=elem("article",undefined,"session"),text=elem("div"),links=elem("div");text.append(elem("h3",`${session.mode.toUpperCase()} / ${new Date(session.started).toLocaleString()}`),elem("p",`${session.observations} observations · ${session.geotagged} geotagged · ${session.ended ? "Closed" : "Recording"}`));["csv","json"].forEach(fmt=>{const a=elem("a",fmt.toUpperCase()+" ↓");a.href=`/api/export/${session.id}.${fmt}`;a.download="";links.append(a);});box.append(text,links);return box;}));
+  $("session-list").replaceChildren(...state.sessions.map(session=>{const box=elem("article",undefined,"session"),text=elem("div"),links=elem("div");text.append(elem("h3",`${session.mode.toUpperCase()} / ${new Date(session.started).toLocaleString()}`),elem("p",`${session.observations} observations · ${session.geotagged} geotagged · ${session.ended ? "Closed" : "Recording"}`));["csv","json",...(session.pcap?["pcap"]:[])].forEach(fmt=>{const a=elem("a",fmt.toUpperCase()+" ↓");a.href=`/api/export/${session.id}.${fmt}`;a.download="";links.append(a);});box.append(text,links);return box;}));
   if(!state.sessions.length)$("session-list").append(elem("p","Your survey sessions will appear here.","empty"));
 }
 function renderModules() {
@@ -158,7 +176,7 @@ function renderLab() {
   const report=state.lab;
   $("lab-status").textContent=report?.state === "running" ? "RUNNING" : report?.state === "error" ? "TEST ERROR" : report ? "LAST TEST" : "NO TEST YET";
   $("lab-outcome").textContent=report?.error || report?.note || (report?.state === "running" ? "Test in progress. The result will appear here." : "Tests use the configured lab access point. Results stay on this device.");
-  const values=report?.state === "done" ? [["RECEIVE PACKETS",report.received ?? 0],["LAB FRAMES",report.frames ?? 0],["SUBMITTED",report.sent ?? 0],["DIRECTED REPLIES",report.probe_responses ?? 0]] : [];
+  const values=report?.state !== 'done' ? [] : report.action==='capture' ? [['SAVED PACKETS',report.captured??0],['CHANNEL MHz',report.monitor_frequency??'—'],['LIMIT REACHED',report.capture_limit_reached?'YES':'NO'],['TRANSMITTED',report.sent??0]] : [["RECEIVE PACKETS",report.received ?? 0],["LAB FRAMES",report.frames ?? 0],["SUBMITTED",report.sent ?? 0],["DIRECTED REPLIES",report.probe_responses ?? 0]];
   $("lab-metrics").replaceChildren(...values.map(([label,value])=>{const card=elem("div");card.append(elem("small",label),elem("strong",value));return card;}));
   document.querySelectorAll("[data-action^='lab-']").forEach(button=>{button.disabled ||= !state.capabilities.lab?.configured;});
 }
@@ -177,7 +195,7 @@ function render() {
   $("mission-status").textContent=state.stopping?"STOPPING":state.mission?"RECORDING":"STANDBY";
   document.querySelectorAll("[data-action]").forEach(button=>{button.disabled=button.dataset.action==="mission-stop"?state.stopping:!!(state.busy||state.mission);});
   showError(state.error);
-  renderPairing();renderSettings();renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
+  renderWorkspace();renderPairing();renderSettings();renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
 }
 async function refresh() {
   try {

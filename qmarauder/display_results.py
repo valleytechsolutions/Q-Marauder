@@ -34,7 +34,7 @@ def readiness_rows(capabilities):
     ]
 
 
-def result_page(state, kind, page):
+def result_page(state, kind, page, controls=False):
     if kind not in (1, 2, 3, 4, 5, 6) or not 0 <= page <= 2499:
         raise ValueError("Invalid display result page")
     if kind in (5, 6):
@@ -53,8 +53,25 @@ def result_page(state, kind, page):
             rows = [('Selected BLE target', report.get('address',''), 'Signal strength varies with reflections and orientation; this is not a distance measurement.'),
                     ('RSSI tracking', signal, f"Peak: {peak}. {report.get('trend', '')}. {len(report.get('samples', []))} fresh samples.")]
         else:
-            rows = [(c['uuid'], ' / '.join(c['flags']), 'Service: '+c['service']) for c in report.get('characteristics', [])]
-            if not rows: rows = [('BLE Lab', 'Select a target in Settings', 'Use the browser Settings to select your test device, then run GATT inventory or Foxhunt here.')]
+            rows = [(c['uuid'], ' / '.join(c['flags']),
+                     'Write completed' if c.get('write_completed') else 'Value: '+c['value'] if 'value' in c else c.get('read_error') or 'Service: '+c['service'],
+                     c['uuid']) for c in report.get('characteristics', [])]
+            rows += [('Descriptor '+d['uuid'][:8], d.get('value') or ' / '.join(d.get('flags', [])),
+                      d.get('read_error') or 'Characteristic: '+d['characteristic']) for d in report.get('descriptors', [])]
+            if report.get('hid'):
+                rows.insert(0, ('HID report maps', f"{len(report['hid'])} layouts decoded", '; '.join(f"{r['kind']} ID {r['id']}: {r['bytes']} bytes" for layout in report['hid'].values() for r in layout['reports'])))
+            if report.get('action') == 'ble-pair' and report.get('state') == 'done':
+                rows = [('Pairing complete', 'Ready for GATT inspection', 'The selected device is paired. Return to BLE tools to inspect its services.')]
+            if report.get('action') in ('ble-notify','ble-hid-listen'):
+                rows.insert(0, ('Notification window', f"{len(report.get('notifications', []))} events / 10 seconds",
+                                'Last value: '+report['notifications'][-1]['value'] if report.get('notifications') else 'No value changes received during this window. This does not indicate a failed subscription.'))
+            if report.get('action') == 'ble-hid-listen':
+                for event in report.get('notifications', [])[-8:]:
+                    decoded = event.get('decoded', {})
+                    description = event.get('decode_error') or '; '.join(
+                        f"page {f['page']} usage {f['usage']}: {f['value']}" for f in decoded.get('fields', []) if f['value']) or 'All observed values are zero.'
+                    rows.append(('HID input', 'Report ID '+str(decoded.get('report_id','?')), description))
+            if not rows: rows = [('BLE Lab', 'Choose a device from BLE results', 'Scan BLE, tap your device, and tap USE. Then open BLE tools for pairing, GATT and signal tracking.')]
     elif kind == 3:
         rows = readiness_rows(state.get("capabilities", {}))
         status = "Checking radio" if state.get("busy") == "diagnostics" else "Radio readiness"
@@ -80,6 +97,10 @@ def result_page(state, kind, page):
                  "Injection observed in this test." if report.get("injection_observed") else "Transmission counts alone do not validate injection or client disconnection."),
                 ("Test outcome", report.get("action", "Test"), report.get("note", "No outcome recorded")),
             ]
+            if report.get('action') == 'capture':
+                rows = [('Wi-Fi PCAP saved', f"{report.get('captured',0)} packets / 8 sec", 'Download this session as PCAP in Field log. Radiotap / linktype 127. Nearby traffic may be included.'),
+                        ('Channel', str(report.get('monitor_frequency') or 'Unknown')+' MHz', 'Single configured lab channel; no channel hopping.'),
+                        ('Capture limit', 'Reached' if report.get('capture_limit_reached') else 'Within budget', 'At most 512 KiB / 2000 packets. No packets are transmitted by this capture job.')]
     else:
         key = "wifi" if kind == 1 else "ble"
         rows = []
@@ -90,13 +111,17 @@ def result_page(state, kind, page):
                 details = f"{row.get('address', '?')}  {row.get('security', '?')}. {summary}. Signal is quality percent, not dBm."
             else:
                 rssi = row.get("rssi")
-                summary = f"RSSI {rssi} dBm" if rssi is not None else "RSSI unavailable"
-                details = f"{row.get('address', '?')}  {summary}. {row.get('fingerprint', 'Bluetooth LE discovery')}. Identity unverified."
-            rows.append((name, summary, details))
+                signal = f"RSSI {rssi} dBm" if rssi is not None else "RSSI unavailable"
+                summary = signal + (' / '+row['oui_vendor'] if row.get('oui_vendor') else '')
+                details = f"{row.get('address', '?')}  {signal}. {('OUI: '+row['oui_vendor']) if row.get('oui_vendor') else row.get('fingerprint', 'Bluetooth LE discovery')}. Identity unverified."
+            rows.append((name, summary, details, row.get('address','') if kind == 2 else ''))
         scanning = state.get("busy") in (("wifi", "survey") if kind == 1 else ("ble",))
         status = "Scanning / previous results" if scanning and rows else "Scanning..." if scanning else f"{len(rows)} found / tap for details"
         if state.get("scan_status", {}).get(key, {}).get("state") == "error":
             status = "Scan error / see console"
-    payload = "\n".join("\t".join(plain(value, limit) for value, limit in zip(row, (32, 46, 180)))
+        elif state.get('scan_status', {}).get(key, {}).get('state') == 'cached':
+            status = 'Saved results / rescan for current'
+    if controls: rows = [(*row, '') if len(row) == 3 else row for row in rows]
+    payload = "\n".join("\t".join(plain(value, limit) for value, limit in zip(row, (32, 46, 140, 36) if controls else (32, 46, 180)))
                         for row in rows[page * 4:page * 4 + 4])
     return min(len(rows), 9999), plain(status, 36), payload

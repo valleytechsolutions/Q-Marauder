@@ -54,7 +54,7 @@ with tempfile.NamedTemporaryFile(dir=config, mode="w", delete=False) as output:
     json.dump(profile, output)
     temporary = Path(output.name)
 temporary.replace(config / "lab.json")
-commands = ", ".join(f"{helper} {action}" for action in ("status", "recon", "injection", "deauth"))
+commands = ", ".join(f"{helper} {action}" for action in ("status", "recon", "injection", "deauth", "capture"))
 with tempfile.NamedTemporaryFile(dir="/etc/sudoers.d", mode="w", delete=False) as output:
     output.write(f"{args.user} ALL=(root) NOPASSWD: {commands}\n")
     temporary = Path(output.name)

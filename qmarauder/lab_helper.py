@@ -6,6 +6,7 @@ Recon returns aggregate metadata only. Transmit jobs are bounded and require an
 explicit root-owned lab profile; deauth also requires a recent directed-probe response.
 """
 import json
+import base64
 import os
 from pathlib import Path
 import re
@@ -26,7 +27,7 @@ TOOLS = {"iw": "/usr/sbin/iw", "ip": "/usr/sbin/ip", "nmcli": "/usr/bin/nmcli"}
 
 def socket_action(stream):
     line = stream.readline(32)
-    if line not in ("status\n", "recon\n", "injection\n", "deauth\n"):
+    if line not in ("status\n", "recon\n", "injection\n", "deauth\n", "capture\n"):
         raise ValueError("Expected one fixed radio action")
     return line.strip()
 
@@ -188,10 +189,12 @@ def execute(action, profile):
                      interface=profile["interface"], monitor_frequency=actual_frequency,
                      received=0, decoded=0, frames=0, beacons=0, deauth_seen=0, stations=0, sent=0, probe_responses=0)
         stations, responses = set(), set()
+        capture = bytearray(struct.pack('<IHHIIII',0xa1b2c3d4,2,4,0,0,4096,127))
+        captured = 0
         with socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.htons(3)) as radio:
             radio.settimeout(0.1)
             radio.bind((MONITOR, 0))
-            end = time.monotonic() + (8 if action in ("recon", "injection") else 2)
+            end = time.monotonic() + (8 if action in ("recon", "injection", "capture") else 2)
             next_send = 0
             while time.monotonic() < end:
                 now = time.monotonic()
@@ -211,13 +214,17 @@ def execute(action, profile):
                         raise RuntimeError("Incomplete deauthentication transmission")
                     stats["sent"] += 1; next_send = now + 0.3
                 try:
-                    packet, sender = radio.recvfrom(4096)
+                    packet, sender = radio.recvfrom(65535 if action == 'capture' else 4096)
                 except socket.timeout:
                     continue
                 # AF_PACKET packet type 4 is local outgoing traffic, not RF reception.
                 if sender[2] == socket.PACKET_OUTGOING:
                     continue
                 stats["received"] += 1
+                if action == 'capture' and len(capture)+min(len(packet),4096)+16 <= 524288 and captured < 2000:
+                    timestamp = time.time_ns()
+                    capture.extend(struct.pack('<IIII', timestamp//1_000_000_000, timestamp%1_000_000_000//1000, min(len(packet),4096), len(packet)))
+                    capture.extend(packet[:4096]); captured += 1
                 frame = decode_frame(packet)
                 stats["decoded"] += frame is not None
                 if not frame or frame["bssid"] != bssid:
@@ -233,6 +240,9 @@ def execute(action, profile):
                 if station and not station[0] & 1 and station != bssid and len(stations) < 256:
                     stations.add(station)
         stats.update(stations=len(stations), probe_responses=len(responses))
+        if action == 'capture':
+            stats.update(pcap=base64.b64encode(capture).decode('ascii'), captured=captured,
+                         capture_limit_reached=captured < stats['received'], linktype=127)
         stats["capture_observed"] = stats["frames"] > 0
         stats["injection_observed"] = action == "injection" and bool(responses)
         if stats["injection_observed"]:
@@ -244,6 +254,7 @@ def execute(action, profile):
                          else "No directed response; injection remains unverified." if action == "injection"
                          else "No receive packets returned by the monitor interface; capture is unverified." if not stats["received"]
                          else "Passive lab metadata only; no packet payloads stored.")
+        if action == 'capture': stats['note'] = '8-second receive capture on the configured lab channel; nearby traffic may be included. No frames transmitted by this job. No channel hopping.'
         return stats
     finally:
         try:
@@ -256,7 +267,7 @@ def execute(action, profile):
 
 def main():
     os.umask(0o077)
-    if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in ("status", "recon", "injection", "deauth", "--socket"):
+    if os.geteuid() != 0 or len(sys.argv) != 2 or sys.argv[1] not in ("status", "recon", "injection", "deauth", "capture", "--socket"):
         raise SystemExit("Use the installed helper with one fixed action")
     def stop(_signal, _frame):
         raise RuntimeError("Lab test interrupted")
@@ -268,7 +279,7 @@ def main():
         action = socket_action(sys.stdin) if sys.argv[1] == "--socket" else sys.argv[1]
         profile = load_profile()
         if action == "status":
-            result = dict(configured=True, interface=profile["interface"], target_count=len(profile["bssids"]))
+            result = dict(configured=True, interface=profile["interface"], target_count=len(profile["bssids"]), capture_supported=True)
         else:
             with exclusive_radio():
                 result = execute(action, profile)

@@ -6,11 +6,11 @@ import socket
 
 HELPER = Path("/usr/local/libexec/q-marauder-radio")
 SOCKET = Path("/run/q-marauder-radio.sock")
-ACTIONS = {"lab-recon": "recon", "lab-injection": "injection", "lab-deauth": "deauth"}
+ACTIONS = {"lab-recon": "recon", "lab-injection": "injection", "lab-deauth": "deauth", 'wifi-capture':'capture'}
 
 
 def call(action):
-    if action not in ("status", "recon", "injection", "deauth"):
+    if action not in ("status", "recon", "injection", "deauth", "capture"):
         raise ValueError("Unknown lab action")
     if SOCKET.exists():
         try:
@@ -19,8 +19,8 @@ def call(action):
                 connection.connect(str(SOCKET))
                 connection.sendall((action + "\n").encode("ascii"))
                 with connection.makefile("rb") as stream:
-                    payload = stream.readline(16385)
-            if len(payload) > 16384 or not payload.endswith(b"\n"):
+                    payload = stream.readline(750001 if action == 'capture' else 16385)
+            if len(payload) > (750000 if action == 'capture' else 16384) or not payload.endswith(b"\n"):
                 raise ValueError("Invalid helper response")
             report = json.loads(payload)
         except (OSError, ValueError) as exc:

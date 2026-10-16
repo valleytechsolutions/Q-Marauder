@@ -8,11 +8,16 @@ from . import radio
 
 def main():
     parser = argparse.ArgumentParser(description="Q-Marauder UNO Q field console")
-    parser.add_argument("command", choices=("serve", "doctor"), nargs="?", default="serve")
+    parser.add_argument("command", choices=("serve", "doctor", "desktop"), nargs="?", default="serve")
     parser.add_argument("--port", type=int, default=8787)
     parser.add_argument("--data-dir", type=Path,
                         default=Path.home() / ".local/share/q-marauder")
     args = parser.parse_args()
+    if args.command == 'desktop':
+        from .desktop import launch
+        try: launch(args.data_dir, args.port)
+        except RuntimeError as exc: parser.exit(1, str(exc)+'\n')
+        return
     if args.command == "doctor":
         print(json.dumps(radio.diagnostics(), indent=2))
         return

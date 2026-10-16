@@ -68,26 +68,29 @@ for name in ("Dragon Detector", "Axeoff", "Squachwach"):
 root = Path(__file__).resolve().parents[1]
 for entry in entries:
     if entry["id"] in ("packet-count", "deauth-sniff", "scan-stations"):
-        entry.update(status="partial", detail="Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.")
+        entry.update(status="partial", detail="Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory; bounded PCAP is a separate action.")
+    elif entry['id'] == 'raw-sniff':
+        entry.update(status='partial', detail='8-second receive-only radiotap PCAP on the configured lab channel, at most 512 KiB / 2000 packets. Export verified with 321 packets. Requires the updated radio helper and a working monitor adapter; channel hopping and rolling capture pending.')
     elif entry["id"] == "deauth-flood":
         entry.update(status="partial", detail="Bounded 3-frame lab test implemented behind a configured AP allowlist and recent directed-probe response gate. Not a flood; RF injection and client effect remain unvalidated on UNO Q.")
     elif entry["id"] in ("settings", "menu-navigation"):
         entry.update(status="partial", detail="Settings contains four artwork themes shared by browser and portrait TFT, BLE target/adapter selection and watchlists. Direct touch and saved calibration work. Brightness control is pending.")
 for slug,name,status,detail in [
-    ('ble-gatt','GATT inspection / read / write / notify','partial','Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications physically verified. General multi-operation sessions and descriptor snapshots pending.'),
+    ('ble-gatt','GATT inspection / read / write / notify','partial','Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications verified. Bounded value/descriptor snapshot verified: 5 services, 15 characteristics, 6 descriptors, 20 reads. General multi-operation sessions pending.'),
     ('ble-foxhunt','BLE signal tracking','partial','20-second selected-address RSSI samples, peak and trend; no distance estimate. Continuous audio tracking remains.'),
-    ('ble-hid','HID report decoding','planned','HID service classification exists; report-map parsing and live input decoding are not implemented.'),
-    ('ble-security','Pairing and bond management','partial','Selected-device browser pairing with passkey/PIN, code comparison and cancellation. Pairing and bonded reconnect physically verified on a Flipper. No default agent, automatic acceptance or bond removal; bond-management UI pending.'),
+    ('ble-hid','HID report decoding','partial','Independent bounded HID report-map decoder and 10-second input observation with Report Reference IDs. Keyboard/mouse fixtures pass; a physical HID peripheral is still needed. No OS input injection.'),
+    ('ble-security','Pairing and bond management','partial','Selected-device pairing with passkey/PIN, code comparison and cancellation in browser and portrait keypad. Browser pairing and bonded reconnect verified on a Flipper. Native keypad needs physical acceptance. No default agent, automatic acceptance or bond removal.'),
+    ('ble-oui','ChimeraBLE OUI vendor list','implemented','Same Wireshark MA-L /24 source and long-name selection as ChimeraBLE; 40,099 entries in the verified snapshot. Separate installer download, local cache and browser/TFT attribution for public addresses only. Every entry matched the upstream generator on the same source.'),
     ('ble-emulate','GATT cloning / emulation / proxy','planned','Needs independently implemented peripheral services, controller validation and authorized host tests. No cloning, MAC spoofing or MITM backend is present.')]:
     entries.append(dict(id=slug,name=name,category='BLE Lab',status=status,detail=detail,source='https://github.com/MatthewKuKanich/ChimeraBLE'))
 for slug,name,status,detail in [
-    ('watchlist','BLE watchlist detector','partial','Configurable exact address, public OUI, company ID, service UUID and name matches. Native/browser result pages and JSON history. No verified surveillance classification; no same-packet composite matching.'),
+    ('watchlist','BLE watchlist detector','partial','Configurable exact address, public OUI, company ID, service UUID and name matches, plus public Axon/TASER identifier presets. Native/browser result pages and JSON history. No verified surveillance classification; no same-packet composite matching.'),
     ('unified-foxhunter','Unified Blue Foxhunter parity','partial','Bounded selected-address BLE signal tracking. Continuous audio/LED behavior is not implemented.'),
     ('unified-flock','Flock-You mode','planned','Wi-Fi IE/probe fingerprints, passive BLE signatures, duty cycling and persisted detector sessions pending.'),
-    ('unified-pcap','Unified Blue Wi-Fi PCAP mode','planned','Rolling PCAP export and general channel hopping pending. Existing lab packet counters are a separate bounded tool.'),
+    ('unified-pcap','Unified Blue Wi-Fi PCAP mode','partial','8-second radiotap PCAP export verified; 512 KiB / 2000-packet bound. Single configured lab channel, with rolling captures and general channel hopping pending.'),
     ('unified-skyspy','Sky Spy Remote ID','planned','Raw Wi-Fi capture integration, ASTM F3411 decoder and reference telemetry fixtures needed.'),
     ('unified-blesniff','BLE advertising PCAP','planned','BlueZ aggregated discovery is not passive raw advertising capture; HCI report capture and correct PCAP framing needed.'),
-    ('unified-axeoff','AXEOFF mode','planned','Combined BLE/Wi-Fi signatures, continuous headless operation and audio alerts pending.')]:
+    ('unified-axeoff','AXEOFF mode','partial','BLE Axon/TASER public identifier candidates with evidence labels. Active BlueZ discovery; Wi-Fi signatures, continuous headless operation and audio alerts pending.')]:
     entries.append(dict(id=slug,name=name,category='Unified Blue parity',status=status,detail=detail,source='https://github.com/colonelpanichacks/oui-spy-unified-blue'))
 (root / "qmarauder/features.json").write_text(json.dumps(entries, indent=2)+"\n", encoding="utf-8")
 print(f"Wrote {len(entries)} capability records")

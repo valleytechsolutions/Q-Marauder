@@ -6,7 +6,8 @@ import sys
 from .ble_data import uuid
 from .settings import validate
 
-ACTIONS = ('ble-detect', 'ble-foxhunt', 'ble-gatt', 'ble-read', 'ble-write', 'ble-notify', 'ble-pair')
+ACTIONS = ('ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt', 'ble-gatt',
+           'ble-read', 'ble-write', 'ble-notify', 'ble-pair', 'ble-snapshot', 'ble-hid', 'ble-hid-listen')
 
 
 def request_for(action, preferences, parameters=None):
@@ -15,7 +16,7 @@ def request_for(action, preferences, parameters=None):
         raise ValueError('Unknown BLE parameters')
     if action not in ('ble', *ACTIONS): raise ValueError('Unknown BLE action')
     validate({k: preferences[k] for k in ('target','adapter')})
-    if action not in ('ble','ble-detect') and not preferences['target']:
+    if action not in ('ble','ble-detect','ble-detector','ble-axon') and not preferences['target']:
         raise ValueError('Select your BLE test device in Settings first')
     result = dict(action=action, adapter=preferences['adapter'], target=preferences['target'])
     if action in ('ble-read','ble-write','ble-notify'):

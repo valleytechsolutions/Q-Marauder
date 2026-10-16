@@ -7,10 +7,11 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 
 **[Get started: Windows USB installer + photos](docs/GETTING-STARTED.md)** ·
 **[Bill of materials](docs/BOM.md)** · **[Downloads](https://github.com/valleytechsolutions/Q-Marauder/releases)** ·
-**[External Alfa radio](docs/USB-RADIO.md)**
+**[External Alfa radio](docs/USB-RADIO.md)** · **[Usage wiki](https://github.com/valleytechsolutions/Q-Marauder/wiki)**
 
 **[BLE Lab setup](docs/BLE.md)** · **[ChimeraBLE / Unified Blue status](docs/BLE-PARITY.md)** ·
-**[Browser installer feasibility](docs/WEB-INSTALLER.md)**
+**[Browser installer feasibility](docs/WEB-INSTALLER.md)** · **[Desktop lab](docs/DESKTOP.md)** ·
+**[UPS and handheld power](docs/POWER.md)**
 
 <img src="docs/images/uno-q-shield-side.webp" width="500" alt="Actual UNO Q and red parallel TFT shield assembly, connected to a PC by USB">
 
@@ -27,11 +28,16 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 
 - Actual Wi-Fi AP discovery through NetworkManager, including observed 2.4/5 GHz networks.
 - BlueZ BLE discovery with fresh RSSI, address type, service UUIDs and advertising metadata.
-- Selected-device signal tracking and configurable BLE watchlist matching.
+- Selected-device signal tracking, configurable BLE watchlists and Axon/TASER candidate presets.
+- [ChimeraBLE-compatible OUI list](docs/OUI.md): the same /24 source, with all 40,099
+  prefixes and names checked against its generator. Public-address vendor hints appear
+  on the TFT and browser; randomized addresses are not assigned a vendor by OUI.
 - Interactive selected-device pairing in the browser, with code entry/comparison
   and cancellation. Pairing and reconnecting verified with the owner's Flipper Zero.
 - GATT inventory, read/write and bounded notification backends; physical GATT
   validation on a Flipper Zero includes battery reads and harmless RPC ping exchanges.
+  Bounded value/descriptor snapshots are also verified. HID report-map parsing and
+  input observation are implemented with fixture tests; physical HID validation remains.
   See [BLE Lab limits and evidence](docs/BLE.md).
 - AP-count channel chart, filtering, device diagnostics, and a feature-by-feature port inventory.
 - Repeated Wi-Fi survey sessions with SQLite persistence and CSV/JSON exports.
@@ -39,10 +45,15 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  15 menu groups, and 152 selections. Unported functions are explicitly marked planned.
+  18 menu groups, and 174 selections. Unported functions are explicitly marked planned.
 - **Settings → Themes**: BWM, Marauder, Biscuit Shop and Valleytech, shared between
   the browser and TFT with supplied background artwork and saved preferences.
-- Native Wi-Fi/BLE result pages with tap-to-open details.
+- Native Wi-Fi/BLE result pages with tap-to-open details, saved scan restoration,
+  BLE target/characteristic selection, read/write/notify and pairing keypad controls.
+- A **Q-Marauder Lab** Debian application launcher and wide-screen workspace;
+  browser layout verified, physical HDMI/hub testing still required.
+- Receive-only, eight-second radiotap PCAP export on the configured lab channel,
+  limited to 512 KiB / 2000 packets. A 321-packet live capture and export were verified.
 - Optional bounded lab recon, injection-check and deauth backends, with local report
   history and a separate privileged worker. PC-forwarded Alfa monitor reception is
   verified; injection remains unverified and deauth stays gated. See [lab setup](docs/LAB.md).
@@ -133,8 +144,8 @@ python3 scripts/package.py
 
 Use [architecture](docs/ARCHITECTURE.md), [display bring-up](docs/DISPLAY.md), and
 [hardware evidence](docs/HARDWARE.md) to pick the next work item. Dragon Detector,
-Axeoff, and Squachwach are reserved integration targets; their source repositories
-and protocols still need to be identified.
+and Squachwach remain integration targets. AXEOFF BLE currently provides public
+identifier candidate matching; complete passive BLE/Wi-Fi/audio parity remains.
 
 Scans can contain identifiers and locations. Records stay on the device until you
 export them. Use radio tests only in environments you own or are authorized to assess.

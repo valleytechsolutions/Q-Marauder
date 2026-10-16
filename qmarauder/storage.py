@@ -5,6 +5,7 @@ import io
 import json
 import sqlite3
 import uuid
+import re
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -68,15 +69,22 @@ class Store:
 
     def sessions(self):
         with self.connect() as db:
-            return [dict(row) for row in db.execute("""SELECT s.*, count(o.id) AS observations,
+            return [{**dict(row),'pcap':(self.root/(row['id']+'.pcap')).is_file()} for row in db.execute("""SELECT s.*, count(o.id) AS observations,
                 count(o.lat) AS geotagged FROM sessions s LEFT JOIN observations o ON s.id=o.session
                 GROUP BY s.id ORDER BY s.started DESC LIMIT 100""")]
+
+    def save_capture(self, identity, payload):
+        if not re.fullmatch(r'[0-9a-f]{32}',identity) or not 24 <= len(payload) <= 524288:
+            raise ValueError('Invalid capture')
+        path = self.root/(identity+'.pcap')
+        with path.open('xb') as output: output.write(payload)
+        path.chmod(0o600)
 
     def latest_lab(self):
         with self.connect() as db:
             row = db.execute("""SELECT s.mode, o.payload FROM sessions s
                 LEFT JOIN observations o ON o.session=s.id
-                WHERE s.mode IN ('lab-recon', 'lab-injection', 'lab-deauth')
+                WHERE s.mode IN ('lab-recon', 'lab-injection', 'lab-deauth', 'wifi-capture')
                 ORDER BY s.started DESC, o.id DESC LIMIT 1""").fetchone()
         if row is None:
             return None
@@ -85,10 +93,22 @@ class Store:
         return {"state": "error", "action": row["mode"],
                 "error": "Previous radio job was interrupted; outcome unknown. It was not restarted."}
 
+    def latest_scan(self, kind):
+        if kind not in ('wifi','ble'): raise ValueError('Unknown scan type')
+        with self.connect() as db:
+            session = db.execute('SELECT id,started FROM sessions WHERE mode=? AND ended IS NOT NULL ORDER BY started DESC LIMIT 1',(kind,)).fetchone()
+            if not session: return [], None
+            rows = [json.loads(row['payload']) for row in db.execute('SELECT payload FROM observations WHERE session=? ORDER BY id LIMIT 1000',(session['id'],))]
+            return rows, session['started']
+
     def export(self, identity, fmt):
         with self.connect() as db:
             if not db.execute("SELECT 1 FROM sessions WHERE id=?", (identity,)).fetchone():
                 raise KeyError("Unknown session")
+            if fmt == 'pcap':
+                if not re.fullmatch(r'[0-9a-f]{32}',identity): raise KeyError('Unknown capture')
+                try: return (self.root/(identity+'.pcap')).read_bytes()
+                except FileNotFoundError: raise KeyError('Session has no packet capture') from None
             rows = [{**json.loads(row["payload"]), "time": row["time"], "lat": row["lat"], "lon": row["lon"]}
                     for row in db.execute("SELECT * FROM observations WHERE session=? ORDER BY id", (identity,))]
         if fmt == "json":

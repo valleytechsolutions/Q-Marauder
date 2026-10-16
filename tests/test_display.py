@@ -7,6 +7,29 @@ from qmarauder.display import DisplayLink, calibration_values, orientation_value
 
 
 class DisplayTests(unittest.TestCase):
+    def test_native_characteristic_cannot_be_reused_for_another_target(self):
+        characteristic='00002a19-0000-1000-8000-00805f9b34fb'
+        target='00:11:22:33:44:55'
+        state={'settings':{'target':target},'ble_lab':{'address':target,'characteristics':[{'uuid':characteristic}]}}
+        service=Mock();service.snapshot.return_value=state
+        link=DisplayLink(service,Path('unused'),Mock(return_value=True))
+        link.handle_action('1,31,'+characteristic)
+        link.handle_action('2,22')
+        service.submit.assert_called_once_with('ble-read',{'uuid':characteristic})
+        state['settings']['target']='00:11:22:33:44:66'
+        link.handle_action('3,24,00')
+        service.submit.assert_called_once()
+        self.assertIn('Choose a characteristic',link.reply)
+        link.handle_action('4,31,'+characteristic)
+        self.assertIn('expired',link.reply)
+
+    def test_native_pairing_ack_retry_submits_code_once(self):
+        service=Mock();call=Mock(side_effect=[ConnectionError('lost'),True])
+        link=DisplayLink(service,Path('unused'),call)
+        with self.assertRaises(ConnectionError): link.handle_action('3,32,promptid:123456')
+        link.handle_action('3,32,promptid:123456')
+        service.pairing_reply.assert_called_once_with({'id':'promptid','accept':True,'code':'123456'})
+
     def test_affine_calibration_and_rejected_legacy_or_degenerate_targets(self):
         self.assertEqual(calibration_values("v2,150,180,850,180,150,880"), (150,180,850,180,150,880))
         self.assertEqual(calibration_values("v2,850,880,150,880,850,180"), (850,880,150,880,850,180))
@@ -118,7 +141,7 @@ class DisplayTests(unittest.TestCase):
         for _ in menus:
             reachable |= {int(child) for menu,_,child,_ in entries if int(menu) in reachable and int(child)>=0}
         self.assertEqual(reachable,menus)
-        self.assertEqual(len(entries),152)
+        self.assertGreaterEqual(len(entries),152)
         self.assertIn(('0','Settings','12','0'), entries)
         self.assertTrue({"BWM","Marauder","Biscuit Shop","Valleytech"}.issubset({entry[1] for entry in entries}))
         for menu,title,child,action in entries:

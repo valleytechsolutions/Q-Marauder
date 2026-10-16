@@ -107,3 +107,19 @@ history, not a tamper-resistant audit log.
 References: [Linux wireless monitor interfaces](https://wireless.docs.kernel.org/en/latest/en/users/documentation/iw.html),
 [Aircrack-ng injection-test interpretation](https://www.aircrack-ng.org/doku.php?id=injection_test),
 and [deauthentication behavior](https://www.aircrack-ng.org/doku.php?id=deauthentication).
+
+## Receive-only PCAP capture
+
+Update the helper by running **scripts/Enable-LabRadio.cmd** after upgrading the
+application; it uses the previously prepared local lab profile. If that file is
+no longer present, upgrade from the board with
+`sudo python3 scripts/install-radio-helper.py --profile /etc/q-marauder/lab.json`
+to retain the existing root-owned profile. Use **Lab → Wi-Fi PCAP**, or **Counter surveillance → WiFi PCAP** on
+the portrait TFT. It receives for eight seconds on the configured lab channel,
+with a 512 KiB / 2000-packet storage limit; the capture action sends no packets.
+It may include nearby traffic on that channel, not only the configured AP.
+Download the session's **PCAP** from Field log; the file uses radiotap linktype 127.
+A live run captured 321 packets, and all PCAP record lengths/radiotap headers
+were checked in the 134,530-byte export. Rolling captures and channel hopping
+remain unimplemented. Storage is bounded per capture; periodically manage old
+records and files on the board.

@@ -40,7 +40,7 @@ must be tested separately before publishing a universal firmware binary.
   are inactive at the ends; gaps between targets do not activate neighboring items.
 - On the main menu the left footer button opens **Settings**; choose **Themes** there. Details have a Back button.
 - FreeSans menu text, wrapped long labels, and large targets support finger input.
-- 15 groups / 152 selections follow Marauder's main menu branches, including Wi-Fi
+- 18 groups / 174 selections follow Marauder's main menu branches, including Wi-Fi
   Sniffers, Scanners, Attacks and General; Bluetooth Sniffers and Attacks; GPS and Device.
 - Unported leaves show **Port planned**. Menu presence does not mean backend parity.
 - Scan APs, BLE discovery, survey start and stop route to the existing Linux worker.
@@ -94,9 +94,12 @@ chunked-transfer fix; controller diagnostics also reported a populated result pa
 `qmarauder.display` uses the installed `arduino-router-cli` against the local router
 socket. It sends bounded counts/status and polls a fixed action allowlist. It does
 not stream framebuffers or run shell command strings from the MCU. The TFT shows
-an offline/stale state after 15 seconds without updates. Protocol `qm-display/7`
-adds shared theme selection and BLE Lab/watchlist result views to the paginated
-results introduced in protocol 6. The factory bridge has a 256-byte RPC limit: result pages
+an offline/stale state after 15 seconds without updates. Protocol `qm-display/8` adds selected-device and characteristic actions, pairing
+prompts and a portrait keypad to the version-7 result views. Pairing codes stay
+in memory and are cleared after submission/cancellation. Read/write/notify,
+snapshot, HID, detector presets and PCAP actions use the same Linux worker.
+The keypad has 72 × 44 pixel keys with inactive gaps. The Linux application
+retains protocol-7 compatibility, with the new input controls requiring version 8. The factory bridge has a 256-byte RPC limit: result pages
 are staged in 128-character ASCII chunks and committed only when complete. Stale
 page replies are rejected; unchanged results are not retransmitted. The Linux service saves `display-orientation.json`,
 `display-theme.json`, and `touch-calibration.json` under `~/.local/share/q-marauder`. Calibration records
@@ -117,7 +120,11 @@ socket permissions or replace the router service to make communication work.
 
 ## Remaining verification
 
-Native BLE result-page acceptance, new theme artwork appearance, cold boot,
+The owner confirmed BLE target selection and characteristic **Read value** from
+the portrait TFT on 2026-10-16. The updated firmware compiled at 119,948 bytes;
+saved portrait orientation and touch calibration restored after upload.
+
+Native pairing/hex keypad acceptance, new theme artwork appearance, cold boot,
 long-running touch reliability, and modern-core builds must be recorded before a
 general hardware release. The Linux service currently needs manual start or the
 documented systemd setup. The MCU firmware remains flashed, but restoring its saved

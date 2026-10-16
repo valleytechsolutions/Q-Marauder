@@ -52,12 +52,12 @@ def handler_for(service):
             if path == "/api/state":
                 self.reply(200, service.snapshot())
                 return
-            match = re.fullmatch(r"/api/export/([0-9a-f]{32})\.(csv|json)", path)
+            match = re.fullmatch(r"/api/export/([0-9a-f]{32})\.(csv|json|pcap)", path)
             if match:
                 identity, fmt = match.groups()
                 try:
                     data = service.store.export(identity, fmt)
-                    self.reply(200, data, "text/csv; charset=utf-8" if fmt == "csv" else "application/json",
+                    self.reply(200, data, "text/csv; charset=utf-8" if fmt == "csv" else 'application/vnd.tcpdump.pcap' if fmt == 'pcap' else "application/json",
                                f"q-marauder-{identity}.{fmt}")
                 except KeyError:
                     self.reply(404, {"error": "Unknown session"})

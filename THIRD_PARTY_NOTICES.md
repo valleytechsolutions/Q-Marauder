@@ -22,6 +22,13 @@ Preserve it whenever upstream code is incorporated in later ports.
 [ChimeraBLE](https://github.com/MatthewKuKanich/ChimeraBLE) by Matthew Kukanich was
 inspected at `2330423dae8f8fa163617172310784889d8972a7`. It declares GPL-3.0-or-later.
 No ChimeraBLE implementation or generated vendor database is distributed here.
+The installer separately downloads Wireshark's `manuf` registry and selects its
+MA-L /24 entries, matching ChimeraBLE's documented list workflow. The cached data
+retains its source terms and is excluded from this project's MIT grant; see
+[OUI provenance and updating](docs/OUI.md).
+
+The HID parser is independently implemented from the published
+[USB HID 1.11 specification](https://www.usb.org/sites/default/files/hid1_11.pdf).
 The BLE workers are independent BlueZ implementations; this MIT grant does not
 apply to ChimeraBLE or its dependencies.
 

@@ -1,5 +1,6 @@
 """Independent BLE metadata decoding and watchlist rules; no upstream firmware code."""
 import re
+from .vendors import lookup
 
 BASE = '-0000-1000-8000-00805f9b34fb'
 MAC = re.compile(r'(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}')
@@ -32,8 +33,11 @@ def decode(row):
     if apple.startswith('0215') and len(apple) >= 46:
         signals.append('iBeacon format')
     row['signals'] = signals
+    row['oui_vendor'] = lookup(row.get('address'), row.get('address_type'))
+    if row['oui_vendor']: signals.append('OUI: '+row['oui_vendor'])
     row['fingerprint'] = ' / '.join(signals[:3]) or 'Unclassified advertiser'
     row['identity_verified'] = False
+    row['oui_note'] = 'IEEE prefix assignment; identity unverified' if row['oui_vendor'] else 'No public vendor assignment; random/private addresses are not attributed'
     row['metadata_source'] = 'BlueZ aggregated properties; packet boundaries unavailable'
     return row
 

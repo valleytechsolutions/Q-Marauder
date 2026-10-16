@@ -1,7 +1,7 @@
 // Generated menu labels from Marauder; upstream MIT notice in licenses/.
 #pragma once
 struct MenuEntry { uint8_t menu; const char *title; int8_t child; uint8_t action; };
-const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance","Appearance"};
+const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance","Appearance","BLE tools","Characteristic tools","BLE adapter"};
 const MenuEntry menuEntries[] = {
   {0,"Recon",11,0},
   {0,"WiFi",1,0},
@@ -20,6 +20,7 @@ const MenuEntry menuEntries[] = {
   {1,"General",5,0},
   {2,"Back",1,0},
   {2,"Lab packet recon",-1,15},
+  {2,"Wi-Fi PCAP",-1,37},
   {2,"Probe Request Sniff",-1,0},
   {2,"Beacon Sniff",-1,0},
   {2,"Deauth Sniff",-1,0},
@@ -94,8 +95,7 @@ const MenuEntry menuEntries[] = {
   {6,"Back",0,0},
   {6,"Scan BLE",-1,2},
   {6,"BLE results",-1,13},
-  {6,"BLE foxhunt",-1,19},
-  {6,"GATT inventory",-1,20},
+  {6,"BLE tools",15,0},
   {6,"Sniffers",7,0},
   {6,"Bluetooth Attacks",8,0},
   {7,"Back",6,0},
@@ -144,16 +144,38 @@ const MenuEntry menuEntries[] = {
   {12,"Back",0,0},
   {12,"Themes",14,0},
   {12,"Calibrate touch",-1,6},
+  {12,"BLE adapter",17,0},
   {13,"Back",0,0},
+  {13,"Detector scan",-1,28},
+  {13,"AXEOFF BLE",-1,27},
   {13,"BLE watchlist scan",-1,18},
   {13,"BLE foxhunt",-1,19},
+  {13,"Wi-Fi PCAP",-1,37},
+  {13,"Flock-You Wi-Fi",-1,0},
+  {13,"Sky Spy",-1,0},
+  {13,"BLE Sniff PCAP",-1,0},
   {13,"Dragon Detector",-1,0},
-  {13,"Axeoff",-1,0},
   {13,"Squachwach",-1,0},
   {14,"Back",12,0},
   {14,"BWM",-1,8},
   {14,"Marauder",-1,9},
   {14,"Biscuit Shop",-1,10},
   {14,"Valleytech",-1,11},
+  {15,"Back",6,0},
+  {15,"Pair selected device",-1,21},
+  {15,"GATT inventory",-1,20},
+  {15,"GATT snapshot",-1,25},
+  {15,"BLE foxhunt",-1,19},
+  {15,"Inspect HID map",-1,26},
+  {15,"Listen HID reports",-1,36},
+  {15,"Characteristic tools",16,0},
+  {16,"Back",15,0},
+  {16,"Read value",-1,22},
+  {16,"Listen notifications",-1,23},
+  {16,"Write hex value",-1,24},
+  {16,"Write no response",-1,38},
+  {17,"Back",12,0},
+  {17,"hci0 / onboard",-1,34},
+  {17,"hci1 / secondary",-1,35},
 };
-constexpr int MENU_ENTRY_COUNT = 152;
+constexpr int MENU_ENTRY_COUNT = 174;

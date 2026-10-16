@@ -40,8 +40,9 @@ the new observation if your target changes address.
 The browser's **Bluetooth → BLE Lab → Pair selected device** registers a temporary
 BlueZ agent for the selected address and adapter. It supports passkey/PIN entry,
 numeric comparison, authorization and displaying a code for entry on the peer.
-It never accepts a comparison automatically. Pairing is currently a browser
-workflow; the TFT does not have a pairing-code keyboard.
+It never accepts a comparison automatically. The portrait TFT also supports pairing-code entry, comparison and cancellation
+under **Bluetooth → BLE tools → Pair device**. Its new keypad still needs physical
+acceptance; browser pairing is verified.
 
 1. Keep the peripheral nearby, awake and unlocked, and close other apps that use
    its Bluetooth connection.
@@ -78,7 +79,7 @@ References: [BlueZ agent API](https://bluez.readthedocs.io/en/latest/agent-api/)
 
 ## GATT operations
 
-Inspect GATT lists services and characteristics. Choose **Use UUID**, then Read,
+Inspect GATT lists services, characteristics and descriptors. Choose **Use UUID**, then Read,
 Listen (10 seconds), or explicitly Write a hexadecimal value. Writes support
 request and command modes and must be 1–512 bytes. The UUID must identify exactly
 one characteristic; ambiguous duplicate UUIDs are refused. There is no arbitrary
@@ -104,7 +105,9 @@ addresses. Rules are OR matches; they do not implement same-packet composites.
 
 Run **Bluetooth → Scan watchlist**, or **Counter surveillance → BLE watchlist scan**
 on the TFT. Results explain which rules matched. A saved name rule for your own
-test device is a useful end-to-end check. No vendor signature pack is enabled by default.
+test device is a useful end-to-end check. **Detector** combines these rules with
+public Axon/TASER identifiers; **AXEOFF BLE** runs only those presets. They label
+candidates and do not verify device identities.
 
 ## Validation and limits
 
@@ -137,5 +140,26 @@ Ping protocol references: [Flipper RPC envelope](https://github.com/flipperdevic
 
 If GATT fails, ensure Bluetooth is enabled on the device, disconnect its existing
 phone session and inspect any pairing prompt. Do not clear other devices' bonds.
-Descriptor reads, HID decoding, clone/emulation and MITM are not supplied in this
-build. RSSI tracking reports signal change, not distance.
+Clone/emulation and MITM are not supplied in this build. RSSI tracking reports
+signal change, not distance.
+
+## Snapshot, HID and portrait controls
+
+**Value snapshot** reads up to 64 readable characteristics and 96 total
+characteristic/descriptor values, with a 24-second read budget. Individual errors
+remain in the report. A bonded Flipper returned 5 services, 15 characteristics,
+6 descriptors and 20 completed reads in the development test.
+
+**HID report maps** decodes the selected device's Report Map. **HID input (10s)**
+uses Report Reference descriptors to interpret received input values; it reports
+usage IDs and relative values without sending OS keyboard events. Keyboard and
+mouse fixtures pass; an actual HID peripheral is still needed for validation.
+
+On the TFT, open **Bluetooth → Scan BLE**, tap a result, then **USE**. Open
+**GATT inventory**, tap a characteristic, then **USE** to read, listen or write.
+Hex writes support both response modes, at most 48 bytes on the native keypad
+(512 bytes in the browser). Target changes invalidate the selected characteristic.
+
+Saved scan lists return after a console restart and are marked **Saved results**.
+An empty native list has a **SCAN** button. Rescan for current observations.
+Vendor hints use the [ChimeraBLE OUI list workflow](OUI.md).

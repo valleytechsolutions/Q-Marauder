@@ -60,7 +60,7 @@
     "name": "Station scan",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory; bounded PCAP is a separate action.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-stations"
   },
   {
@@ -91,8 +91,8 @@
     "id": "raw-sniff",
     "name": "Raw PCAP capture",
     "category": "Wi-Fi capture",
-    "status": "planned",
-    "detail": "Requires a validated monitor interface and capture backend. Driver advertises monitor mode; on-air capture is unverified.",
+    "status": "partial",
+    "detail": "8-second receive-only radiotap PCAP on the configured lab channel, at most 512 KiB / 2000 packets. Export verified with 321 packets. Requires the updated radio helper and a working monitor adapter; channel hopping and rolling capture pending.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/raw-sniff"
   },
   {
@@ -100,7 +100,7 @@
     "name": "Deauthentication detection",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory; bounded PCAP is a separate action.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-sniff"
   },
   {
@@ -116,7 +116,7 @@
     "name": "Packet counter",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory; bounded PCAP is a separate action.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/packet-count"
   },
   {
@@ -652,7 +652,7 @@
     "name": "GATT inspection / read / write / notify",
     "category": "BLE Lab",
     "status": "partial",
-    "detail": "Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications physically verified. General multi-operation sessions and descriptor snapshots pending.",
+    "detail": "Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications verified. Bounded value/descriptor snapshot verified: 5 services, 15 characteristics, 6 descriptors, 20 reads. General multi-operation sessions pending.",
     "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
   },
   {
@@ -667,8 +667,8 @@
     "id": "ble-hid",
     "name": "HID report decoding",
     "category": "BLE Lab",
-    "status": "planned",
-    "detail": "HID service classification exists; report-map parsing and live input decoding are not implemented.",
+    "status": "partial",
+    "detail": "Independent bounded HID report-map decoder and 10-second input observation with Report Reference IDs. Keyboard/mouse fixtures pass; a physical HID peripheral is still needed. No OS input injection.",
     "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
   },
   {
@@ -676,7 +676,15 @@
     "name": "Pairing and bond management",
     "category": "BLE Lab",
     "status": "partial",
-    "detail": "Selected-device browser pairing with passkey/PIN, code comparison and cancellation. Pairing and bonded reconnect physically verified on a Flipper. No default agent, automatic acceptance or bond removal; bond-management UI pending.",
+    "detail": "Selected-device pairing with passkey/PIN, code comparison and cancellation in browser and portrait keypad. Browser pairing and bonded reconnect verified on a Flipper. Native keypad needs physical acceptance. No default agent, automatic acceptance or bond removal.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "ble-oui",
+    "name": "ChimeraBLE OUI vendor list",
+    "category": "BLE Lab",
+    "status": "implemented",
+    "detail": "Same Wireshark MA-L /24 source and long-name selection as ChimeraBLE; 40,099 entries in the verified snapshot. Separate installer download, local cache and browser/TFT attribution for public addresses only. Every entry matched the upstream generator on the same source.",
     "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
   },
   {
@@ -692,7 +700,7 @@
     "name": "BLE watchlist detector",
     "category": "Unified Blue parity",
     "status": "partial",
-    "detail": "Configurable exact address, public OUI, company ID, service UUID and name matches. Native/browser result pages and JSON history. No verified surveillance classification; no same-packet composite matching.",
+    "detail": "Configurable exact address, public OUI, company ID, service UUID and name matches, plus public Axon/TASER identifier presets. Native/browser result pages and JSON history. No verified surveillance classification; no same-packet composite matching.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
@@ -715,8 +723,8 @@
     "id": "unified-pcap",
     "name": "Unified Blue Wi-Fi PCAP mode",
     "category": "Unified Blue parity",
-    "status": "planned",
-    "detail": "Rolling PCAP export and general channel hopping pending. Existing lab packet counters are a separate bounded tool.",
+    "status": "partial",
+    "detail": "8-second radiotap PCAP export verified; 512 KiB / 2000-packet bound. Single configured lab channel, with rolling captures and general channel hopping pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   },
   {
@@ -739,8 +747,8 @@
     "id": "unified-axeoff",
     "name": "AXEOFF mode",
     "category": "Unified Blue parity",
-    "status": "planned",
-    "detail": "Combined BLE/Wi-Fi signatures, continuous headless operation and audio alerts pending.",
+    "status": "partial",
+    "detail": "BLE Axon/TASER public identifier candidates with evidence labels. Active BlueZ discovery; Wi-Fi signatures, continuous headless operation and audio alerts pending.",
     "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   }
 ]

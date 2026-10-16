@@ -35,5 +35,15 @@ int main() {
   assert(Layout::hit(50,130,7,0,true)==-1); // Details only have Back.
   assert(Layout::hit(260,450,7,0,true)==-1);
   assert(Layout::hit(50,450,7,0,true)==0);
+  for(int row=0;row<5;++row) for(int col=0;col<4;++col) {
+    assert(Layout::keyHit(10+col*76,172+row*48)==row*4+col);
+    assert(Layout::keyHit(81+col*76,215+row*48)==row*4+col);
+    assert(Layout::keyHit(82+col*76,180+row*48)==-1);
+    assert(Layout::keyHit(30+col*76,216+row*48)==-1);
+  }
+  assert(Layout::keyHit(9,180)==-1);
+  assert(Layout::keyHit(310,180)==-1);
+  assert(Layout::keyHit(30,171)==-1);
+  assert(Layout::keyHit(30,412)==-1);
   std::cout << "Touch geometry and direct-hit navigation checks passed\n";
 }

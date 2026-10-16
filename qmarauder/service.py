@@ -1,12 +1,15 @@
 """Single radio worker, bounded jobs, and durable survey sessions."""
 import copy
+import base64
 import json
 import queue
 import threading
 import time
 from pathlib import Path
 from . import __version__, gps, radio, lab, ble, settings, pairing
-from .ble_data import detections
+from .ble_data import detections, decode
+from .detectors import evaluate, MODES
+from . import vendors
 from .storage import Store, utcnow
 
 
@@ -24,6 +27,16 @@ class Service:
         self.state.update(settings=settings.load(data_dir), pending_theme=None, ble_lab=None, detections=[])
         self.state['pending_theme'] = self.state['settings']['theme']
         self.state['pairing'] = None
+        self.state['detector_modes'] = MODES
+        self.state['vendor_database'] = vendors.status()
+        for kind in ('wifi','ble'):
+            rows, when = self.store.latest_scan(kind)
+            if when:
+                for index,row in enumerate(rows):
+                    if kind == 'ble': rows[index] = decode(row)
+                    else: row['oui_vendor'] = vendors.lookup(row.get('address'))
+                self.state[kind] = rows
+                self.state['scan_status'][kind] = dict(state='cached', updated=when)
         self.pairing = pairing.PairingBroker(self.lock, self.state)
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
         self.worker = threading.Thread(target=self._work, name="radio-worker", daemon=True)
@@ -76,7 +89,9 @@ class Service:
         self.pairing.cancel()
 
     def _scan(self, kind, session=None):
-        if kind == 'wifi': rows = radio.wifi_scan()
+        if kind == 'wifi':
+            rows = radio.wifi_scan()
+            for row in rows: row['oui_vendor'] = vendors.lookup(row.get('address'))
         else:
             rows = ble.call(ble.request_for('ble', self.state['settings']))['rows']
         fix = gps.read_fix()
@@ -127,6 +142,10 @@ class Service:
                 elif action in lab.ACTIONS:
                     session = self.store.start(action)
                     report = lab.call(lab.ACTIONS[action])
+                    if action == 'wifi-capture':
+                        raw = base64.b64decode(report.pop('pcap'), validate=True)
+                        self.store.save_capture(session, raw)
+                        report['capture_session'] = session
                     report = {**report, "kind": "lab", "state": "done", "updated": utcnow()}
                     self.store.append(session, [report])
                     with self.lock:
@@ -138,6 +157,9 @@ class Service:
                     if action == 'ble-detect':
                         report['detections'] = detections(report['rows'], self.state['settings']['rules'])
                         report['note'] = 'Configured watchlist matches only; no verified surveillance identities. BlueZ discovery may send scan requests.'
+                    elif action in ('ble-axon','ble-detector'):
+                        report['detections'] = evaluate(report['rows'], action, self.state['settings']['rules'])
+                        report['note'] = 'Candidate identifier matches; not verified identities. BlueZ discovery may transmit scan requests.'
                     self.store.append(session, [report])
                     with self.lock:
                         self.state['ble_lab'] = report
@@ -145,7 +167,7 @@ class Service:
                         if 'rows' in report and action != 'ble-foxhunt':
                             self.state['ble'] = report['rows']
                             self.state['scan_status']['ble'] = dict(state='done', updated=utcnow())
-                        if action == 'ble-detect': self.state['detections'] = report['detections']
+                        if 'detections' in report: self.state['detections'] = report['detections']
                 else:
                     session = self.store.start(action)
                     self._scan(action, session)

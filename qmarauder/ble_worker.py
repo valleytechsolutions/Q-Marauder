@@ -5,6 +5,7 @@ import sys
 import time
 from .ble_data import decode, proximity, uuid
 from .settings import validate
+from . import hid
 
 
 def plain(value):
@@ -120,7 +121,7 @@ class BlueZ:
     def gatt(self, action, request):
         path = self.connect(request['target'])
         objects = self.objects()
-        services, characteristics = [], []
+        services, characteristics, descriptors = [], [], []
         for key, interfaces in objects.items():
             if not str(key).startswith(path+'/'): continue
             if 'org.bluez.GattService1' in interfaces:
@@ -130,11 +131,72 @@ class BlueZ:
                 p = interfaces['org.bluez.GattCharacteristic1']
                 service = objects.get(p['Service'], {}).get('org.bluez.GattService1', {})
                 characteristics.append(dict(path=str(key), uuid=str(p['UUID']), service=str(service.get('UUID', '')),
-                                            flags=[str(f) for f in p['Flags']], handle=int(p.get('Handle', 0))))
+                                            flags=[str(f) for f in p['Flags']], handle=int(p.get('Handle', 0)),
+                                            mtu=int(p.get('MTU', 0))))
+            if 'org.bluez.GattDescriptor1' in interfaces:
+                p = interfaces['org.bluez.GattDescriptor1']
+                descriptors.append(dict(path=str(key), uuid=str(p['UUID']), characteristic_path=str(p['Characteristic']),
+                                        flags=[str(f) for f in p.get('Flags', [])], handle=int(p.get('Handle', 0))))
         if len(characteristics) > 256: raise RuntimeError('GATT table exceeds this alpha limit of 256 characteristics')
-        result = dict(services=services, characteristics=characteristics, notifications=[])
+        if len(descriptors) > 512: raise RuntimeError('GATT table exceeds 512 descriptors')
+        for d in descriptors:
+            d['characteristic'] = next((c['uuid'] for c in characteristics if c['path'] == d['characteristic_path']), '')
+        result = dict(services=services, characteristics=characteristics, descriptors=descriptors, notifications=[])
+        if action in ('ble-snapshot','ble-hid','ble-hid-listen'):
+            options = self.dbus.Dictionary({}, signature='sv')
+            deadline = time.monotonic() + (15 if action == 'ble-hid-listen' else 24)
+            candidates = [c for c in characteristics if 'read' in c['flags'] and
+                          (action == 'ble-snapshot' or c['uuid'].lower() == uuid('2a4b'))]
+            attempted = 0
+            for c in candidates:
+                if attempted >= 64 or time.monotonic() >= deadline:
+                    c['read_error'] = 'Snapshot read budget reached'; continue
+                attempted += 1
+                try: c['value'] = bytes(self.interface(c['path'], 'org.bluez.GattCharacteristic1').ReadValue(options, timeout=2)).hex()[:8192]
+                except Exception as exc: c['read_error'] = str(exc)[:160]
+            for d in descriptors:
+                if time.monotonic() >= deadline or attempted >= 96:
+                    d['read_error'] = 'Descriptor read budget reached'; continue
+                # Report Reference is needed to associate BLE values with HID report IDs.
+                if action != 'ble-snapshot' and d['uuid'].lower() != uuid('2908'): continue
+                attempted += 1
+                try: d['value'] = bytes(self.interface(d['path'], 'org.bluez.GattDescriptor1').ReadValue(options, timeout=2)).hex()[:1024]
+                except Exception as exc: d['read_error'] = str(exc)[:160]
+            result['read_attempts'] = attempted
+            if action in ('ble-hid','ble-hid-listen'):
+                maps = [c for c in candidates if 'value' in c]
+                if not maps: raise RuntimeError('Selected device exposes no readable HID report map (2A4B)')
+                if len({c['service'] for c in maps}) != len(maps): raise RuntimeError('Multiple HID maps with the same service UUID are ambiguous')
+                layouts = {c['service']:hid.descriptor(bytes.fromhex(c['value'])) for c in maps}
+                result['hid'] = layouts
+                if action == 'ble-hid-listen':
+                    handles, subscribed = [], []
+                    try:
+                        for c in characteristics:
+                            if c['uuid'].lower() != uuid('2a4d') or c['service'] not in layouts or not set(c['flags']) & {'notify','indicate'}: continue
+                            refs = [d for d in descriptors if d['characteristic_path'] == c['path'] and d['uuid'].lower() == uuid('2908') and 'value' in d]
+                            if len(refs) != 1 or len(refs[0]['value']) != 4: continue
+                            ref = bytes.fromhex(refs[0]['value'])
+                            if ref[1] != 1: continue
+                            def event(iface, values, invalidated, c=c, report_id=ref[0]):
+                                if iface != 'org.bluez.GattCharacteristic1' or 'Value' not in values or len(result['notifications']) >= 256: return
+                                raw = bytes(values['Value'])[:1024]
+                                entry = dict(uuid=c['uuid'], value=raw.hex(), time=time.time())
+                                try: entry['decoded'] = hid.report(layouts[c['service']], raw, report_id)
+                                except ValueError as exc: entry['decode_error'] = str(exc)
+                                result['notifications'].append(entry)
+                            handles.append(self.bus.add_signal_receiver(event, signal_name='PropertiesChanged', dbus_interface='org.freedesktop.DBus.Properties', path=c['path']))
+                            interface = self.interface(c['path'], 'org.bluez.GattCharacteristic1')
+                            interface.StartNotify(timeout=3); subscribed.append(interface)
+                        if not subscribed: raise RuntimeError('No input HID Report with notification support and readable Report Reference')
+                        self.pump(10)
+                    finally:
+                        for handle in handles: handle.remove()
+                        for interface in subscribed:
+                            try: interface.StopNotify(timeout=3)
+                            except Exception: pass
         selected = [c for c in characteristics if c['uuid'].lower() == request.get('uuid', '').lower()]
-        if action != 'ble-gatt':
+        if action in ('ble-read','ble-write','ble-notify'):
             if len(selected) != 1: raise RuntimeError('Characteristic UUID must identify exactly one characteristic in this target')
             c = selected[0]
             interface = self.interface(c['path'], 'org.bluez.GattCharacteristic1')
@@ -164,6 +226,8 @@ class BlueZ:
             result['selected'] = c
         # Public clients use UUIDs, never arbitrary D-Bus object paths.
         for c in characteristics: c.pop('path', None)
+        for d in descriptors:
+            d.pop('path', None); d.pop('characteristic_path', None)
         return result
 
     def close(self):
@@ -185,9 +249,9 @@ def main():
         validate({k: request[k] for k in ('target','adapter')})
         action = request['action']
         radio = BlueZ(request['adapter'])
-        if action in ('ble', 'ble-detect', 'ble-foxhunt'):
+        if action in ('ble', 'ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt'):
             result = radio.scan(20 if action == 'ble-foxhunt' else 8, request['target'] if action == 'ble-foxhunt' else '')
-        elif action in ('ble-gatt','ble-read','ble-write','ble-notify'):
+        elif action in ('ble-gatt','ble-read','ble-write','ble-notify','ble-snapshot','ble-hid','ble-hid-listen'):
             result = radio.gatt(action, request)
         else: raise ValueError('Unknown BLE action')
         result.update(action=action, state='done', kind='ble-lab', address=request['target'],
