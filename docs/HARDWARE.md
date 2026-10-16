@@ -73,8 +73,9 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 - The owner reported a blank TFT after the cold boot. The source console was
   restarted, then the display MCU reset without writing flash. Protocol 6, portrait
   profile 2, saved touch calibration and theme all responded/restored correctly.
-  Physical appearance after recovery still needs owner confirmation. The new
-  `Repair-Display.cmd` recovery path was exercised on the board.
+  The owner then confirmed that the Q-Marauder menu is visible on the physical TFT.
+  The new `Repair-Display.cmd` recovery path was exercised on the board. This confirms
+  recovery of the blank screen; automatic console startup remains unvalidated.
 
 `iw` was initially absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This
