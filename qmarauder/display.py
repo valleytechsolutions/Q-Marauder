@@ -14,7 +14,8 @@ ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop", 14: "diag
            22: 'ble-read', 23: 'ble-notify', 24: 'ble-write', 25: 'ble-snapshot',
            26: 'ble-hid', 27: 'ble-axon', 28: 'ble-detector', 36: 'ble-hid-listen', 37: 'wifi-capture', 38:'ble-write',
            39:'flock-wifi', 40:'flock-ble', 41:'sky-wifi', 42:'sky-ble', 43:'ble-sniff', 44:'packet-detector',
-           45:'ble-advertise',46:'ble-advert-stop',47:'axon-wifi'}
+           45:'ble-advertise',46:'ble-advert-stop',47:'axon-wifi',
+           48:'linux-interfaces',49:'wifi-audit',50:'bt-controllers',51:'bt-classic'}
 ORIENTATIONS = (0, 1, 2, 3)  # Software reflections: bit 0 = X, bit 1 = Y.
 
 
@@ -221,7 +222,7 @@ class DisplayLink:
 
     def sync_results(self, state):
         request = self.call("qm.view")
-        if not isinstance(request, str) or not re.fullmatch(r"\d{1,10},[0-7],\d{1,4}", request):
+        if not isinstance(request, str) or not re.fullmatch(r"\d{1,10},[0-9],\d{1,4}", request):
             raise ValueError("Invalid display view")
         sequence, kind, page = map(int, request.split(","))
         if kind == 0:
@@ -275,9 +276,9 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith(("qm-display/7;", "qm-display/8;")):
+                    if not isinstance(protocol, str) or not protocol.startswith(("qm-display/7;", "qm-display/8;", "qm-display/9;")):
                         raise ConnectionError("Compatible portrait display firmware is required")
-                    self.controls = protocol.startswith('qm-display/8;')
+                    self.controls = protocol.startswith(('qm-display/8;', 'qm-display/9;'))
                     self.pair_prompt = None
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)

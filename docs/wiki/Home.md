@@ -10,6 +10,7 @@ session archive. This is an alpha with a documented feature support matrix.
 | Assemble and install | [Installation](https://github.com/valleytechsolutions/Q-Marauder/wiki/Installation) |
 | Use the handheld | [Portrait touchscreen](https://github.com/valleytechsolutions/Q-Marauder/wiki/Portrait-touchscreen) |
 | Scan, pair and inspect | [BLE Lab](https://github.com/valleytechsolutions/Q-Marauder/wiki/BLE-Lab) |
+| Use Raspyjack-inspired wireless tools | [Linux radio tools](https://github.com/valleytechsolutions/Q-Marauder/wiki/Linux-radio-tools) |
 | Understand alerts | [Detection and capture](https://github.com/valleytechsolutions/Q-Marauder/wiki/Detection-and-capture) |
 | Run scoped tests and check limits | [Active tests](https://github.com/valleytechsolutions/Q-Marauder/wiki/Active-tests) |
 | Use an HDMI monitor | [Desktop lab](https://github.com/valleytechsolutions/Q-Marauder/wiki/Desktop-lab) |

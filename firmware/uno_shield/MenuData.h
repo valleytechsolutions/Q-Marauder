@@ -1,7 +1,7 @@
 // Generated menu labels from Marauder; upstream MIT notice in licenses/.
 #pragma once
 struct MenuEntry { uint8_t menu; const char *title; int8_t child; uint8_t action; };
-const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance","Appearance","BLE tools","Characteristic tools","BLE adapter"};
+const char *const menuTitles[] = {"Main menu","Wi-Fi","Wi-Fi / Sniffers","Wi-Fi / Scanners","Wi-Fi / Attacks","Wi-Fi / General","Bluetooth","Bluetooth / Sniffers","Bluetooth / Attacks","GPS","Device","Recon / Wardriving","Settings","Counter surveillance","Appearance","BLE tools","Characteristic tools","BLE adapter","Linux tools"};
 const MenuEntry menuEntries[] = {
   {0,"Recon",11,0},
   {0,"WiFi",1,0},
@@ -11,6 +11,7 @@ const MenuEntry menuEntries[] = {
   {0,"Device",10,0},
   {0,"Counter surveillance",13,0},
   {0,"Reboot",-1,0},
+  {0,"Linux tools",18,0},
   {1,"Back",0,0},
   {1,"Scan APs",-1,1},
   {1,"Wi-Fi results",-1,12},
@@ -18,6 +19,7 @@ const MenuEntry menuEntries[] = {
   {1,"Scanners",3,0},
   {1,"Attacks",4,0},
   {1,"General",5,0},
+  {1,"Linux tools",18,0},
   {2,"Back",1,0},
   {2,"Lab packet recon",-1,15},
   {2,"Wi-Fi PCAP",-1,37},
@@ -98,6 +100,7 @@ const MenuEntry menuEntries[] = {
   {6,"BLE tools",15,0},
   {6,"Sniffers",7,0},
   {6,"Bluetooth Attacks",8,0},
+  {6,"Linux tools",18,0},
   {7,"Back",6,0},
   {7,"BLE Sniff PCAP",-1,43},
   {7,"Flock BLE",-1,40},
@@ -185,5 +188,12 @@ const MenuEntry menuEntries[] = {
   {17,"Back",12,0},
   {17,"hci0 / onboard",-1,34},
   {17,"hci1 / secondary",-1,35},
+  {18,"Back",0,0},
+  {18,"Radio interfaces",-1,48},
+  {18,"Wi-Fi security survey",-1,49},
+  {18,"Bluetooth controllers",-1,50},
+  {18,"Bluetooth Classic scan",-1,51},
+  {18,"Linux report",-1,52},
+  {18,"Port inventory",-1,53},
 };
-constexpr int MENU_ENTRY_COUNT = 182;
+constexpr int MENU_ENTRY_COUNT = 192;

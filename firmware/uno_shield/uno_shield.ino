@@ -274,7 +274,7 @@ void render() {
       if(detailKey.length()) footerButton(214,"USE");
       else centered(112,442,198,"TAP BACK TO RETURN",p.muted,1);
     } else if(resultKind) {
-      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results","Packet analysis"};
+      const char *titles[]={"","Wi-Fi results","Bluetooth LE","Test readiness","Lab test results","BLE Lab results","Detector results","Packet analysis","Linux tools report","Raspyjack inventory"};
       label(14,76,titles[resultKind],p.text);
       label(14,100,resultStatus.substring(0,36),p.muted,1);
       label(270,100,String(viewPage+1)+"/"+String(max(1,(count+3)/4)),p.accent,1);
@@ -384,6 +384,11 @@ void activate(int target) {
     if(pendingAction) return;
     queueAction(entry.action); requestResults(5);
   }
+  else if(entry.action==53) requestResults(9);
+  else if(entry.action>=48 && entry.action<=52) {
+    if(entry.action!=52) { if(pendingAction) return; queueAction(entry.action); }
+    requestResults(8);
+  }
   else if(entry.action>=21 && entry.action<=37) {
     if(pendingAction) return;
     queueAction(entry.action);
@@ -438,7 +443,7 @@ void pollTouch() {
     if(pressedHit>=10 && pressedHit<=13) lcd.drawRoundRect(10,Layout::rowTop+(pressedHit-10)*Layout::rowStride,300,64,6,themes[theme].accent);
   }
 }
-String protocol() { return "qm-display/8;portrait;direct-touch;themes;results;ble-lab;keypad"; }
+String protocol() { return "qm-display/9;portrait;direct-touch;themes;results;ble-lab;keypad;linux-tools"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
       +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";page="+page

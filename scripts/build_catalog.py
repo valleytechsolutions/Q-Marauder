@@ -107,5 +107,13 @@ for entry in entries:
 entries.append(dict(id='ble-advertise',name='BLE laboratory beacon test',category='Active BLE tests',status='partial',
     detail='Three QM-LAB names, two seconds each; controller registration and explicit-stop cleanup verified, but independent RF reception unconfirmed. No platform popup/crash payloads.',
     source='https://bluez.readthedocs.io/en/latest/advertising-api/'))
+raspyjack = json.loads((root/'docs/raspyjack-inventory.json').read_text(encoding='utf-8'))
+entries.extend({k:v for k,v in row.items() if k != 'path'} for row in raspyjack['entries'])
+import sys
+sys.path.insert(0,str(root))
+from qmarauder.linux_tools import TOOLS
+entries.extend(dict(id=tool['id'],name=tool['name'],category='Linux radio tools',status='implemented',
+                    detail=tool['detail']+' Shared desktop/TFT report with local JSON history.',
+                    source='https://github.com/7h30th3r0n3/Raspyjack') for tool in TOOLS)
 (root / "qmarauder/features.json").write_text(json.dumps(entries, indent=2)+"\n", encoding="utf-8")
 print(f"Wrote {len(entries)} capability records")

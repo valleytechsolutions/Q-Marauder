@@ -9,7 +9,7 @@ from pathlib import Path
 from . import __version__, gps, radio, lab, ble, settings, pairing
 from .ble_data import detections, decode
 from .detectors import evaluate, MODES
-from . import vendors, capture
+from . import vendors, capture, linux_tools
 from .storage import Store, utcnow
 
 
@@ -30,8 +30,10 @@ class Service:
         self.state['pairing'] = None
         self.state['detector_modes'] = MODES
         self.state['packet_lab'] = self.store.latest_packet()
-        if self.state['packet_lab']:
-            self.state['updated'] = self.state['packet_lab'].get('updated')
+        self.state['linux_tools'] = linux_tools.TOOLS
+        self.state['linux_report'] = self.store.latest_linux()
+        report_times = [(self.state[key] or {}).get('updated') for key in ('packet_lab', 'linux_report')]
+        self.state['updated'] = max((when for when in report_times if when), default=None)
         self.state['vendor_database'] = vendors.status()
         for kind in ('wifi','ble'):
             rows, when = self.store.latest_scan(kind)
@@ -41,6 +43,7 @@ class Service:
                     else: row['oui_vendor'] = vendors.lookup(row.get('address'))
                 self.state[kind] = rows
                 self.state['scan_status'][kind] = dict(state='cached', updated=when)
+                self.state['updated'] = max(self.state['updated'] or when, when)
         self.pairing = pairing.PairingBroker(self.lock, self.state)
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
         self.worker = threading.Thread(target=self._work, name="radio-worker", daemon=True)
@@ -66,7 +69,7 @@ class Service:
             if 'theme' in values: self.state['pending_theme'] = values['theme']
 
     def submit(self, action, parameters=None):
-        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", 'ble-advert-stop', *lab.ACTIONS, *ble.ACTIONS, *capture.ACTIONS):
+        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", 'ble-advert-stop', *lab.ACTIONS, *ble.ACTIONS, *capture.ACTIONS, *linux_tools.ACTIONS):
             raise ValueError("Unknown action")
         with self.lock:
             if action == 'ble-advert-stop':
@@ -90,6 +93,8 @@ class Service:
                 self.state['ble_lab'] = dict(action=action, state='running')
             if action in capture.ACTIONS:
                 self.state['packet_lab'] = dict(action=action, state='running')
+            if action in linux_tools.ACTIONS:
+                self.state['linux_report'] = dict(action=action, state='running')
             self.jobs.put_nowait((action, request))
 
     def pairing_reply(self, answer):
@@ -149,6 +154,14 @@ class Service:
                     capabilities = radio.diagnostics()
                     with self.lock:
                         self.state["capabilities"] = capabilities
+                elif action in linux_tools.ACTIONS:
+                    session = self.store.start(action)
+                    report = linux_tools.run(action, self.state['settings'])
+                    report.update(updated=utcnow(), session=session)
+                    self.store.append(session, [report])
+                    with self.lock:
+                        self.state['linux_report'] = report
+                        self.state['updated'] = report['updated']
                 elif action in capture.ACTIONS:
                     session = self.store.start(action)
                     report, raw = capture.run(action, self.state['settings'])
@@ -193,6 +206,12 @@ class Service:
             except Exception as exc:
                 with self.lock:
                     self.state["error"] = str(exc)[:500]
+                    if action in linux_tools.ACTIONS:
+                        report = dict(kind='linux-tool', action=action, state='error', error=str(exc)[:300], updated=utcnow())
+                        self.state['linux_report'] = report
+                        if session:
+                            try: self.store.append(session, [report])
+                            except Exception: report['error'] += ' (Report could not be saved.)'
                     if action in capture.ACTIONS:
                         self.state['packet_lab'] = dict(action=action, state='error', error=str(exc)[:300])
                         if session:

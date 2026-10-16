@@ -26,7 +26,7 @@ if not release.exists():
     temporary = release.with_name(revision + f".tmp-{os.getpid()}")
     temporary.mkdir()
     shutil.copytree(source, temporary / "qmarauder", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-    for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
+    for name in ("LICENSE", "THIRD_PARTY_NOTICES.md", "CREDITS.md"):
         shutil.copy2(root / name, temporary / name)
     shutil.copytree(root / "licenses", temporary / "licenses")
     temporary.rename(release)

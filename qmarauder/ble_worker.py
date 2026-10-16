@@ -66,7 +66,8 @@ class BlueZ:
             manufacturer_data={f'{int(k):04x}': bytes(v).hex()[:2048] for k,v in properties.get('ManufacturerData', {}).items()},
             service_data={str(k).lower(): bytes(v).hex()[:2048] for k,v in properties.get('ServiceData', {}).items()}))
 
-    def scan(self, seconds=8, target=''):
+    def scan(self, seconds=8, target='', transport='le'):
+        if transport not in ('le', 'bredr'): raise ValueError('Unknown discovery transport')
         cached = {str(p): dict(v.get('org.bluez.Device1', {})) for p,v in self.objects().items() if str(p).startswith(self.path+'/dev_')}
         seen, samples = {}, []
         started = time.monotonic()
@@ -78,6 +79,8 @@ class BlueZ:
             for key in invalidated: props.pop(str(key), None)
             if 'Address' not in props or not any(key in values for key in ('RSSI','ManufacturerData','ServiceData','Name','UUIDs')): return
             row = self.row(props)
+            if transport == 'bredr':
+                row.update(kind='bluetooth-classic', transport='bredr', device_class=int(props.get('Class', 0)))
             if target and row['address'] != target: return
             if len(seen) < 500 or row['address'] in seen: seen[row['address']] = row
             if 'RSSI' in values and len(samples) < 1000:
@@ -87,7 +90,7 @@ class BlueZ:
         handles = [self.bus.add_signal_receiver(changed, signal_name='PropertiesChanged', dbus_interface='org.freedesktop.DBus.Properties', path_keyword='path'),
                    self.bus.add_signal_receiver(added, signal_name='InterfacesAdded', dbus_interface='org.freedesktop.DBus.ObjectManager')]
         try:
-            self.adapter.SetDiscoveryFilter(self.dbus.Dictionary({'Transport':'le', 'DuplicateData':self.dbus.Boolean(True)}, signature='sv'), timeout=5)
+            self.adapter.SetDiscoveryFilter(self.dbus.Dictionary({'Transport':transport, 'DuplicateData':self.dbus.Boolean(True)}, signature='sv'), timeout=5)
             self.adapter.StartDiscovery(timeout=5)
             self.scanning = True
             self.pump(seconds)
@@ -249,7 +252,9 @@ def main():
         validate({k: request[k] for k in ('target','adapter')})
         action = request['action']
         radio = BlueZ(request['adapter'])
-        if action in ('ble', 'ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt'):
+        if action == 'bt-classic':
+            result = radio.scan(8, transport='bredr')
+        elif action in ('ble', 'ble-detect', 'ble-detector', 'ble-axon', 'ble-foxhunt'):
             result = radio.scan(20 if action == 'ble-foxhunt' else 8, request['target'] if action == 'ble-foxhunt' else '')
         elif action == 'ble-advertise':
             from .advertising import run

@@ -30,3 +30,23 @@ extended advertisement reassembly, independent TX on this Bluetooth controller,
 Wi-Fi injection/client effects, every upstream attack family, arbitrary factory
 core versions, HDMI and UPS hardware, and unattended console boot on this board.
 The LED matrix settings request remains queued behind the security rollout work.
+
+## Raspyjack wireless first slice — October 16, 2026
+
+The new Linux interface, Wi-Fi security survey and Bluetooth controller reports
+completed on the UNO Q. The test window observed one wireless interface, 18 APs
+and one Bluetooth controller. Eight-second BR/EDR discovery completed with zero
+fresh devices; a positive Classic-device discovery/SDP test remains outstanding.
+All four jobs saved reports and their JSON exports were verified through the local
+HTTP API. No new attack job was run by these checks.
+
+The final `qm-display/9` build compiled at 120,644 bytes of flash (3,640-byte globals)
+and uploaded, including the 45-entry portrait port inventory.
+The Linux bridge confirmed the display reconnected with saved touch calibration.
+Physical tap acceptance of the new menu still needs the owner. GTK 3 and WebKitGTK
+2.48 bindings load on the board; the native desktop shell and its export handling
+still require a physical monitor/session acceptance check. No HDMI test is claimed.
+
+The suite passed 115 tests on Debian, with one POSIX-only skip on Windows.
+The current portrait menu render is generated from the firmware drawing code;
+it is not a photograph or physical touch acceptance evidence.

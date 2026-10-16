@@ -21,6 +21,7 @@ async function action(name, parameters) {
     if (name.startsWith("ble-")) showView("ble");
     if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) showView('workspace');
     if (name === "wifi-capture") showView("system");
+    if ((state?.linux_tools||[]).some(tool=>tool.id===name)) showView('workspace');
     if (name.startsWith("mission")) showView("survey");
     await refresh();
     if (['flock-wifi','flock-ble','sky-wifi','sky-ble','ble-sniff','packet-detector','axon-wifi'].includes(name)) $('packet-status').scrollIntoView({block:'start',behavior:'smooth'});
@@ -80,6 +81,22 @@ function renderBle() {
   if(!(state.detections||[]).length) $("detection-list").append(elem("p","No watchlist matches in the last detector scan.","footnote"));
 }
 function renderWorkspace() {
+  $('linux-tools').replaceChildren(...(state.linux_tools||[]).map(tool=>{
+    const card=resultCard(tool.name,tool.detail);
+    const button=elem('button','Run '+tool.name,'primary');
+    button.disabled=!!(state.busy||state.mission);
+    button.onclick=()=>action(tool.id);
+    card.append(elem('span',tool.group,'tag'),button);return card;
+  }));
+  const linux=state.linux_report;
+  $('linux-status').textContent=(linux?.state||'NO REPORT').toUpperCase();
+  $('linux-note').textContent=linux?.error||(linux?.state==='running'?'Linux tool is running. Results appear here when it finishes.':linux?.note||'Choose a Linux radio tool. Reports are saved locally in Field log.');
+  $('linux-results').replaceChildren(...(linux?.rows||[]).map(row=>resultCard(row.title,row.summary+'. '+row.detail)));
+  $('linux-json').textContent=linux?JSON.stringify(linux,null,2):'No Linux report yet.';
+  $('linux-download').replaceChildren();
+  if(linux?.session && /^[0-9a-f]{32}$/.test(linux.session)) {
+    const link=elem('a','Download JSON','secondary');link.href='/api/export/'+linux.session+'.json';link.download='';$('linux-download').append(link);
+  }
   $('detector-modes').replaceChildren(...(state.detector_modes||[]).map(mode=>{
     const card=resultCard(mode.name,mode.detail);card.append(elem('span',mode.status.toUpperCase(),'badge '+mode.status));
     if(mode.action){const button=elem('button','Run '+mode.name,'primary');button.disabled=!!(state.busy||state.mission||(mode.action==='ble-foxhunt'&&!state.settings.target));button.onclick=()=>action(mode.action);card.append(button);}
@@ -106,6 +123,7 @@ function renderWorkspace() {
   }
 }
 if(new URLSearchParams(location.search).get('desktop')==='1') {document.body.classList.add('desktop-mode');showView('workspace');}
+$('raspyjack-inventory').onclick=()=>{$('module-filter').value='Raspyjack';showView('modules');if(state)renderModules();};
 function resultCard(title, description) {const node=elem("article",undefined,"result-card");node.append(elem("h3",title),elem("p",description));return node;}
 function renderPairing() {
   const prompt=state.pairing, active=state.busy==='ble-pair';

@@ -22,3 +22,6 @@ body:before{content:"";position:fixed;inset:15% 10%;background:var(--watermark) 
 .workspace-grid p{line-height:1.65;color:var(--muted)}
 .workspace-grid button{min-height:48px}.workspace-grid .badge{margin-top:auto}
 .desktop-note{margin:28px 0;padding:26px}.desktop-mode .shell{max-width:1680px}
+#linux-tools{grid-template-columns:repeat(2,minmax(0,1fr))}
+#linux-tools h3{font-size:18px;margin:0}
+@media(max-width:680px){#linux-tools{grid-template-columns:1fr}}

@@ -22,12 +22,14 @@ menus=[("mainMenu","Main menu",0), ("wifiMenu","Wi-Fi",0),
        ("deviceMenu","Device",0), ("reconMenu","Recon / Wardriving",0),
        ("settingsMenu","Settings",0), ("detectorsMenu","Counter surveillance",0),
        ("themesMenu","Appearance",12), ("bleToolsMenu","BLE tools",6),
-       ("gattToolsMenu","Characteristic tools",15), ("adapterMenu","BLE adapter",12)]
+       ("gattToolsMenu","Characteristic tools",15), ("adapterMenu","BLE adapter",12),
+       ("linuxToolsMenu","Linux tools",0)]
 links={(0,"WiFi"):1,(0,"Bluetooth"):6,(0,"GPS"):9,(0,"Device"):10,(0,"Recon"):11,(0,"Settings"):12,
        (1,"Sniffers"):2,(1,"Scanners"):3,(1,"Attacks"):4,(1,"General"):5,
        (6,"Sniffers"):7,(6,"Bluetooth Attacks"):8,(10,"Settings"):12,
        (0,"Counter surveillance"):13,(12,"Themes"):14,(6,"BLE tools"):15,
-       (15,"Characteristic tools"):16,(12,"BLE adapter"):17}
+       (15,"Characteristic tools"):16,(12,"BLE adapter"):17,
+       (0,"Linux tools"):18,(1,"Linux tools"):18,(6,"Linux tools"):18}
 # IDs 1-4 and 14-20 invoke Linux jobs; the others are local display actions.
 actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "Device Info":5,"Calibrate touch":6,"Live status":7,
@@ -39,7 +41,12 @@ actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "GATT snapshot":25,"Inspect HID map":26,"AXEOFF BLE":27,"Detector scan":28,
          "hci0 / onboard":34,"hci1 / secondary":35,"Listen HID reports":36,"Wi-Fi PCAP":37,"Write no response":38,
          "Flock Wi-Fi":39,"Flock BLE":40,"Sky Spy Wi-Fi":41,"Sky Spy BLE":42,"BLE Sniff PCAP":43,"Packet detector":44,
-         "BLE beacon test":45,"Stop beacon test":46,"AXEOFF Wi-Fi":47}
+         "BLE beacon test":45,"Stop beacon test":46,"AXEOFF Wi-Fi":47,
+         "Linux report":52,"Port inventory":53}
+import sys
+sys.path.insert(0,str(root))
+from qmarauder.linux_tools import TOOLS
+actions.update({tool['name']:tool['display_action'] for tool in TOOLS})
 entries=[]
 for index,(key,title,parent) in enumerate(menus):
     found=[]
@@ -66,6 +73,8 @@ for index,(key,title,parent) in enumerate(menus):
     if index==15: found=["Back","Pair selected device","GATT inventory","GATT snapshot","BLE foxhunt","Inspect HID map","Listen HID reports","Characteristic tools"]
     if index==16: found=["Back","Read value","Listen notifications","Write hex value","Write no response"]
     if index==17: found=["Back","hci0 / onboard","hci1 / secondary"]
+    if index in (0,1,6): found.append('Linux tools')
+    if index==18: found=['Back', *[tool['name'] for tool in TOOLS], 'Linux report', 'Port inventory']
     if index==10 and "Calibrate touch" not in found: found.append("Calibrate touch")
     if index and "Back" not in found: found.insert(0,"Back")
     for value in found:

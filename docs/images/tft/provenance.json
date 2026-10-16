@@ -6,7 +6,7 @@
   ],
   "observations": "none; zero counters; bridge disconnected",
   "source": "firmware/uno_shield/uno_shield.ino",
-  "source_sha256": "964fcb91493a90476973070a2db23ceb878f1889587dd1f26a07b3a8dadf9c23",
+  "source_sha256": "0a36f2128ac6285697f151018e80250c76a58fbf0aed16ca7d9ac8f245f9b527",
   "gfx_version": "1.12.6",
   "scenes": {
     "bwm-home": [
@@ -28,6 +28,10 @@
     "theme-picker": [
       0,
       14
+    ],
+    "linux-tools": [
+      3,
+      18
     ]
   }
 }

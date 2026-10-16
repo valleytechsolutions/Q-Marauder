@@ -13,6 +13,7 @@ implemented behavior, hardware validation and remaining work.
 | Set up the portrait screen | [Display and touch](DISPLAY.md) · [Firmware](../firmware/README.md) |
 | See the interface and themes | [UI gallery](GALLERY.md) |
 | Use Bluetooth discovery and GATT | [BLE Lab](BLE.md) · [OUI registry](OUI.md) |
+| Use Raspyjack-inspired Linux radio tools | [Raspyjack integration](RASPYJACK.md) |
 | Understand Flock, Sky Spy and BLE capture | [Detection and capture](DETECTION.md) |
 | Check what has actually been validated | [Validation](VALIDATION.md) · [Hardware evidence](HARDWARE.md) · [Active-test status](ACTIVE-TESTS.md) |
 | Connect an external radio | [USB radio](USB-RADIO.md) · [Lab setup](LAB.md) |

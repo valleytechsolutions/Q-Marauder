@@ -28,6 +28,20 @@ Wiki inspected: `57deeb79e3b40f44d5c885bb55a789bec58abb8d`.
 Upstream's MIT notice is retained in `licenses/ESP32Marauder-MIT.txt`.
 Preserve it whenever upstream code is incorporated in later ports.
 
+## Raspyjack and desktop shell
+
+[Raspyjack](https://github.com/7h30th3r0n3/Raspyjack) by **7h30th3r0n3** was inspected
+at `8cbb74c1e2198bf477631c0903c19c35efb432fa`. Its root MIT notice is retained in
+`licenses/Raspyjack-MIT.txt`. Wireless payload names and workflows inform the
+[port inventory](docs/raspyjack-inventory.json). Q-Marauder's first Linux radio
+tools are independent implementations. No upstream executable payloads, WebUI,
+GPIO drivers, portal assets or vendored tools are distributed by this integration.
+Raspyjack's root license must not be assumed to relicense all of its dependencies.
+
+The native Debian shell uses separately installed GTK 3, PyGObject and WebKitGTK
+4.1 bindings. Their source and binaries are not bundled under Q-Marauder's MIT
+license; their respective upstream licenses continue to apply.
+
 ## BLE research references
 
 [ChimeraBLE](https://github.com/MatthewKuKanich/ChimeraBLE) by Matthew Kukanich was

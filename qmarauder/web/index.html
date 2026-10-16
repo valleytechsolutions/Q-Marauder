@@ -48,7 +48,13 @@
 <article class="panel"><span class="eyebrow">02 / INSPECT</span><h2>BLE reverse engineering</h2><p>Select your device, pair, inspect GATT, read descriptors and decode HID report maps.</p><button class="primary" data-view="ble">Open BLE Lab</button><p class="footnote">ChimeraBLE-inspired Linux tools. Emulation and proxy parity remain in development.</p></article>
 <article class="panel"><span class="eyebrow">03 / TEST</span><h2>Lab radio validation</h2><p>Configured access point only. Measure packet reception and directed probe responses.</p><button class="primary" data-view="system">Open radio tests</button><p class="footnote">The System page shows actual hardware readiness and test outcomes.</p></article>
 <article class="panel"><span class="eyebrow">04 / EVIDENCE</span><h2>Session archive</h2><p>Review recorded jobs and export JSON or CSV. GATT snapshots include read outcomes.</p><button class="primary" data-view="survey">Open Field log</button></article>
-</div><div class="panel-title"><h2>Detection modes</h2><span>SUPPORT AND LIMITATIONS</span></div><div id="detector-modes" class="workspace-grid"></div>
+</div>
+<div class="panel-title"><h2>Linux radio tools</h2><span>RASPYJACK WORKFLOW PORT · FIRST SLICE</span></div>
+<p>Wi-Fi and Bluetooth tools run on Debian and share reports with Home → Linux tools on the portrait display.</p>
+<button class="secondary" id="raspyjack-inventory">Raspyjack wireless port inventory</button>
+<div id="linux-tools" class="workspace-grid"></div>
+<article class="panel"><div class="panel-title"><h2>Linux tool report</h2><span id="linux-status">NO REPORT</span></div><p id="linux-note">Choose a tool above.</p><div id="linux-results" class="result-list"></div><div id="linux-download"></div><details><summary>Full Linux report</summary><pre id="linux-json"></pre></details></article>
+<div class="panel-title"><h2>Detection modes</h2><span>SUPPORT AND LIMITATIONS</span></div><div id="detector-modes" class="workspace-grid"></div>
 <article class="panel"><div class="panel-title"><h2>Packet analysis</h2><span id="packet-status">NO CAPTURE</span></div><p id="packet-note">Run a detection mode above. Results and capture downloads appear here.</p><div id="packet-results" class="result-list"></div><div id="packet-download"></div><details><summary>Full analysis report</summary><pre id="packet-json"></pre></details></article>
 <article class="panel desktop-note"><h2>Handheld ↔ desk</h2><p>The portrait TFT and this workspace share one backend, selected device, themes and job state. Connect an HDMI monitor through a powered USB-C hub, sign in to XFCE and open <b>Q-Marauder Lab</b> from Applications.</p><p class="footnote">HDMI needs DisplayPort Alt Mode support in the hub. Disconnecting the PC USB cable also removes ADB and any PC-forwarded radio. The desktop launcher starts the local service on demand.</p></article></section>
 </main>

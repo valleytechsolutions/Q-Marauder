@@ -46,7 +46,8 @@ def main():
     drawing=drawing.replace('#include "Parallel9486.h"','#include "Panel.h"')
     drawing=drawing.replace('#include "TouchControls.h"','')
     scenes={'bwm-home':(0,0),'marauder-detection':(1,13),
-            'biscuit-settings':(2,12),'valleytech-ble':(3,15),'theme-picker':(0,14)}
+            'biscuit-settings':(2,12),'valleytech-ble':(3,15),'theme-picker':(0,14),
+            'linux-tools':(3,18)}
     output.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='qm-tft-gallery-') as scratch:
         temporary=Path(scratch)

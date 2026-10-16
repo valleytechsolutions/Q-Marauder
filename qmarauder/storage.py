@@ -109,6 +109,14 @@ class Store:
         if row is None: return None
         return json.loads(row['payload']) if row['payload'] else dict(state='error', error='Previous capture was interrupted; it was not restarted.')
 
+    def latest_linux(self):
+        from .linux_tools import ACTIONS
+        with self.connect() as db:
+            marks = ','.join('?' for _ in ACTIONS)
+            row = db.execute(f"SELECT o.payload FROM sessions s LEFT JOIN observations o ON o.session=s.id WHERE s.mode IN ({marks}) ORDER BY s.started DESC,o.id DESC LIMIT 1", ACTIONS).fetchone()
+        if row is None: return None
+        return json.loads(row['payload']) if row['payload'] else dict(state='error', error='Previous Linux tool was interrupted; it was not restarted.')
+
     def export(self, identity, fmt):
         with self.connect() as db:
             if not db.execute("SELECT 1 FROM sessions WHERE id=?", (identity,)).fetchone():

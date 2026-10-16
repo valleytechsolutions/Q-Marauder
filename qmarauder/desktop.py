@@ -18,11 +18,15 @@ def available(port):
     except (OSError, ValueError, URLError): return False
 
 
-def launch(data_dir, port=8787):
+def launch(data_dir, port=8787, engine='auto'):
     if sys.platform != 'linux' or not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
         raise RuntimeError('Open Q-Marauder Lab from the UNO Q desktop after connecting a display and signing in.')
+    from . import native_app
+    native = engine != 'chromium' and native_app.available()
+    if engine == 'native' and not native:
+        raise RuntimeError('Native app needs python3-gi, gir1.2-gtk-3.0 and gir1.2-webkit2-4.1.')
     browser = shutil.which('chromium') or shutil.which('chromium-browser')
-    if not browser: raise RuntimeError('Chromium is required: install the Debian chromium package.')
+    if not native and not browser: raise RuntimeError('Install the native app dependencies or Debian chromium.')
     data_dir = Path(data_dir)
     data_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     if not available(port):
@@ -37,6 +41,9 @@ def launch(data_dir, port=8787):
             if process.poll() is not None: raise RuntimeError('The local service could not start. See desktop-service.log in the data folder.')
             time.sleep(.5)
         else: raise RuntimeError('The local service is still starting. Open Q-Marauder Lab again shortly.')
+    if native:
+        native_app.launch(f'http://127.0.0.1:{port}/?desktop=1', data_dir)
+        return
     subprocess.Popen([browser, '--app='+f'http://127.0.0.1:{port}/?desktop=1', '--start-maximized'],
                      stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                      start_new_session=True)

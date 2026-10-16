@@ -1,0 +1,413 @@
+{
+  "project": "Raspyjack",
+  "author": "7h30th3r0n3",
+  "revision": "8cbb74c1e2198bf477631c0903c19c35efb432fa",
+  "scope": "Every Python payload in upstream wifi/ and bluetooth/, plus selected related reconnaissance and radio utilities. Non-wireless payload families are not included.",
+  "entries": [
+    {
+      "id": "raspyjack-ble-beacon-flood",
+      "name": "Ble Beacon Flood",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "Only bounded laboratory beacon rotation exists; no flood backend.",
+      "path": "payloads/bluetooth/ble_beacon_flood.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/ble_beacon_flood.py"
+    },
+    {
+      "id": "raspyjack-ble-mitm",
+      "name": "BLE MITM",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/bluetooth/ble_mitm.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/ble_mitm.py"
+    },
+    {
+      "id": "raspyjack-ble-replay",
+      "name": "Ble Replay",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/bluetooth/ble_replay.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/ble_replay.py"
+    },
+    {
+      "id": "raspyjack-ble-scanner",
+      "name": "Ble Scanner",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "BLE discovery exists through BlueZ with advertising metadata and saved results; upstream UI is not imported.",
+      "path": "payloads/bluetooth/ble_scanner.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/ble_scanner.py"
+    },
+    {
+      "id": "raspyjack-ble-spam",
+      "name": "Ble Spam",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "Only the existing bounded QM-LAB beacon test exists. Platform popup/spam behavior is not ported.",
+      "path": "payloads/bluetooth/ble_spam.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/ble_spam.py"
+    },
+    {
+      "id": "raspyjack-bt-audio-inject",
+      "name": "Bluetooth audio injection",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/bluetooth/bt_audio_inject.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/bt_audio_inject.py"
+    },
+    {
+      "id": "raspyjack-bt-dos",
+      "name": "Bluetooth DoS",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/bluetooth/bt_dos.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/bt_dos.py"
+    },
+    {
+      "id": "raspyjack-glasses-counter",
+      "name": "Glasses Counter",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "Independent Meta company/service candidate analysis exists; no confirmed device identity or counter parity.",
+      "path": "payloads/bluetooth/glasses_counter.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/glasses_counter.py"
+    },
+    {
+      "id": "raspyjack-whisperpair",
+      "name": "Whisperpair",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/bluetooth/whisperpair.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/bluetooth/whisperpair.py"
+    },
+    {
+      "id": "raspyjack-captive-portal",
+      "name": "Captive Portal",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/captive_portal.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/captive_portal.py"
+    },
+    {
+      "id": "raspyjack-ciw-zeroclick",
+      "name": "CIW Zeroclick",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/ciw_zeroclick.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/ciw_zeroclick.py"
+    },
+    {
+      "id": "raspyjack-dead-drop",
+      "name": "Dead Drop",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/dead_drop.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/dead_drop.py"
+    },
+    {
+      "id": "raspyjack-deauth",
+      "name": "Deauth",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Existing configured-lab three-frame test remains gated on injection evidence; no upstream multi-target flow.",
+      "path": "payloads/wifi/deauth.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/deauth.py"
+    },
+    {
+      "id": "raspyjack-espnow-evil-master",
+      "name": "ESP-NOW master",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/espnow_evil_master.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/espnow_evil_master.py"
+    },
+    {
+      "id": "raspyjack-event-triggers",
+      "name": "Event Triggers",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/event_triggers.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/event_triggers.py"
+    },
+    {
+      "id": "raspyjack-evil-twin",
+      "name": "Evil Twin",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/evil_twin.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/evil_twin.py"
+    },
+    {
+      "id": "raspyjack-handshake-hunter",
+      "name": "Handshake Hunter",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/handshake_hunter.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/handshake_hunter.py"
+    },
+    {
+      "id": "raspyjack-karma-ap",
+      "name": "Karma Ap",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/karma_ap.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/karma_ap.py"
+    },
+    {
+      "id": "raspyjack-pmkid-grab",
+      "name": "PMKID capture",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/pmkid_grab.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/pmkid_grab.py"
+    },
+    {
+      "id": "raspyjack-raspygotchi",
+      "name": "Raspygotchi",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/raspygotchi.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/raspygotchi.py"
+    },
+    {
+      "id": "raspyjack-ssid-pool",
+      "name": "Ssid Pool",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/ssid_pool.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/ssid_pool.py"
+    },
+    {
+      "id": "raspyjack-unitree-pwn",
+      "name": "Unitree workflow",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/unitree_pwn.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/unitree_pwn.py"
+    },
+    {
+      "id": "raspyjack-wifi-alert",
+      "name": "Wifi Alert",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/wifi_alert.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wifi_alert.py"
+    },
+    {
+      "id": "raspyjack-wifi-handshake-auto",
+      "name": "Wifi Handshake Auto",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/wifi_handshake_auto.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wifi_handshake_auto.py"
+    },
+    {
+      "id": "raspyjack-wifi-probe-dump",
+      "name": "Wifi Probe Dump",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/wifi_probe_dump.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wifi_probe_dump.py"
+    },
+    {
+      "id": "raspyjack-wifi-survey",
+      "name": "Wi-Fi recon survey",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "New NetworkManager security/channel summary plus existing bounded lab capture; no live monitor AP/client database or hopping survey.",
+      "path": "payloads/wifi/wifi_survey.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wifi_survey.py"
+    },
+    {
+      "id": "raspyjack-wpa-enterprise-evil",
+      "name": "WPA Enterprise evil twin",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/wpa_enterprise_evil.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wpa_enterprise_evil.py"
+    },
+    {
+      "id": "raspyjack-wps-pixie",
+      "name": "WPS Pixie",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/wifi/wps_pixie.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/wifi/wps_pixie.py"
+    },
+    {
+      "id": "raspyjack-bt-scan-classic",
+      "name": "Bluetooth Classic discovery / SDP",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "New eight-second BR/EDR discovery on the selected adapter. SDP service enumeration is pending.",
+      "path": "payloads/reconnaissance/bt_scan_classic.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/bt_scan_classic.py"
+    },
+    {
+      "id": "raspyjack-gatt-enum",
+      "name": "GATT enumeration",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "Selected-device GATT inventory, reads and snapshots exist in BLE Lab.",
+      "path": "payloads/reconnaissance/gatt_enum.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/gatt_enum.py"
+    },
+    {
+      "id": "raspyjack-flock-detect",
+      "name": "Flock Detect",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Independent Flock candidate rules and packet reports exist; no imported signature database or physical Flock validation.",
+      "path": "payloads/reconnaissance/flock_detect.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/flock_detect.py"
+    },
+    {
+      "id": "raspyjack-glasses-detector",
+      "name": "Glasses Detector",
+      "category": "Raspyjack / Bluetooth",
+      "status": "partial",
+      "detail": "Independent same-report Meta advertising rule exists; candidate only.",
+      "path": "payloads/reconnaissance/glasses_detector.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/glasses_detector.py"
+    },
+    {
+      "id": "raspyjack-mac-lookup",
+      "name": "MAC / OUI lookup",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Public address vendor hints use separately downloaded Wireshark MA-L records; randomized addresses are not assigned OUI vendors.",
+      "path": "payloads/reconnaissance/mac_lookup.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/mac_lookup.py"
+    },
+    {
+      "id": "raspyjack-ap-hackstats",
+      "name": "Ap Hackstats",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "AP counts, channels and security summary exist. Upstream dashboard parity is incomplete.",
+      "path": "payloads/reconnaissance/ap_hackstats.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/ap_hackstats.py"
+    },
+    {
+      "id": "raspyjack-client-hackstats",
+      "name": "Client Hackstats",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Only bounded configured-lab client counts exist; no general station inventory.",
+      "path": "payloads/reconnaissance/client_hackstats.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/client_hackstats.py"
+    },
+    {
+      "id": "raspyjack-examine-ap",
+      "name": "Examine Ap",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Native AP details and new security survey exist; deeper monitor-based analysis pending.",
+      "path": "payloads/reconnaissance/examine_ap.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/examine_ap.py"
+    },
+    {
+      "id": "raspyjack-handshake-quality",
+      "name": "Handshake Quality",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/reconnaissance/handshake_quality.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/handshake_quality.py"
+    },
+    {
+      "id": "raspyjack-kismet-scanner",
+      "name": "Kismet Scanner",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/reconnaissance/kismet_scanner.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/kismet_scanner.py"
+    },
+    {
+      "id": "raspyjack-wifi-client-map",
+      "name": "Wifi Client Map",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/reconnaissance/wifi_client_map.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/wifi_client_map.py"
+    },
+    {
+      "id": "raspyjack-wall-of-flippers",
+      "name": "Wall Of Flippers",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/reconnaissance/wall_of_flippers.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/reconnaissance/wall_of_flippers.py"
+    },
+    {
+      "id": "raspyjack-iface-manager",
+      "name": "Interface manager",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Read-only wireless interface inventory added. No interface power, mode or route mutations.",
+      "path": "payloads/utilities/iface_manager.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/utilities/iface_manager.py"
+    },
+    {
+      "id": "raspyjack-interface-status",
+      "name": "Interface status",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Wireless-only driver/address/RX/TX snapshot added. Upstream wired split-screen is outside this scope.",
+      "path": "payloads/utilities/interface_status.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/utilities/interface_status.py"
+    },
+    {
+      "id": "raspyjack-wifi-dongle-installer",
+      "name": "Wifi Dongle Installer",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Existing exact-kernel MT7921/USB-IP setup remains experimental; no universal driver installer.",
+      "path": "payloads/utilities/wifi_dongle_installer.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/utilities/wifi_dongle_installer.py"
+    },
+    {
+      "id": "raspyjack-pcap-analyzer",
+      "name": "Pcap Analyzer",
+      "category": "Raspyjack / Wi-Fi",
+      "status": "partial",
+      "detail": "Existing received Wi-Fi/BLE packet analysis and PCAP exports; arbitrary-file analysis is pending.",
+      "path": "payloads/utilities/pcap_analyzer.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/utilities/pcap_analyzer.py"
+    },
+    {
+      "id": "raspyjack-bt-keyboard-picker",
+      "name": "Bt Keyboard Picker",
+      "category": "Raspyjack / Bluetooth",
+      "status": "planned",
+      "detail": "Not ported. Requires a separate UNO Q backend, dependency/license review and hardware validation; this entry does not execute an upstream payload.",
+      "path": "payloads/utilities/bt_keyboard_picker.py",
+      "source": "https://github.com/7h30th3r0n3/Raspyjack/blob/8cbb74c1e2198bf477631c0903c19c35efb432fa/payloads/utilities/bt_keyboard_picker.py"
+    }
+  ]
+}

@@ -14,7 +14,7 @@ if ($LASTEXITCODE -ne 0 -or $state -ne 'device') { throw 'Select an authorized U
 $model = & $AdbPath -s $Serial shell cat /proc/device-tree/model
 if ($model -notmatch 'Arduino.*Imola') { throw "Unexpected board model: $model" }
 Invoke-BoardAdb shell 'mkdir -p /home/arduino/q-marauder/scripts /home/arduino/q-marauder/licenses /home/arduino/q-marauder/packaging'
-foreach ($name in @('qmarauder','scripts','licenses','packaging','LICENSE','THIRD_PARTY_NOTICES.md')) {
+foreach ($name in @('qmarauder','scripts','licenses','packaging','LICENSE','THIRD_PARTY_NOTICES.md','CREDITS.md')) {
     Invoke-BoardAdb push (Join-Path $taskRoot $name) '/home/arduino/q-marauder/'
 }
 Invoke-BoardAdb shell 'chmod -R go-w /home/arduino/q-marauder && cd /home/arduino/q-marauder && sh scripts/install.sh'

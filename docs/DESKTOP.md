@@ -20,10 +20,29 @@ or a claim that every upstream firmware feature has been ported.
    ~/.local/bin/q-marauder desktop
    ```
 
-The launcher reuses a running console or starts one on demand, then opens Chromium
-in an application window. It keeps browser sandboxing enabled and binds the
-service to loopback. Closing Chromium leaves the service available to the TFT.
+The launcher reuses a running console or starts one on demand, then opens a native
+**GTK/WebKit application window** when the bindings are installed. It embeds the
+complete local interface, with a Lab button, reload control and export status.
+Closing the app leaves the service available to the TFT. Navigation is restricted
+to the local console; saved JSON/CSV/PCAP exports go to
+`~/.local/share/q-marauder/exports/`. No browser sandbox is disabled.
+The service stays bound to loopback.
 No boot service is enabled by installing the desktop launcher.
+
+The native shell needs Debian packages `python3-gi`, `gir1.2-gtk-3.0` and
+`gir1.2-webkit2-4.1`. They were already installed on the development UNO Q. On an
+image without them, install those packages through Debian's package manager.
+The default launcher falls back to a Chromium app window if the native bindings
+are unavailable. Explicit choices:
+
+```sh
+q-marauder desktop --engine native
+q-marauder desktop --engine chromium
+```
+
+The [Raspyjack integration guide](RASPYJACK.md) covers the new Linux radio tools
+and the remaining wireless inventory. This is the Q-Marauder interface hosted
+locally, not the unmodified Raspyjack WebUI or payload IDE.
 
 Arduino documents this monitor arrangement in the
 [UNO Q user manual](https://docs.arduino.cc/tutorials/uno-q/user-manual/).

@@ -69,6 +69,9 @@ only for documentation rendering, not by the physical firmware build.
 
 ## Capture and detection view
 
+The [Raspyjack integration guide](RASPYJACK.md) also shows the new portrait Linux
+tools menu. Its render is included in the same source-hash provenance record.
+
 ![Previously captured browser view showing received BLE advertising reports and candidate analysis](images/packet-detection.png)
 
 An earlier actual console screenshot from the alpha validation work. Received BLE
