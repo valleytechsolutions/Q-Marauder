@@ -3,6 +3,7 @@ const $ = (id) => document.getElementById(id);
 let state = null;
 let view = "overview";
 let lastFingerprint = "";
+let pairingPromptId = null;
 const elem = (tag, text, cls) => { const node = document.createElement(tag); if (text !== undefined) node.textContent = text; if (cls) node.className = cls; return node; };
 function showView(name) {
   view = name;
@@ -48,11 +49,13 @@ function renderBle() {
   const description=target?`${selected?.name || "Selected device"} · ${target}`:"No device selected. Discover BLE, then tap Use as target.";
   $("ble-target-name").textContent=description;$("settings-target").textContent=description;
   $("ble-target-status").textContent=state.busy?.startsWith("ble-")?"WORKING":target?"TARGET SELECTED":"SELECT A DEVICE";
-  document.querySelectorAll('[data-ble-op], [data-action="ble-foxhunt"], [data-action="ble-gatt"]').forEach(button=>button.disabled=!!(state.busy||state.mission||!target));
+  document.querySelectorAll('[data-ble-op], [data-action="ble-foxhunt"], [data-action="ble-gatt"], [data-action="ble-pair"]').forEach(button=>button.disabled=!!(state.busy||state.mission||!target));
   const report=state.ble_lab;
   $("ble-lab-outcome").textContent=report?.error || (report?.state==="running"?"BLE job running. Results appear when the bounded window finishes.":report?.note || "Each GATT job opens its own connection and disconnects afterward. Pairing-dependent access may be refused by the device.");
   $("ble-json").textContent=report?JSON.stringify(report,null,2):"No BLE job yet.";
   const results=[];
+  if(report?.state==='done' && report.action==='ble-pair') results.push(resultCard('Pairing completed',report.already_paired?'The selected device was already paired.':'BlueZ confirmed pairing. You can now inspect its GATT services.'));
+  if(report?.state==='done' && report.characteristics) results.push(resultCard('GATT inventory',`${report.services.length} services · ${report.characteristics.length} characteristics`));
   if(report?.state==="done" && report.action==="ble-foxhunt") {
     results.push(resultCard("Signal tracking",`${report.samples.length} fresh samples · latest ${report.latest ?? "—"} dBm · peak ${report.peak ?? "—"} dBm · ${report.trend}. RSSI is not a distance measurement.`));
   }
@@ -60,12 +63,38 @@ function renderBle() {
     const card=resultCard(c.uuid,`${c.flags.join(" / ")} · service ${c.service}${c.value!==undefined?" · value "+c.value:""}${c.write_completed?" · write completed":""}`);
     const button=elem("button","Use UUID","secondary");button.onclick=()=>{$("ble-uuid").value=c.uuid;$("ble-uuid").focus();};card.append(button);results.push(card);
   });
-  if(report?.notifications?.length) results.push(resultCard("Notifications",`${report.notifications.length} events saved in the JSON report and Field log.`));
+  if(report?.state==='done' && report.action==='ble-notify') results.unshift(resultCard('Notification window complete',report.notifications.length?`${report.notifications.length} events saved in the JSON report and Field log.`:'Subscribed for 10 seconds; the device sent no value changes. Subscription was closed successfully.'));
   $("ble-result-list").replaceChildren(...results);
   $("detection-list").replaceChildren(...(state.detections||[]).map(row=>resultCard(row.name||row.address,`${row.matches.join("; ")} · ${row.rssi ?? "—"} dBm · ${row.note}`)));
   if(!(state.detections||[]).length) $("detection-list").append(elem("p","No watchlist matches in the last detector scan.","footnote"));
 }
 function resultCard(title, description) {const node=elem("article",undefined,"result-card");node.append(elem("h3",title),elem("p",description));return node;}
+function renderPairing() {
+  const prompt=state.pairing, active=state.busy==='ble-pair';
+  const newPrompt=pairingPromptId!==prompt?.id;
+  $('pairing-panel').hidden=!active;
+  if(newPrompt) { $('pairing-input').value=''; pairingPromptId=prompt?.id; }
+  if(!active) { $('pairing-input').value=''; return; }
+  const kind=prompt?.kind;
+  const instructions={passkey:'Enter the new six-digit code from your BLE device here now. Its pairing request can expire quickly.',pin:'Enter the PIN displayed on your BLE device.',confirm:'Compare this code with your device. Confirm only if both codes match.',authorize:'Your selected device is requesting pairing authorization. Allow only if you initiated this connection.',display:'Enter this code on your other device to finish pairing.'};
+  $('pairing-instructions').textContent=prompt?.answered?'Response sent. Waiting for the device…':instructions[kind]||'Waiting for a pairing request. Keep the selected device nearby and watch its screen.';
+  $('pairing-code').hidden=!prompt?.code; $('pairing-code').textContent=prompt?.code||'';
+  const entry=kind==='passkey'||kind==='pin';
+  $('pairing-input-label').hidden=!entry; $('pairing-input').disabled=!!prompt?.answered;
+  $('pairing-input').required=entry; $('pairing-input').maxLength=kind==='passkey'?6:16;
+  $('pairing-input').inputMode=kind==='passkey'?'numeric':'text';
+  $('pairing-submit').hidden=!prompt||kind==='display'; $('pairing-submit').disabled=!!prompt?.answered;
+  $('pairing-submit').textContent=kind==='confirm'?'Codes match — confirm':kind==='authorize'?'Allow pairing':'Send code';
+  if(newPrompt && entry && !prompt.answered) $('pairing-input').focus();
+}
+async function pairingRequest(path, body) {
+  try {
+    const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-QM-Request':'1'},body:JSON.stringify(body)});
+    const result=await response.json();if(!response.ok)throw Error(result.error||'Pairing request failed');await refresh();
+  } catch(error){showError(error.message);}
+}
+$('pairing-form').onsubmit=(event)=>{event.preventDefault();const prompt=state?.pairing;if(!prompt)return;const body={id:prompt.id,accept:true};if(['passkey','pin'].includes(prompt.kind))body.code=$('pairing-input').value;$('pairing-input').value='';pairingRequest('/api/pairing/reply',body);};
+$('pairing-cancel').onclick=()=>pairingRequest('/api/pairing/cancel',{});
 async function saveSettings(values) {
   try {
     const response=await fetch("/api/settings",{method:"POST",headers:{"Content-Type":"application/json","X-QM-Request":"1"},body:JSON.stringify(values)});
@@ -148,7 +177,7 @@ function render() {
   $("mission-status").textContent=state.stopping?"STOPPING":state.mission?"RECORDING":"STANDBY";
   document.querySelectorAll("[data-action]").forEach(button=>{button.disabled=button.dataset.action==="mission-stop"?state.stopping:!!(state.busy||state.mission);});
   showError(state.error);
-  renderSettings();renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
+  renderPairing();renderSettings();renderWifi();renderBle();renderChart();renderSessions();renderModules();renderDiagnostics();renderLab();
 }
 async function refresh() {
   try {

@@ -5,7 +5,7 @@ import queue
 import threading
 import time
 from pathlib import Path
-from . import __version__, gps, radio, lab, ble, settings
+from . import __version__, gps, radio, lab, ble, settings, pairing
 from .ble_data import detections
 from .storage import Store, utcnow
 
@@ -23,6 +23,8 @@ class Service:
                           capabilities=radio.diagnostics())
         self.state.update(settings=settings.load(data_dir), pending_theme=None, ble_lab=None, detections=[])
         self.state['pending_theme'] = self.state['settings']['theme']
+        self.state['pairing'] = None
+        self.pairing = pairing.PairingBroker(self.lock, self.state)
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
         self.worker = threading.Thread(target=self._work, name="radio-worker", daemon=True)
         self.worker.start()
@@ -66,6 +68,12 @@ class Service:
             if action in ble.ACTIONS:
                 self.state['ble_lab'] = dict(action=action, state='running')
             self.jobs.put_nowait((action, request))
+
+    def pairing_reply(self, answer):
+        self.pairing.respond(answer)
+
+    def cancel_pairing(self):
+        self.pairing.cancel()
 
     def _scan(self, kind, session=None):
         if kind == 'wifi': rows = radio.wifi_scan()
@@ -125,7 +133,7 @@ class Service:
                         self.state["lab"] = report
                 elif action in ble.ACTIONS:
                     session = self.store.start(action)
-                    report = ble.call(request)
+                    report = pairing.call(request, self.pairing) if action == 'ble-pair' else ble.call(request)
                     report['updated'] = utcnow()
                     if action == 'ble-detect':
                         report['detections'] = detections(report['rows'], self.state['settings']['rules'])
@@ -171,4 +179,7 @@ class Service:
 
     def close(self):
         self.shutdown_event.set()
+        if self.pairing.active:
+            try: self.pairing.cancel()
+            except RuntimeError: pass
         self.worker.join(timeout=65)

@@ -6,7 +6,7 @@ import sys
 from .ble_data import uuid
 from .settings import validate
 
-ACTIONS = ('ble-detect', 'ble-foxhunt', 'ble-gatt', 'ble-read', 'ble-write', 'ble-notify')
+ACTIONS = ('ble-detect', 'ble-foxhunt', 'ble-gatt', 'ble-read', 'ble-write', 'ble-notify', 'ble-pair')
 
 
 def request_for(action, preferences, parameters=None):

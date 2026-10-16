@@ -28,8 +28,11 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - Actual Wi-Fi AP discovery through NetworkManager, including observed 2.4/5 GHz networks.
 - BlueZ BLE discovery with fresh RSSI, address type, service UUIDs and advertising metadata.
 - Selected-device signal tracking and configurable BLE watchlist matching.
+- Interactive selected-device pairing in the browser, with code entry/comparison
+  and cancellation. Pairing and reconnecting verified with the owner's Flipper Zero.
 - GATT inventory, read/write and bounded notification backends; physical GATT
-  validation is pending. See [BLE Lab limits and evidence](docs/BLE.md).
+  validation on a Flipper Zero includes battery reads and harmless RPC ping exchanges.
+  See [BLE Lab limits and evidence](docs/BLE.md).
 - AP-count channel chart, filtering, device diagnostics, and a feature-by-feature port inventory.
 - Repeated Wi-Fi survey sessions with SQLite persistence and CSV/JSON exports.
 - Fresh gpsd position ingestion; no coordinates are fabricated when GPS is absent.

@@ -148,6 +148,17 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(self.request('/api/action',b'{"action":"ble-read","parameters":{"uuid":"2a19"}}',headers)[0],202)
         self.service.submit.assert_called_once_with('ble-read',{'uuid':'2a19'})
 
+    def test_pairing_api_rejects_cross_origin_and_does_not_echo_passkey(self):
+        headers={'Content-Type':'application/json','X-QM-Request':'1'}
+        body=b'{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","accept":true,"code":"123456"}'
+        self.assertEqual(self.request('/api/pairing/reply',body,{**headers,'Origin':'https://other.example'})[0],403)
+        self.service.pairing_reply.assert_not_called()
+        status,result=self.request('/api/pairing/reply',body,headers)
+        self.assertEqual(status,200)
+        self.assertNotIn(b'123456',result)
+        self.assertEqual(self.request('/api/pairing/cancel',b'{}',headers)[0],200)
+        self.service.cancel_pairing.assert_called_once_with()
+
     def test_path_traversal_rejected(self):
         self.assertEqual(self.request("/../../.env")[0],404)
 

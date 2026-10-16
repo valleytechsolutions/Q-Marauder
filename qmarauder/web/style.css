@@ -1,4 +1,5 @@
 @charset "UTF-8";
+.pairing-panel{border:2px solid var(--cyan)!important;margin-bottom:24px;position:sticky;top:12px;z-index:4;box-shadow:0 10px 40px #0008}.pairing-panel h2{font-size:19px;margin:0 0 12px}.pairing-panel strong{display:block;font:32px monospace;letter-spacing:8px;margin:18px 0;color:var(--cyan)}#pairing-input-label{display:grid;gap:8px;margin-top:16px;font-size:13px}#pairing-input{max-width:240px;min-height:48px;padding:10px;border:1px solid var(--line);background:var(--bg);color:var(--text);font:22px monospace;letter-spacing:5px}
 body[data-theme="0"]{--bg:#130d10;--panel:#20161b;--cyan:#ff6577;--line:#453039;--muted:#c1a4ae;--watermark:url('/assets/bwm.png')}
 body[data-theme="1"]{--bg:#0f1013;--panel:#1c1d22;--cyan:#f16976;--line:#3e343d;--muted:#b0adb8;--watermark:url('/assets/marauder.webp')}
 body[data-theme="2"]{--bg:#19120d;--panel:#291e15;--cyan:#f2c276;--line:#503b29;--muted:#c8b09a;--watermark:url('/assets/biscuit.png')}

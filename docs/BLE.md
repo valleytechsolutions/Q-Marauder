@@ -23,7 +23,9 @@ the browser console use the standard library; the new BLE jobs need these packag
    connection, characteristic and signal-tracking jobs.
 3. **Settings → BLE test device** shows the saved selection and adapter.
    `hci0` is onboard on the tested setup; verify adapter numbering on other boards.
-4. Choose **Track signal** or **Inspect GATT**. On the TFT these are under
+4. For a device that requires authentication, follow **Pair selected device**
+   below before inspecting GATT. Choose **Track signal** or **Inspect GATT**.
+   On the TFT these are under
    **Bluetooth → BLE foxhunt / GATT inventory**. Selection currently requires the browser.
 
 Discovery returns names, RSSI, public/random address type, service UUIDs,
@@ -32,6 +34,47 @@ BlueZ properties**, not individual raw advertisements. There is no claim of
 passive-only scanning: BlueZ discovery can send scan requests. Fingerprints never
 establish identity or surveillance activity. Private addresses can rotate; select
 the new observation if your target changes address.
+
+## Pair selected device
+
+The browser's **Bluetooth → BLE Lab → Pair selected device** registers a temporary
+BlueZ agent for the selected address and adapter. It supports passkey/PIN entry,
+numeric comparison, authorization and displaying a code for entry on the peer.
+It never accepts a comparison automatically. Pairing is currently a browser
+workflow; the TFT does not have a pairing-code keyboard.
+
+1. Keep the peripheral nearby, awake and unlocked, and close other apps that use
+   its Bluetooth connection.
+2. Click **Pair selected device** when ready to watch both screens.
+3. Enter the **new** code directly into the focused browser field and press
+   **Send code** promptly. The peripheral can expire the request before the
+   application's overall timeout. For comparison prompts, confirm only when
+   both screens show the same code.
+4. Wait for **Pairing completed**, then choose **Inspect GATT**. **Cancel pairing**
+   stops the job. An expired attempt needs a fresh code and another click.
+
+Entered codes travel over the local browser connection and worker pipes, and are
+not saved in settings, reports or application logs. BlueZ retains a successful
+bond in its own storage. The job does not set `Trusted`, become the system's
+default agent, remove bonds or disconnect a pre-existing connection. Each new
+pairing connection is closed when the job finishes. An already-paired device is
+reported without changing it. Unpair/bond-management controls are still pending.
+
+![Browser confirms an existing pairing after the console restarts](images/ble-paired.jpg)
+
+### Flipper Zero / Momentum
+
+Use the normal, unlocked home screen and Bluetooth enabled. Momentum's standard
+serial profile requests a displayed PIN; some apps can suppress that screen.
+If no code appears, cancel the attempt, exit the app, toggle Bluetooth OFF/ON and
+return home before retrying. Do not use **Unpair All Devices** for this check.
+The browser waiting for a passkey is evidence of a BlueZ request, not proof that
+the peripheral displayed it. A canceled authentication result does not establish
+whether a code was wrong or the peer's timer expired.
+
+References: [BlueZ agent API](https://bluez.readthedocs.io/en/latest/agent-api/),
+[Momentum serial profile](https://github.com/Next-Flip/Momentum-Firmware/blob/dev/targets/f7/ble_glue/profiles/serial_profile.c),
+[Momentum pairing screen](https://github.com/Next-Flip/Momentum-Firmware/blob/dev/applications/services/bt/bt_service/bt.c).
 
 ## GATT operations
 
@@ -45,7 +88,7 @@ Every job has a deadline and disconnects its own connection on completion/error.
 An already-connected target is refused so an existing session is not taken over.
 Notification capture stops after 10 seconds and stores at most 256 events. Jobs
 do not pair automatically, remove bonds, change adapter power or reset Bluetooth.
-Pairing-dependent characteristics may fail. No generic write payload is safe for
+Use the explicit pairing workflow for protected characteristics. No generic write payload is safe for
 every peripheral; use that device's protocol documentation.
 
 Reports and notifications are in **Field log → JSON**. CSV contains summary fields;
@@ -68,13 +111,31 @@ test device is a useful end-to-end check. No vendor signature pack is enabled by
 On 2026-10-15, the physical UNO Q's hci0 discovered the owner's Flipper Zero and
 other advertising devices with real metadata. A configured name watchlist matched
 the selected Flipper, and a 20-second signal window returned fresh RSSI samples.
-The Flipper's GATT services did not
-resolve within the bounded connection test. Consequently, discovery is physically
-verified; GATT reads/writes/notifications remain **implemented, hardware validation
-pending**. No write was sent to the Flipper. Mock tests cover ambiguous targets,
-cleanup, notification failure and existing-connection refusal; they are not RF evidence.
+The Flipper's unpaired connection ended before GATT discovery. Explicit pairing
+subsequently completed on the Momentum device: BlueZ reported `Paired`, `Bonded`
+and `ServicesResolved`. Reconnecting through the normal GATT backend returned
+**5 services and 15 characteristics**. A standard Battery Level read (`2a19`)
+returned `55` hex, or **85%** at test time.
+
+The browser/API write backend completed both with-response and without-response
+writes of a documented, empty Flipper RPC PingRequest. A separate diagnostic
+used the same worker's 10-second subscription code, sending a ping while
+subscribed to the Flipper's TX characteristic: each write mode produced exactly
+one indication containing the expected PingResponse. This verifies received
+indications and the ping exchange. The diagnostic is not a general multi-operation
+GATT session feature in the UI. A normal battery notification window completed
+with zero changes; that does not imply a failed subscription.
+
+Each job disconnected afterward, and subsequent jobs reconnected using the bond.
+These results validate this Flipper and these characteristics; they do not prove
+compatibility with every BLE peripheral, HID profile or emulation mode. Mock tests
+also cover ambiguous targets, stale pairing responses, connection ownership and
+cleanup. Test passkeys, device addresses and lab observations are not in the repo.
+
+Ping protocol references: [Flipper RPC envelope](https://github.com/flipperdevices/flipperzero-protobuf/blob/dev/flipper.proto),
+[PingRequest / PingResponse](https://github.com/flipperdevices/flipperzero-protobuf/blob/dev/system.proto).
 
 If GATT fails, ensure Bluetooth is enabled on the device, disconnect its existing
 phone session and inspect any pairing prompt. Do not clear other devices' bonds.
-Interactive pairing, descriptor reads, HID decoding, clone/emulation and MITM are
-not supplied in this build. RSSI tracking reports signal change, not distance.
+Descriptor reads, HID decoding, clone/emulation and MITM are not supplied in this
+build. RSSI tracking reports signal change, not distance.

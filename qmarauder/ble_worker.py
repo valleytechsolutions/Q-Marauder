@@ -106,9 +106,15 @@ class BlueZ:
         if props.get('Connected'): raise RuntimeError('Target is already connected; disconnect its existing session before using BLE Lab')
         self.owned_connection = path
         self.interface(path, 'org.bluez.Device1').Connect(timeout=15)
-        self.pump(12, lambda: bool(self.properties(path, 'org.bluez.Device1').get('ServicesResolved')))
-        if not self.properties(path, 'org.bluez.Device1').get('ServicesResolved'):
-            raise RuntimeError('GATT services did not resolve; pairing may be required on the device')
+        def settled():
+            properties = self.properties(path, 'org.bluez.Device1')
+            return properties.get('ServicesResolved') or not properties.get('Connected')
+        self.pump(12, settled)
+        properties = self.properties(path, 'org.bluez.Device1')
+        if not properties.get('Connected'):
+            raise RuntimeError('Target disconnected before GATT discovery. Use Pair selected device, then retry Inspect GATT.')
+        if not properties.get('ServicesResolved'):
+            raise RuntimeError('GATT discovery timed out. If the device requires pairing, use Pair selected device first.')
         return path
 
     def gatt(self, action, request):

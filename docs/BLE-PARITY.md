@@ -14,10 +14,10 @@ inspected commit `2330423dae8f8fa163617172310784889d8972a7`.
 | Advertising decoding / vendor fingerprints | Partial: selected company/service mappings and iBeacon format; no full AD parser or vendor database |
 | Foxhunt | Bounded RSSI samples, peak and trend; continuous audio feedback pending |
 | Connect / disconnect | Per-job owned connections; existing connections refused |
-| MTU / security / bonds | BlueZ-managed MTU; custom MTU and interactive security/bond UI pending |
-| GATT dump | Service/characteristic inventory implemented; full value/descriptor snapshot pending |
-| Read / write / write-without-response | Implemented by unique UUID; physical validation pending |
-| Subscribe / unsubscribe | Bounded notification capture and cleanup implemented; physical validation pending |
+| MTU / security / bonds | BlueZ-managed MTU; selected-device browser pairing and bonded reconnect verified on a Flipper; custom MTU and bond management pending |
+| GATT dump | Service/characteristic inventory verified on a Flipper (5 services, 15 characteristics); full value/descriptor snapshot pending |
+| Read / write / write-without-response | Implemented by unique UUID; battery read and both write modes physically verified with harmless Flipper RPC pings |
+| Subscribe / unsubscribe | 10-second capture and cleanup; received Flipper RPC indications verified with a diagnostic ping; general multi-operation sessions pending |
 | HID maps / input streams | Pending |
 | Clone profiles / advertise / MAC spoof | Pending |
 | Proxy / MITM / honeypot | Pending |
@@ -50,7 +50,8 @@ license before importing source, or continue independent implementations.
 
 ## What full parity requires
 
-Pairing and protected GATT operations need a confirmed physical device session.
+Pairing and protected GATT operations have a confirmed Flipper session; other
+peripherals and pairing methods still need physical validation.
 Peripheral/central concurrency and controller address control must be validated
 on the actual BlueZ controllers. Passive detectors need raw packet backends,
 fixtures and field validation; aggregated properties cannot prove that two fields

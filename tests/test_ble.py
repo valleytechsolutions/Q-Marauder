@@ -72,6 +72,19 @@ class BLETests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'link failed'): worker.connect(TARGET)
         worker.close();device.Disconnect.assert_called_once()
 
+    def test_disconnected_target_ends_gatt_wait_and_explains_pairing(self):
+        worker=BlueZ.__new__(BlueZ)
+        worker.path='/org/bluez/hci0';worker.owned_connection=None
+        path=worker.path+'/dev_'+TARGET.replace(':','_')
+        worker.objects=Mock(return_value={path:{}})
+        worker.properties=Mock(return_value={'Connected':False,'ServicesResolved':False})
+        worker.interface=Mock()
+        def pump(duration,until): self.assertTrue(until())
+        worker.pump=Mock(side_effect=pump)
+        with self.assertRaisesRegex(RuntimeError,'disconnected.*Pair selected device'):
+            worker.connect(TARGET)
+        self.assertEqual(worker.owned_connection,path)
+
     def test_duplicate_characteristic_uuid_refuses_ambiguous_write(self):
         worker=BlueZ.__new__(BlueZ);worker.connect=Mock(return_value='/target')
         worker.interface=Mock()

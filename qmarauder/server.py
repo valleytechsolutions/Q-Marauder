@@ -89,6 +89,15 @@ def handler_for(service):
                     raise ValueError("Invalid request length")
                 body = json.loads(self.rfile.read(length))
                 if not isinstance(body, dict): raise ValueError('Expected a JSON object')
+                if self.path == '/api/pairing/reply':
+                    service.pairing_reply(body)
+                    self.reply(200, {'accepted': True})
+                    return
+                if self.path == '/api/pairing/cancel':
+                    if body: raise ValueError('Cancel accepts an empty object')
+                    service.cancel_pairing()
+                    self.reply(200, {'cancelled': True})
+                    return
                 if self.path == '/api/settings':
                     service.set_settings(body)
                     self.reply(200, {'saved': True})

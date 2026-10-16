@@ -74,10 +74,10 @@ for entry in entries:
     elif entry["id"] in ("settings", "menu-navigation"):
         entry.update(status="partial", detail="Settings contains four artwork themes shared by browser and portrait TFT, BLE target/adapter selection and watchlists. Direct touch and saved calibration work. Brightness control is pending.")
 for slug,name,status,detail in [
-    ('ble-gatt','GATT inspection / read / write / notify','partial','Bounded BlueZ jobs for one selected target; refuses foreign connections and disconnects its own. Inventory, characteristic reads/writes and 10-second notifications implemented; physical GATT validation pending.'),
+    ('ble-gatt','GATT inspection / read / write / notify','partial','Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications physically verified. General multi-operation sessions and descriptor snapshots pending.'),
     ('ble-foxhunt','BLE signal tracking','partial','20-second selected-address RSSI samples, peak and trend; no distance estimate. Continuous audio tracking remains.'),
     ('ble-hid','HID report decoding','planned','HID service classification exists; report-map parsing and live input decoding are not implemented.'),
-    ('ble-security','Pairing and bond management','planned','Interactive pairing agent and per-target bond management pending; no automatic bond removal.'),
+    ('ble-security','Pairing and bond management','partial','Selected-device browser pairing with passkey/PIN, code comparison and cancellation. Pairing and bonded reconnect physically verified on a Flipper. No default agent, automatic acceptance or bond removal; bond-management UI pending.'),
     ('ble-emulate','GATT cloning / emulation / proxy','planned','Needs independently implemented peripheral services, controller validation and authorized host tests. No cloning, MAC spoofing or MITM backend is present.')]:
     entries.append(dict(id=slug,name=name,category='BLE Lab',status=status,detail=detail,source='https://github.com/MatthewKuKanich/ChimeraBLE'))
 for slug,name,status,detail in [

@@ -652,7 +652,7 @@
     "name": "GATT inspection / read / write / notify",
     "category": "BLE Lab",
     "status": "partial",
-    "detail": "Bounded BlueZ jobs for one selected target; refuses foreign connections and disconnects its own. Inventory, characteristic reads/writes and 10-second notifications implemented; physical GATT validation pending.",
+    "detail": "Selected-target BlueZ jobs with owned-connection cleanup. Flipper inventory, battery read, both write modes and received RPC indications physically verified. General multi-operation sessions and descriptor snapshots pending.",
     "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
   },
   {
@@ -675,8 +675,8 @@
     "id": "ble-security",
     "name": "Pairing and bond management",
     "category": "BLE Lab",
-    "status": "planned",
-    "detail": "Interactive pairing agent and per-target bond management pending; no automatic bond removal.",
+    "status": "partial",
+    "detail": "Selected-device browser pairing with passkey/PIN, code comparison and cancellation. Pairing and bonded reconnect physically verified on a Flipper. No default agent, automatic acceptance or bond removal; bond-management UI pending.",
     "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
   },
   {
