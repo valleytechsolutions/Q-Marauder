@@ -5,7 +5,8 @@ import queue
 import threading
 import time
 from pathlib import Path
-from . import __version__, gps, radio, lab
+from . import __version__, gps, radio, lab, ble, settings
+from .ble_data import detections
 from .storage import Store, utcnow
 
 
@@ -20,6 +21,8 @@ class Service:
                           scan_status={"wifi": {"state": "idle"}, "ble": {"state": "idle"}},
                           display=dict(connected=False, touch="uncalibrated", error=None),
                           capabilities=radio.diagnostics())
+        self.state.update(settings=settings.load(data_dir), pending_theme=None, ble_lab=None, detections=[])
+        self.state['pending_theme'] = self.state['settings']['theme']
         self.features = json.loads((Path(__file__).with_name("features.json")).read_text(encoding="utf-8"))
         self.worker = threading.Thread(target=self._work, name="radio-worker", daemon=True)
         self.worker.start()
@@ -33,8 +36,18 @@ class Service:
         state["features"] = self.features
         return state
 
-    def submit(self, action):
-        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", *lab.ACTIONS):
+    def set_settings(self, values):
+        values = settings.validate(values)
+        with self.lock:
+            if self.state['busy'] and set(values) - {'theme'}:
+                raise RuntimeError('Wait for the current radio job before changing its settings')
+            updated = {**self.state['settings'], **values}
+            settings.save(self.store.root, updated)
+            self.state['settings'] = updated
+            if 'theme' in values: self.state['pending_theme'] = values['theme']
+
+    def submit(self, action, parameters=None):
+        if action not in ("wifi", "ble", "diagnostics", "mission-start", "mission-stop", *lab.ACTIONS, *ble.ACTIONS):
             raise ValueError("Unknown action")
         with self.lock:
             if action == "mission-stop":
@@ -43,15 +56,21 @@ class Service:
                 return
             if self.state["busy"] or self.state["mission"]:
                 raise RuntimeError("A radio task is already running. Stop the survey before starting another task.")
+            request = ble.request_for(action, self.state['settings'], parameters) if action in ble.ACTIONS else None
+            if parameters and action not in ble.ACTIONS: raise ValueError('This action accepts no parameters')
             self.state.update(busy=action, error=None)
             if action in ("wifi", "ble"):
                 self.state["scan_status"][action] = {"state": "running"}
             if action in lab.ACTIONS:
                 self.state["lab"] = {"action": action, "state": "running"}
-            self.jobs.put_nowait(action)
+            if action in ble.ACTIONS:
+                self.state['ble_lab'] = dict(action=action, state='running')
+            self.jobs.put_nowait((action, request))
 
     def _scan(self, kind, session=None):
-        rows = radio.wifi_scan() if kind == "wifi" else radio.ble_scan()
+        if kind == 'wifi': rows = radio.wifi_scan()
+        else:
+            rows = ble.call(ble.request_for('ble', self.state['settings']))['rows']
         fix = gps.read_fix()
         if session:
             self.store.append(session, rows, fix)
@@ -83,7 +102,7 @@ class Service:
                 next_scan = time.monotonic() + 10
                 continue
             try:
-                action = self.jobs.get(timeout=0.2)
+                action, request = self.jobs.get(timeout=0.2)
             except queue.Empty:
                 continue
             session = None
@@ -104,6 +123,21 @@ class Service:
                     self.store.append(session, [report])
                     with self.lock:
                         self.state["lab"] = report
+                elif action in ble.ACTIONS:
+                    session = self.store.start(action)
+                    report = ble.call(request)
+                    report['updated'] = utcnow()
+                    if action == 'ble-detect':
+                        report['detections'] = detections(report['rows'], self.state['settings']['rules'])
+                        report['note'] = 'Configured watchlist matches only; no verified surveillance identities. BlueZ discovery may send scan requests.'
+                    self.store.append(session, [report])
+                    with self.lock:
+                        self.state['ble_lab'] = report
+                        self.state['updated'] = report['updated']
+                        if 'rows' in report and action != 'ble-foxhunt':
+                            self.state['ble'] = report['rows']
+                            self.state['scan_status']['ble'] = dict(state='done', updated=utcnow())
+                        if action == 'ble-detect': self.state['detections'] = report['detections']
                 else:
                     session = self.store.start(action)
                     self._scan(action, session)
@@ -119,6 +153,11 @@ class Service:
                                 self.store.append(session, [self.state["lab"]])
                             except Exception:
                                 self.state["lab"]["error"] += " (Report could not be saved.)"
+                    if action in ble.ACTIONS:
+                        self.state['ble_lab'] = dict(kind='ble-lab', action=action, state='error', error=str(exc)[:300], updated=utcnow())
+                        if session:
+                            try: self.store.append(session, [self.state['ble_lab']])
+                            except Exception: self.state['ble_lab']['error'] += ' (Report could not be saved.)'
             finally:
                 if session:
                     self.store.stop(session)
@@ -132,4 +171,4 @@ class Service:
 
     def close(self):
         self.shutdown_event.set()
-        self.worker.join(timeout=35)
+        self.worker.join(timeout=65)

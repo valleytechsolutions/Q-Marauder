@@ -6,9 +6,11 @@ import shutil
 import subprocess
 import threading
 from .display_results import result_page
+from . import settings
 
 ACTIONS = {1: "wifi", 2: "ble", 3: "mission-start", 4: "mission-stop", 14: "diagnostics",
-           15: "lab-recon", 16: "lab-injection", 17: "lab-deauth"}
+           15: "lab-recon", 16: "lab-injection", 17: "lab-deauth",
+           18: 'ble-detect', 19: 'ble-foxhunt', 20: 'ble-gatt'}
 ORIENTATIONS = (0, 1, 2, 3)  # Software reflections: bit 0 = X, bit 1 = Y.
 
 
@@ -129,7 +131,16 @@ class DisplayLink:
         return True
 
     def sync_theme(self):
+        with self.service.lock:
+            pending = self.service.state.get('pending_theme')
         value = self.call("qm.theme")
+        if type(pending) is int and pending in range(4):
+            if self.call('qm.setTheme', pending) is not True:
+                raise ConnectionError('Display did not apply the selected theme')
+            value = str(pending)
+            with self.service.lock:
+                if self.service.state.get('pending_theme') == pending:
+                    self.service.state['pending_theme'] = None
         if value == "unset":
             try:
                 saved = json.loads(self.theme_path.read_text(encoding="utf-8"))
@@ -146,6 +157,11 @@ class DisplayLink:
             save_json(self.theme_path, value)
             self.saved_theme = value
         self.status(theme=("BWM", "Marauder", "Biscuit Shop", "Valleytech")[value])
+        with self.service.lock:
+            if 'settings' in self.service.state and self.service.state.get('pending_theme') is None:
+                if self.service.state['settings']['theme'] != value:
+                    self.service.state['settings']['theme'] = value
+                    settings.save(self.theme_path.parent, self.service.state['settings'])
 
     def sync_calibration(self):
         if self.orientation is None:
@@ -174,7 +190,7 @@ class DisplayLink:
 
     def sync_results(self, state):
         request = self.call("qm.view")
-        if not isinstance(request, str) or not re.fullmatch(r"\d{1,10},[0-4],\d{1,4}", request):
+        if not isinstance(request, str) or not re.fullmatch(r"\d{1,10},[0-6],\d{1,4}", request):
             raise ValueError("Invalid display view")
         sequence, kind, page = map(int, request.split(","))
         if kind == 0:
@@ -223,7 +239,7 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/6;"):
+                    if not isinstance(protocol, str) or not protocol.startswith("qm-display/7;"):
                         raise ConnectionError("Compatible portrait display firmware is required")
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)

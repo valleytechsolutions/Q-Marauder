@@ -249,7 +249,7 @@ void render() {
           if(entry.child<0 && entry.action==0) label(24,y+51,"PORT PLANNED",p.muted,1);
         }
       }
-      footerButton(10,menu==0?"THEMES":"BACK");
+      footerButton(10,menu==0?"SETTINGS":"BACK");
       footerButton(112,"PREV",page>0); footerButton(214,"NEXT",(page+1)*4<count);
     }
     statusBar();
@@ -265,7 +265,7 @@ void requestResults(int kind,int targetPage=0) {
 void goBack() {
   if(infoTitle.length()) { infoTitle=""; infoText=""; dirty=true; return; }
   if(resultKind) { resultKind=0; ++resultSequence; dirty=true; return; }
-  if(menu==0) { themeReturnMenu=0; openMenu(14); return; }
+  if(menu==0) { openMenu(12); return; }
   if(menu==14) { openMenu(themeReturnMenu); return; }
   for(const auto &e:menuEntries) if(e.menu==menu && isBack(e)) { openMenu(e.child); return; }
   openMenu(0);
@@ -292,7 +292,7 @@ void activate(int target) {
     else if(pendingAction) infoText="A request is pending. Please wait.";
     else {
       pendingAction=entry.action; ++actionSequence; infoText="Request queued. "+headline;
-      if(entry.action==1 || entry.action==2 || entry.action>=14) requestResults(entry.action>=15?4:entry.action==14?3:entry.action);
+      if(entry.action==1 || entry.action==2 || entry.action>=14) requestResults(entry.action==18?6:entry.action>=19?5:entry.action>=15?4:entry.action==14?3:entry.action);
     }
     dirty=true;
   }
@@ -332,7 +332,7 @@ void pollTouch() {
     if(pressedHit>=10) lcd.drawRoundRect(10,Layout::rowTop+(pressedHit-10)*Layout::rowStride,300,64,6,themes[theme].accent);
   }
 }
-String protocol() { return "qm-display/6;portrait;direct-touch;themes;results"; }
+String protocol() { return "qm-display/7;portrait;direct-touch;themes;results;ble-lab"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
       +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";page="+page
@@ -375,6 +375,11 @@ String panelRegisters() {
 String getOrientation() { return orientation<0?"unset":String(orientation); }
 bool restoreOrientation(int value) { return orientation<0 && chooseOrientation(value,true); }
 String getTheme() { return themeChosen?String(theme):"unset"; }
+bool setTheme(int value) {
+  if(value<0 || value>3) return false;
+  if(theme!=value || !themeChosen) { theme=value; themeChosen=true; dirty=true; }
+  return true;
+}
 bool restoreTheme(int value) {
   if(themeChosen || value<0 || value>3) return false;
   theme=value; themeChosen=true; dirty=true; return true;
@@ -412,6 +417,7 @@ void setup() {
   Bridge.provide_safe("qm.calibration",calibration); Bridge.provide_safe("qm.restoreCalibration",restoreCalibration);
   Bridge.provide_safe("qm.orientation",getOrientation); Bridge.provide_safe("qm.restoreOrientation",restoreOrientation);
   Bridge.provide_safe("qm.theme",getTheme); Bridge.provide_safe("qm.restoreTheme",restoreTheme);
+  Bridge.provide_safe("qm.setTheme",setTheme);
   Bridge.provide_safe("qm.view",view); Bridge.provide_safe("qm.results",results);
   Bridge.provide_safe("qm.resultChunk",resultChunk);
 }

@@ -9,6 +9,9 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 **[Bill of materials](docs/BOM.md)** · **[Downloads](https://github.com/valleytechsolutions/Q-Marauder/releases)** ·
 **[External Alfa radio](docs/USB-RADIO.md)**
 
+**[BLE Lab setup](docs/BLE.md)** · **[ChimeraBLE / Unified Blue status](docs/BLE-PARITY.md)** ·
+**[Browser installer feasibility](docs/WEB-INSTALLER.md)**
+
 <img src="docs/images/uno-q-shield-side.webp" width="500" alt="Actual UNO Q and red parallel TFT shield assembly, connected to a PC by USB">
 
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
@@ -23,15 +26,19 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 ## Works today
 
 - Actual Wi-Fi AP discovery through NetworkManager, including observed 2.4/5 GHz networks.
-- BlueZ BLE discovery with names, addresses, and RSSI where available.
-- AP-count channel chart, filtering, device diagnostics, and an 81-entry port inventory.
+- BlueZ BLE discovery with fresh RSSI, address type, service UUIDs and advertising metadata.
+- Selected-device signal tracking and configurable BLE watchlist matching.
+- GATT inventory, read/write and bounded notification backends; physical GATT
+  validation is pending. See [BLE Lab limits and evidence](docs/BLE.md).
+- AP-count channel chart, filtering, device diagnostics, and a feature-by-feature port inventory.
 - Repeated Wi-Fi survey sessions with SQLite persistence and CSV/JSON exports.
 - Fresh gpsd position ingestion; no coordinates are fabricated when GPS is absent.
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  15 menu groups, and 147 selections. Unported functions are explicitly marked planned.
-- BWM, Marauder, Biscuit Shop and Valleytech TFT themes with their supplied background artwork.
+  15 menu groups, and 152 selections. Unported functions are explicitly marked planned.
+- **Settings → Themes**: BWM, Marauder, Biscuit Shop and Valleytech, shared between
+  the browser and TFT with supplied background artwork and saved preferences.
 - Native Wi-Fi/BLE result pages with tap-to-open details.
 - Optional bounded lab recon, injection-check and deauth backends, with local report
   history and a separate privileged worker. PC-forwarded Alfa monitor reception is
@@ -54,7 +61,9 @@ Debian image or browser-only flasher is supplied in this alpha.
 ## Linux / SSH quick start
 
 The supplied Arduino Debian image already provides Python, NetworkManager, and BlueZ.
-No Python packages are required for the console.
+The console uses Python's standard library. BLE Lab additionally needs Debian's
+`python3-dbus` and `python3-gi`: run `sh scripts/install-ble-dependencies.sh`, or
+double-click `scripts/Enable-BLELab.cmd` after the Windows installation.
 
 ```sh
 git clone https://github.com/valleytechsolutions/Q-Marauder.git

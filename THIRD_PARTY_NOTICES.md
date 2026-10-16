@@ -17,6 +17,23 @@ Wiki inspected: `57deeb79e3b40f44d5c885bb55a789bec58abb8d`.
 Upstream's MIT notice is retained in `licenses/ESP32Marauder-MIT.txt`.
 Preserve it whenever upstream code is incorporated in later ports.
 
+## BLE research references
+
+[ChimeraBLE](https://github.com/MatthewKuKanich/ChimeraBLE) by Matthew Kukanich was
+inspected at `2330423dae8f8fa163617172310784889d8972a7`. It declares GPL-3.0-or-later.
+No ChimeraBLE implementation or generated vendor database is distributed here.
+The BLE workers are independent BlueZ implementations; this MIT grant does not
+apply to ChimeraBLE or its dependencies.
+
+[Unified Blue](https://github.com/colonelpanichacks/oui-spy-unified-blue) by
+Colonel Panic was inspected at `6e5e2829540925ff1ab5fa6d0d365378818ed56e`.
+No repository-wide license was found in that tree. Individual OpenDroneID notices
+do not establish a license for the entire project. No source or signature database
+has been imported. See [feature status](docs/BLE-PARITY.md).
+
+Debian's separately installed dbus-python and PyGObject retain their own licenses;
+their binaries/source are not bundled in this release.
+
 ## Brand assets
 
 `qmarauder/web/assets/bwm.png`, `marauder.webp`, `biscuit.png`, and `valleytech.png`
@@ -31,7 +48,7 @@ The original assembly and pre-initialization photographs in `docs/images/` were
 provided by the project owner for this repository's instructions. They are excluded
 from the MIT code grant; no rights to background objects or visible third-party
 marks are asserted. Captions distinguish the pre-firmware state from working software.
-The browser startup screenshot contains the same supplied brand assets and carries
+The browser startup and Settings screenshots contain the same supplied brand assets and carry
 their artwork-rights exclusions.
 
 ## Arduino bridge

@@ -64,7 +64,8 @@ def handler_for(service):
                 return
             # Only fixed static paths; no filesystem paths accepted from clients.
             files = {"/": "index.html", "/app.js": "app.js", "/style.css": "style.css",
-                     "/assets/bwm.png": "assets/bwm.png", "/assets/marauder.webp": "assets/marauder.webp"}
+                     "/assets/bwm.png": "assets/bwm.png", "/assets/marauder.webp": "assets/marauder.webp",
+                     "/assets/biscuit.png": "assets/biscuit.png", "/assets/valleytech.png": "assets/valleytech.png"}
             if path not in files or not (WEB / files[path]).is_file():
                 self.reply(404, {"error": "Not found"})
                 return
@@ -84,15 +85,21 @@ def handler_for(service):
                 return
             try:
                 length = int(self.headers.get("Content-Length", "0"))
-                if not 0 < length <= 1024:
+                if not 0 < length <= 32768:
                     raise ValueError("Invalid request length")
                 body = json.loads(self.rfile.read(length))
-                if not isinstance(body, dict) or not isinstance(body.get("action"), str):
+                if not isinstance(body, dict): raise ValueError('Expected a JSON object')
+                if self.path == '/api/settings':
+                    service.set_settings(body)
+                    self.reply(200, {'saved': True})
+                    return
+                if not isinstance(body.get("action"), str):
                     raise ValueError("Expected an action")
                 if self.path != "/api/action":
                     self.reply(404, {"error": "Not found"})
                     return
-                service.submit(body["action"])
+                if 'parameters' in body: service.submit(body['action'], body['parameters'])
+                else: service.submit(body["action"])
                 self.reply(202, {"accepted": True})
             except (ValueError, UnicodeError) as exc:
                 self.reply(400, {"error": str(exc)})

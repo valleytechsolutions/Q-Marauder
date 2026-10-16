@@ -35,9 +35,27 @@ def readiness_rows(capabilities):
 
 
 def result_page(state, kind, page):
-    if kind not in (1, 2, 3, 4) or not 0 <= page <= 2499:
+    if kind not in (1, 2, 3, 4, 5, 6) or not 0 <= page <= 2499:
         raise ValueError("Invalid display result page")
-    if kind == 3:
+    if kind in (5, 6):
+        report = state.get('ble_lab') or {}
+        status = 'BLE task running...' if report.get('state') == 'running' else 'BLE lab / tap details'
+        if report.get('state') == 'error':
+            rows = [('BLE task failed', 'Tap for details', report.get('error', 'Unknown error'))]
+        elif report.get('state') == 'running':
+            rows = [('Working', 'Please wait', 'The bounded BLE job stops automatically.')]
+        elif kind == 6:
+            rows = [(r.get('name') or 'Unnamed advertiser', ', '.join(r['matches']), r['address']+'. '+r['note']) for r in state.get('detections', [])]
+            if not rows: rows = [('No watchlist matches', 'Configure rules in Settings', 'No match does not prove the absence of surveillance equipment.')]
+        elif report.get('action') == 'ble-foxhunt':
+            signal = f"{report['latest']} dBm" if report.get('latest') is not None else 'No fresh signal'
+            peak = f"{report['peak']} dBm" if report.get('peak') is not None else 'unavailable'
+            rows = [('Selected BLE target', report.get('address',''), 'Signal strength varies with reflections and orientation; this is not a distance measurement.'),
+                    ('RSSI tracking', signal, f"Peak: {peak}. {report.get('trend', '')}. {len(report.get('samples', []))} fresh samples.")]
+        else:
+            rows = [(c['uuid'], ' / '.join(c['flags']), 'Service: '+c['service']) for c in report.get('characteristics', [])]
+            if not rows: rows = [('BLE Lab', 'Select a target in Settings', 'Use the browser Settings to select your test device, then run GATT inventory or Foxhunt here.')]
+    elif kind == 3:
         rows = readiness_rows(state.get("capabilities", {}))
         status = "Checking radio" if state.get("busy") == "diagnostics" else "Radio readiness"
     elif kind == 4:
@@ -73,7 +91,7 @@ def result_page(state, kind, page):
             else:
                 rssi = row.get("rssi")
                 summary = f"RSSI {rssi} dBm" if rssi is not None else "RSSI unavailable"
-                details = f"{row.get('address', '?')}  {summary}. Bluetooth LE discovery."
+                details = f"{row.get('address', '?')}  {summary}. {row.get('fingerprint', 'Bluetooth LE discovery')}. Identity unverified."
             rows.append((name, summary, details))
         scanning = state.get("busy") in (("wifi", "survey") if kind == 1 else ("ble",))
         status = "Scanning / previous results" if scanning and rows else "Scanning..." if scanning else f"{len(rows)} found / tap for details"

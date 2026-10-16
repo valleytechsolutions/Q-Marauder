@@ -20,18 +20,19 @@ menus=[("mainMenu","Main menu",0), ("wifiMenu","Wi-Fi",0),
        ("bluetoothMenu","Bluetooth",0), ("bluetoothSnifferMenu","Bluetooth / Sniffers",6),
        ("bluetoothAttackMenu","Bluetooth / Attacks",6), ("gpsMenu","GPS",0),
        ("deviceMenu","Device",0), ("reconMenu","Recon / Wardriving",0),
-       ("settingsMenu","Settings",10), ("detectorsMenu","Counter surveillance",0),
+       ("settingsMenu","Settings",0), ("detectorsMenu","Counter surveillance",0),
        ("themesMenu","Appearance",12)]
-links={(0,"WiFi"):1,(0,"Bluetooth"):6,(0,"GPS"):9,(0,"Device"):10,(0,"Recon"):11,
+links={(0,"WiFi"):1,(0,"Bluetooth"):6,(0,"GPS"):9,(0,"Device"):10,(0,"Recon"):11,(0,"Settings"):12,
        (1,"Sniffers"):2,(1,"Scanners"):3,(1,"Attacks"):4,(1,"General"):5,
        (6,"Sniffers"):7,(6,"Bluetooth Attacks"):8,(10,"Settings"):12,
        (0,"Counter surveillance"):13,(12,"Themes"):14}
-# IDs 1-4 and 14-17 invoke Linux jobs; the others are local display actions.
+# IDs 1-4 and 14-20 invoke Linux jobs; the others are local display actions.
 actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "Device Info":5,"Calibrate touch":6,"Live status":7,
          "BWM":8,"Marauder":9,"Biscuit Shop":10,"Valleytech":11,
          "Wi-Fi results":12,"BLE results":13,"Scan BLE":2,"Test readiness":14,
-         "Lab packet recon":15,"Injection check":16,"Lab deauth (3 frames)":17}
+         "Lab packet recon":15,"Injection check":16,"Lab deauth (3 frames)":17,
+         "BLE watchlist scan":18,"BLE foxhunt":19,"GATT inventory":20}
 entries=[]
 for index,(key,title,parent) in enumerate(menus):
     found=[]
@@ -42,16 +43,16 @@ for index,(key,title,parent) in enumerate(menus):
             value=labels.get("text1_"+match[1] if match else expression,"")
         value=value.strip()
         if value and value not in found: found.append(value)
-    if index==0: found=["Recon","WiFi","Bluetooth","GPS","Device","Counter surveillance","Reboot"]
+    if index==0: found=["Recon","WiFi","Bluetooth","Settings","GPS","Device","Counter surveillance","Reboot"]
     if index==3: found.insert(1,"Scan APs")
     if index==1: found[1:1]=["Scan APs","Wi-Fi results"]
-    if index==6: found[1:1]=["Scan BLE","BLE results"]
+    if index==6: found[1:1]=["Scan BLE","BLE results","BLE foxhunt","GATT inventory"]
     if index in (4,8): found.insert(1,"Test readiness")
     if index==2: found.insert(1,"Lab packet recon")
     if index==4: found[2:2]=["Injection check","Lab deauth (3 frames)"]
     if index==11: found=["Back","Wardrive","Stop survey","Live status"]
     if index==12: found=["Back","Themes","Calibrate touch"]
-    if index==13: found=["Back","Dragon Detector","Axeoff","Squachwach"]
+    if index==13: found=["Back","BLE watchlist scan","BLE foxhunt","Dragon Detector","Axeoff","Squachwach"]
     if index==14: found=["Back","BWM","Marauder","Biscuit Shop","Valleytech"]
     if index==10 and "Calibrate touch" not in found: found.append("Calibrate touch")
     if index and "Back" not in found: found.insert(0,"Back")

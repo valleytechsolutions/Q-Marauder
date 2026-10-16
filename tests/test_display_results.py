@@ -30,6 +30,10 @@ class ResultTests(unittest.TestCase):
         self.assertIn("error", result_page(state, 1, 0)[1])
 
     def test_no_fabricated_ble_signal_or_radio_success(self):
+        report=dict(state='done',action='ble-foxhunt',latest=None,peak=None,samples=[])
+        payload=result_page({'ble_lab':report},5,0)[2]
+        self.assertIn('No fresh signal',payload)
+        self.assertNotIn('None dBm',payload)
         payload = result_page({"ble": [dict(name="Tag", rssi=None)]}, 2, 0)[2]
         self.assertIn("RSSI unavailable", payload)
         payload = result_page({"capabilities": {"monitor_advertised": True}}, 3, 0)[2]

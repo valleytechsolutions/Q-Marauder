@@ -59,9 +59,20 @@ The launcher:
 
 On the TFT, hold **USB at the bottom**. Tap the orientation whose text is upright
 and readable, then firmly tap and release each calibration circle. Tap **WiFi →
-Scan APs**; after completion, tap a network row for details. **Themes** selects BWM,
+Scan APs**; after completion, tap a network row for details. **Settings → Themes** selects BWM,
 Marauder, Biscuit Shop or Valleytech. The Linux console saves the orientation,
-touch calibration and theme.
+touch calibration and theme. Browser **Settings → Themes** changes both interfaces.
+
+<img src="images/settings-themes.png" width="540" alt="Browser Settings view with BWM, Marauder, Biscuit Shop and Valleytech theme cards">
+
+*Verified browser Settings screen. Theme changes are sent to the portrait TFT;
+the browser screenshot is not a photograph of the display.*
+
+For BLE discovery and BLE Lab, double-click **scripts/Enable-BLELab.cmd** once.
+It installs two Debian Python bindings and asks for the board password in its
+window. Follow [BLE Lab setup](BLE.md) to select your test device and configure
+watchlist detection. The core console/Wi-Fi/display installation needs no extra
+Python packages. [Browser-only installation](WEB-INSTALLER.md) remains a proposal.
 
 <img src="images/browser-startup.jpg" width="400" alt="Browser console startup screen with the supplied BWM and Marauder logos side by side">
 

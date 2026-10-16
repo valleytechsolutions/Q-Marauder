@@ -139,6 +139,15 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(self.request("/api/action",b'{"action":"wifi"}',headers)[0],202)
         self.service.submit.assert_called_once_with("wifi")
 
+    def test_settings_and_ble_action_keep_same_origin_guard(self):
+        headers={"Content-Type":"application/json","X-QM-Request":"1"}
+        self.assertEqual(self.request('/api/settings',b'{"theme":2}',headers)[0],200)
+        self.service.set_settings.assert_called_once_with({'theme':2})
+        self.assertEqual(self.request('/api/settings',b'{"theme":1}',{**headers,'Origin':'https://other.example'})[0],403)
+        self.service.set_settings.assert_called_once()
+        self.assertEqual(self.request('/api/action',b'{"action":"ble-read","parameters":{"uuid":"2a19"}}',headers)[0],202)
+        self.service.submit.assert_called_once_with('ble-read',{'uuid':'2a19'})
+
     def test_path_traversal_rejected(self):
         self.assertEqual(self.request("/../../.env")[0],404)
 

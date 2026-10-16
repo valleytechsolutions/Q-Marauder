@@ -17,6 +17,27 @@ def wait_for(predicate):
 
 
 class ServiceTests(unittest.TestCase):
+    def test_ble_job_freezes_target_and_persists_report(self):
+        entered, release=threading.Event(),threading.Event()
+        def run(request):
+            entered.set();release.wait(3)
+            return dict(action=request['action'],address=request['target'],state='done',kind='ble-lab',services=[],characteristics=[])
+        with tempfile.TemporaryDirectory() as data, patch('qmarauder.radio.diagnostics',return_value={}), patch('qmarauder.ble.call',side_effect=run) as call:
+            service=Service(data)
+            try:
+                service.set_settings({'target':'00:11:22:33:44:55'})
+                service.submit('ble-gatt')
+                self.assertTrue(entered.wait(2))
+                with self.assertRaises(RuntimeError): service.set_settings({'target':'11:22:33:44:55:66'})
+                service.set_settings({'theme':2})
+                release.set();wait_for(lambda:service.snapshot()['busy'] is None)
+                session=service.store.sessions()[0]
+                report=json.loads(service.store.export(session['id'],'json'))[0]
+                self.assertEqual(report['address'],'00:11:22:33:44:55')
+                self.assertIsNotNone(session['ended'])
+                call.assert_called_once()
+            finally: release.set();service.close()
+
     def test_lab_outcome_survives_restart_without_repeating_radio_work(self):
         with tempfile.TemporaryDirectory() as data, patch("qmarauder.radio.diagnostics", return_value={}), patch("qmarauder.lab.call", return_value={"action": "recon", "received": 0, "capture_observed": False}) as call:
             service = Service(data)

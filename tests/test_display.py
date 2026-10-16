@@ -93,7 +93,9 @@ class DisplayTests(unittest.TestCase):
 
     def test_invalid_saved_theme_uses_bwm_default(self):
         with tempfile.TemporaryDirectory() as directory:
-            link=DisplayLink(Mock(),directory,Mock(side_effect=["unset",True]))
+            service=Mock(state={"display":{}})
+            service.lock=__import__('threading').RLock()
+            link=DisplayLink(service,directory,Mock(side_effect=["unset",True]))
             link.theme_path.write_text('999')
             link.sync_theme()
             link.call.assert_called_with("qm.restoreTheme",0)
@@ -116,11 +118,26 @@ class DisplayTests(unittest.TestCase):
         for _ in menus:
             reachable |= {int(child) for menu,_,child,_ in entries if int(menu) in reachable and int(child)>=0}
         self.assertEqual(reachable,menus)
-        self.assertEqual(len(entries),147)
+        self.assertEqual(len(entries),152)
+        self.assertIn(('0','Settings','12','0'), entries)
         self.assertTrue({"BWM","Marauder","Biscuit Shop","Valleytech"}.issubset({entry[1] for entry in entries}))
         for menu,title,child,action in entries:
             if "Attack" in title or "Flood" in title or "Spam" in title:
                 self.assertEqual(int(action),0)
+
+    def test_browser_theme_is_acked_and_native_change_is_saved(self):
+        with tempfile.TemporaryDirectory() as directory:
+            from qmarauder.settings import DEFAULTS, load
+            service=Mock(state={'display':{},'settings':{**DEFAULTS,'theme':2},'pending_theme':2})
+            service.lock=__import__('threading').RLock()
+            call=Mock(side_effect=['0',True,'3'])
+            link=DisplayLink(service,directory,call)
+            link.sync_theme()
+            self.assertIsNone(service.state['pending_theme'])
+            call.assert_called_with('qm.setTheme',2)
+            self.assertEqual(service.state['display']['theme'],'Biscuit Shop')
+            link.sync_theme()
+            self.assertEqual(load(directory)['theme'],3)
 
 
 if __name__=="__main__": unittest.main()

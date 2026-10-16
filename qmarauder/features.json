@@ -36,7 +36,7 @@
     "name": "BLE discovery",
     "category": "Bluetooth",
     "status": "partial",
-    "detail": "Bounded BlueZ LE discovery with names, addresses, and available RSSI. Raw advertising payloads are pending.",
+    "detail": "BlueZ discovery with fresh names/RSSI, address type, service UUIDs, manufacturer/service data and small independent fingerprints. Aggregated properties, not raw packets.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/bluetooth-sniffer"
   },
   {
@@ -60,7 +60,7 @@
     "name": "Station scan",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/scan-stations"
   },
   {
@@ -100,7 +100,7 @@
     "name": "Deauthentication detection",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/deauth-sniff"
   },
   {
@@ -116,7 +116,7 @@
     "name": "Packet counter",
     "category": "Wi-Fi capture",
     "status": "partial",
-    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. Stock UNO Q monitor tests returned zero receive packets; capture remains unverified. No general station inventory or PCAP export.",
+    "detail": "Optional lab helper counts configured-AP frames, deauth frames and observed clients. External MT7921 monitor reception verified on 2.4/5 GHz; stock onboard monitor tests returned zero packets. No general station inventory or PCAP export.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/packet-count"
   },
   {
@@ -596,7 +596,7 @@
     "name": "Settings",
     "category": "Device",
     "status": "partial",
-    "detail": "Owner confirmed portrait direct-touch menus and theme switching. Four artwork themes, saved affine touch calibration and native result pages exist; brightness control is pending.",
+    "detail": "Settings contains four artwork themes shared by browser and portrait TFT, BLE target/adapter selection and watchlists. Direct touch and saved calibration work. Brightness control is pending.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/settings"
   },
   {
@@ -612,7 +612,7 @@
     "name": "Touch UI / brightness",
     "category": "Device",
     "status": "partial",
-    "detail": "Owner confirmed portrait direct-touch menus and theme switching. Four artwork themes, saved affine touch calibration and native result pages exist; brightness control is pending.",
+    "detail": "Settings contains four artwork themes shared by browser and portrait TFT, BLE target/adapter selection and watchlists. Direct touch and saved calibration work. Brightness control is pending.",
     "source": "https://github.com/justcallmekoko/ESP32Marauder/wiki/menu-navigation"
   },
   {
@@ -646,5 +646,101 @@
     "status": "planned",
     "detail": "Integration slot reserved. Original repository, license, protocol, and test data are needed.",
     "source": null
+  },
+  {
+    "id": "ble-gatt",
+    "name": "GATT inspection / read / write / notify",
+    "category": "BLE Lab",
+    "status": "partial",
+    "detail": "Bounded BlueZ jobs for one selected target; refuses foreign connections and disconnects its own. Inventory, characteristic reads/writes and 10-second notifications implemented; physical GATT validation pending.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "ble-foxhunt",
+    "name": "BLE signal tracking",
+    "category": "BLE Lab",
+    "status": "partial",
+    "detail": "20-second selected-address RSSI samples, peak and trend; no distance estimate. Continuous audio tracking remains.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "ble-hid",
+    "name": "HID report decoding",
+    "category": "BLE Lab",
+    "status": "planned",
+    "detail": "HID service classification exists; report-map parsing and live input decoding are not implemented.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "ble-security",
+    "name": "Pairing and bond management",
+    "category": "BLE Lab",
+    "status": "planned",
+    "detail": "Interactive pairing agent and per-target bond management pending; no automatic bond removal.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "ble-emulate",
+    "name": "GATT cloning / emulation / proxy",
+    "category": "BLE Lab",
+    "status": "planned",
+    "detail": "Needs independently implemented peripheral services, controller validation and authorized host tests. No cloning, MAC spoofing or MITM backend is present.",
+    "source": "https://github.com/MatthewKuKanich/ChimeraBLE"
+  },
+  {
+    "id": "watchlist",
+    "name": "BLE watchlist detector",
+    "category": "Unified Blue parity",
+    "status": "partial",
+    "detail": "Configurable exact address, public OUI, company ID, service UUID and name matches. Native/browser result pages and JSON history. No verified surveillance classification; no same-packet composite matching.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-foxhunter",
+    "name": "Unified Blue Foxhunter parity",
+    "category": "Unified Blue parity",
+    "status": "partial",
+    "detail": "Bounded selected-address BLE signal tracking. Continuous audio/LED behavior is not implemented.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-flock",
+    "name": "Flock-You mode",
+    "category": "Unified Blue parity",
+    "status": "planned",
+    "detail": "Wi-Fi IE/probe fingerprints, passive BLE signatures, duty cycling and persisted detector sessions pending.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-pcap",
+    "name": "Unified Blue Wi-Fi PCAP mode",
+    "category": "Unified Blue parity",
+    "status": "planned",
+    "detail": "Rolling PCAP export and general channel hopping pending. Existing lab packet counters are a separate bounded tool.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-skyspy",
+    "name": "Sky Spy Remote ID",
+    "category": "Unified Blue parity",
+    "status": "planned",
+    "detail": "Raw Wi-Fi capture integration, ASTM F3411 decoder and reference telemetry fixtures needed.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-blesniff",
+    "name": "BLE advertising PCAP",
+    "category": "Unified Blue parity",
+    "status": "planned",
+    "detail": "BlueZ aggregated discovery is not passive raw advertising capture; HCI report capture and correct PCAP framing needed.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
+  },
+  {
+    "id": "unified-axeoff",
+    "name": "AXEOFF mode",
+    "category": "Unified Blue parity",
+    "status": "planned",
+    "detail": "Combined BLE/Wi-Fi signatures, continuous headless operation and audio alerts pending.",
+    "source": "https://github.com/colonelpanichacks/oui-spy-unified-blue"
   }
 ]

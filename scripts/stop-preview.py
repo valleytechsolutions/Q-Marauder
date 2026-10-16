@@ -20,7 +20,7 @@ args = (proc / "cmdline").read_bytes().split(b"\0")
 if b"-m" not in args or b"qmarauder" not in args or (proc / "cwd").resolve() != root:
     raise SystemExit("PID no longer identifies this checkout's preview; refusing to signal it")
 os.kill(pid, signal.SIGINT)
-for _ in range(150):
+for _ in range(280):
     if not proc.exists() or (proc / "stat").read_text().split()[2] == "Z":
         print("Preview stopped; observations retained")
         pidfile.unlink(missing_ok=True)

@@ -6,6 +6,7 @@ const MenuEntry menuEntries[] = {
   {0,"Recon",11,0},
   {0,"WiFi",1,0},
   {0,"Bluetooth",6,0},
+  {0,"Settings",12,0},
   {0,"GPS",9,0},
   {0,"Device",10,0},
   {0,"Counter surveillance",13,0},
@@ -93,6 +94,8 @@ const MenuEntry menuEntries[] = {
   {6,"Back",0,0},
   {6,"Scan BLE",-1,2},
   {6,"BLE results",-1,13},
+  {6,"BLE foxhunt",-1,19},
+  {6,"GATT inventory",-1,20},
   {6,"Sniffers",7,0},
   {6,"Bluetooth Attacks",8,0},
   {7,"Back",6,0},
@@ -138,10 +141,12 @@ const MenuEntry menuEntries[] = {
   {11,"Wardrive",-1,3},
   {11,"Stop survey",-1,4},
   {11,"Live status",-1,7},
-  {12,"Back",10,0},
+  {12,"Back",0,0},
   {12,"Themes",14,0},
   {12,"Calibrate touch",-1,6},
   {13,"Back",0,0},
+  {13,"BLE watchlist scan",-1,18},
+  {13,"BLE foxhunt",-1,19},
   {13,"Dragon Detector",-1,0},
   {13,"Axeoff",-1,0},
   {13,"Squachwach",-1,0},
@@ -151,4 +156,4 @@ const MenuEntry menuEntries[] = {
   {14,"Biscuit Shop",-1,10},
   {14,"Valleytech",-1,11},
 };
-constexpr int MENU_ENTRY_COUNT = 147;
+constexpr int MENU_ENTRY_COUNT = 152;
