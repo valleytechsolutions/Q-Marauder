@@ -25,11 +25,28 @@ and are included unchanged. They are excluded
 from this project's MIT grant. Their respective owners retain rights to the marks
 and artwork; this repository does not grant trademark rights or imply endorsement.
 
+## Hardware photographs
+
+The original assembly and pre-initialization photographs in `docs/images/` were
+provided by the project owner for this repository's instructions. They are excluded
+from the MIT code grant; no rights to background objects or visible third-party
+marks are asserted. Captions distinguish the pre-firmware state from working software.
+The browser startup screenshot contains the same supplied brand assets and carries
+their artwork-rights exclusions.
+
 ## Arduino bridge
 
 The MCU targets use separately installed Arduino_RouterBridge.
 The RouterBridge library and Arduino platform retain their upstream licenses.
 No Arduino runtime binaries are redistributed in this alpha source package.
+
+## Optional USB radio modules
+
+The build helper downloads pinned Arduino Linux source separately. Linux USB/IP
+and mt76/mt7921 modules retain their upstream GPL licenses; they are not MIT and
+no compiled kernel module is bundled in this source release. Debian's MediaTek
+firmware and usbipd-win retain their respective licenses. The repository includes
+the exact source commit, archive digest and module-build recipe.
 
 ## Native TFT
 

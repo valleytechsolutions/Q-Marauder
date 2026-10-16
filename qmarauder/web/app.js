@@ -65,11 +65,11 @@ function renderDiagnostics() {
   const entries=[
     ["RADIO DRIVER",c.interfaces.map(x=>x.driver).join(", ")||"Not detected",c.interfaces.map(x=>x.name).join(", ")||"Run on the UNO Q"],
     ["MONITOR MODE",c.monitor_advertised===null?"Unknown":c.monitor_advertised?"Advertised":"Not advertised","Advertisement does not prove packet reception"],
-    ["PACKET INJECTION","Not verified","Needs a successful directed-response test; see the lab report"],
+    ["PACKET INJECTION",state.lab?.injection_observed ? "Observed in last test" : "Not verified","Needs a successful directed-response test; see the lab report"],
     ["TFT DISPLAY",state.display?.connected?"Native portrait UI":"Not connected",state.display?.error || (state.display?.connected?"320 x 480 / direct touch / "+state.display.touch:"Install the UNO shield MCU target")],
     ["GPS RECEIVER",state.gps?"Fresh fix":"No fix","Local gpsd · coordinates never fabricated"],
     ["PLATFORM",c.platform,"Debian service + separate MCU display firmware"],
-    ["USB RADIO DRIVER",c.kernel?.options?.MT7921U === "disabled" ? "MT7921 USB missing" : ["y","m"].includes(c.kernel?.options?.MT7921U) ? "MT7921 USB configured" : "Not measured","A PC-connected adapter needs forwarding support on both systems"],
+    ["USB RADIO DRIVER",c.interfaces.some(x=>x.driver === "mt7921u") ? "MT7921 USB attached" : c.kernel?.modules?.mt7921u?.available ? "MT7921 module installed" : c.kernel?.options?.MT7921U === "disabled" ? "MT7921 USB missing" : ["y","m"].includes(c.kernel?.options?.MT7921U) ? "MT7921 USB configured" : "Not measured","PC forwarding must remain connected; use Lab report for measured RF results"],
     ["LAB HELPER",c.lab?.configured ? "Configured" : "Setup required",c.lab?.reason || "Fixed, bounded jobs for your configured lab AP"]
   ];
   $("diagnostics").replaceChildren(...entries.map(([label,value,note])=>{const box=elem("article",undefined,"diagnostic");box.append(elem("label",label),elem("strong",value),elem("p",note));return box;}));

@@ -58,6 +58,15 @@ class ResultTests(unittest.TestCase):
             for call in call.call_args_list:
                 if call.args[0] == "qm.resultChunk": self.assertLessEqual(len(call.args[3]), 128)
 
+    def test_supplemental_usb_module_is_not_reported_missing(self):
+        state = {"capabilities": {
+            "interfaces": [{"name": "wlan1", "driver": "mt7921u"}],
+            "kernel": {"options": {"MT7921U": "disabled"},
+                       "modules": {"mt7921u": {"loaded": True, "available": True}}}}}
+        payload = result_page(state, 3, 1)[2]
+        self.assertIn("Attached / driver loaded", payload)
+        self.assertNotIn("Driver missing", payload)
+
     def test_failed_chunk_never_commits_a_partial_page(self):
         with tempfile.TemporaryDirectory() as directory:
             link = DisplayLink(Mock(), directory, Mock(side_effect=["7,1,0", False]))

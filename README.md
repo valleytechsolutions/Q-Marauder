@@ -5,6 +5,12 @@
 Black Wire Militia × Marauder-inspired tooling, with a graphite, cyan, and red UI.
 MIT application code. Independent project; not an official JustCallMeKoko release.
 
+**[Get started: Windows USB installer + photos](docs/GETTING-STARTED.md)** ·
+**[Bill of materials](docs/BOM.md)** · **[Downloads](https://github.com/valleytechsolutions/Q-Marauder/releases)** ·
+**[External Alfa radio](docs/USB-RADIO.md)**
+
+<img src="docs/images/uno-q-shield-side.webp" width="500" alt="Actual UNO Q and red parallel TFT shield assembly, connected to a PC by USB">
+
 > **0.1.0 foundation alpha — not a full Marauder port or flashable OS image.**
 > Runs on the UNO Q's existing Debian installation. The native ILI9486 display now renders.
 > Upright portrait, direct touch and theme switching are confirmed on the test shield; see [display setup](docs/DISPLAY.md) for the remaining checks.
@@ -23,10 +29,22 @@ MIT application code. Independent project; not an official JustCallMeKoko releas
 - BWM, Marauder, Biscuit Shop and Valleytech TFT themes with their supplied background artwork.
 - Native Wi-Fi/BLE result pages with tap-to-open details.
 - Optional bounded lab recon, injection-check and deauth backends, with local report
-  history and a separate privileged worker. Stock-radio capture/injection tests have
-  not succeeded; these RF functions are not verified. See [lab setup](docs/LAB.md).
+  history and a separate privileged worker. PC-forwarded Alfa monitor reception is
+  verified; injection remains unverified and deauth stays gated. See [lab setup](docs/LAB.md).
 
-## Quick start on the UNO Q
+## Easiest installation: Windows + USB
+
+Complete Arduino's first setup, extract this repository/release, and place Google's
+Platform-Tools in `.tools/platform-tools`. Double-click **Install-QMarauder.cmd**.
+It detects the board, installs the console, backs up and uploads the portrait TFT
+sketch, and opens the dashboard. Only the tested factory display core is accepted.
+After a reboot, **Start-QMarauder.cmd** starts the console again.
+
+Follow the [illustrated getting-started guide](docs/GETTING-STARTED.md) for exact
+steps, calibration, troubleshooting, and the console-only option. No replacement
+Debian image or browser-only flasher is supplied in this alpha.
+
+## Linux / SSH quick start
 
 The supplied Arduino Debian image already provides Python, NetworkManager, and BlueZ.
 No Python packages are required for the console.
@@ -71,11 +89,22 @@ mode support. Live monitor tests returned zero packets; ten directed probe
 submissions returned no responses. Capture and injection remain **unverified**.
 Advanced Marauder functions remain individually tracked in
 [the parity plan](docs/PARITY.md) and the Modules view. A compatible external radio
-is the next validation path. The detected PC-connected MT7921 adapter needs both a
-Linux connection path and drivers missing from this board's current kernel. See
+now works for scanning and monitor reception: the PC-connected MT7921 uses USB/IP
+and supplemental modules built for this board's exact kernel. Injection checks have
+not received replies. See
 [USB radio support](docs/USB-RADIO.md).
 
 ## Development
+
+| Folder | Purpose |
+| --- | --- |
+| `qmarauder/` | Debian console, radio workers, storage and browser UI |
+| `firmware/uno_shield/` | Portrait TFT and resistive-touch sketch |
+| `scripts/` | Install, launch, flash, diagnostics and release helpers |
+| `docs/` | Illustrated setup, BOM, hardware evidence and feature status |
+| `packaging/` | Optional systemd console and restricted radio worker units |
+| `tests/` | Backend, protocol, parser and native touch checks |
+| `licenses/` | Upstream license notices |
 
 ```sh
 python3 -m unittest discover -s tests -v

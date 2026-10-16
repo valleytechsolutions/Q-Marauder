@@ -20,6 +20,7 @@ arduino-cli lib install 'Arduino_RouterBridge@0.4.3' 'Arduino_RPClite@0.3.1' \
 arduino-cli compile --fqbn arduino:zephyr:unoq --build-path "$build" "$root/firmware/uno_shield"
 backup="$data/mcu-before-q-marauder.bin"
 if [ ! -f "$backup" ]; then
+  echo 'Saving the first full MCU recovery backup. This can take several minutes; keep USB powered.'
   # Fixed address/length for the UNO Q STM32U585's 2 MiB internal flash.
   /opt/openocd/bin/openocd -d2 -s /opt/openocd \
     -s /opt/openocd/share/openocd/scripts -f openocd_gpiod.cfg \

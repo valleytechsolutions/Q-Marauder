@@ -116,8 +116,24 @@ class LabTests(unittest.TestCase):
         self.assertEqual(radio.send.call_count, 10)
         for call in radio.send.call_args_list:
             frame = helper.decode_frame(call.args[0])
-            self.assertEqual(frame["destination"], BSSID)
+            self.assertEqual(frame["destination"], b"\xff" * 6)
+            self.assertEqual(frame["bssid"], b"\xff" * 6)
+            self.assertIn(PROFILE["ssid"].encode(), call.args[0])
             self.assertEqual(frame["subtype"], 4)
+
+    def test_idle_usb_radio_restores_management_after_setup_failure(self):
+        calls = []
+        def command(*args):
+            calls.append(args)
+            if "NM-MANAGED" in " ".join(args): return "yes\n"
+            if args == ("ip", "link", "set", "qmmon", "up"):
+                raise RuntimeError("USB disconnected")
+            return ""
+        with patch.object(helper, "target_for", return_value=(dict(bssid=PROFILE["bssids"][0], frequency=2412), False)), patch.object(helper.Path, "exists", return_value=False), patch.object(helper, "command", side_effect=command):
+            with self.assertRaisesRegex(RuntimeError, "USB disconnected"):
+                helper.execute("recon", PROFILE)
+        self.assertIn(("nmcli", "device", "set", "wlan0", "managed", "no"), calls)
+        self.assertEqual(calls[-2:], [("iw", "dev", "qmmon", "del"), ("nmcli", "device", "set", "wlan0", "managed", "yes")])
 
     def test_deauth_is_three_frames_and_never_claims_disconnect(self):
         radio = Mock()

@@ -1,5 +1,8 @@
 # Installation, startup, and recovery
 
+New users: start with the [illustrated Windows installer guide](GETTING-STARTED.md)
+and [bill of materials](BOM.md). This page covers manual deployment and recovery.
+
 ## Keep Arduino Debian as the board-support base
 
 The first release is a user-space application, not a replacement Linux image. Use
@@ -74,7 +77,8 @@ Arduino's [official flasher](https://docs.arduino.cc/software/app-lab/configure/
 replaces the OS and stored data. Use it only as an explicit recovery/reimage step.
 There is no Q-Marauder OS image in this release.
 
-Next distribution work: signed releases, dependency preflight, board/firmware
-compatibility manifest, update/rollback integration, then a browser-guided local
-installer. A genuine browser-only flasher needs demonstrated USB/bootloader support
+The Windows launcher checks board identity and the supported display core, then
+runs the source installer and TFT uploader. ZIP and tar.gz releases include the
+same allowlisted source files and SHA-256 checksums. Signed releases and broader
+runtime support remain future work. A genuine browser-only flasher needs demonstrated USB/bootloader support
 and recovery testing; a button that merely downloads a file is not a web flasher.

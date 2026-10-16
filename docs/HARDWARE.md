@@ -20,8 +20,8 @@ network names, addresses, and scan logs are intentionally omitted from the repos
 | GPS | No receiver/fix validated |
 | Privilege | Unprivileged console; fixed-action root radio socket installed and tested |
 | Boot service | Radio socket enabled; console boot service not enabled, source preview remains in use |
-| PC USB radio | 0e8d:7961 (MT7921 family), Wi-Fi driver error on Windows; not attached to board |
-| USB radio kernel support | MT7921U and USB/IP disabled in installed UNO Q kernel |
+| PC USB radio | 0e8d:7961 (MT7921 family), imported through usbipd/ADB; scans and monitor receive verified |
+| USB radio kernel support | Factory config disables MT7921U/USB-IP; exact-source supplemental modules now loaded |
 
 ## Completed acceptance checks
 
@@ -52,7 +52,15 @@ network names, addresses, and scan logs are intentionally omitted from the repos
   devices; saved orientation, affine calibration and Valleytech theme matched RPC.
 - Installed the fixed-action socket worker and verified configuration access without
   sudo from the application. Lab reports now persist across application restarts.
-- These results do not validate cold boot, GPS, raw capture, injection, or console boot startup.
+- Later PC-forwarded Alfa tests verified real monitor reception on both lab bands.
+  Injection received no matching responses, including an independent Aircrack-ng check.
+- Windows installation launcher exercised end to end: board/core detection,
+  application update, own-preview restart, full 2 MiB MCU backup, compile and sketch
+  upload succeeded. The original matching runtime was retained.
+- 57 Python tests passed on Debian; Windows passed 56 with the POSIX lock test skipped.
+- The socket-activated worker returned real external-radio capture counters through
+  the console API, with report persistence and NetworkManager ownership restored.
+- These results do not validate cold boot, GPS, injection, or console boot startup.
 
 `iw` was initially absent. For read-only probing, Debian's arm64 `iw` package was downloaded
 and extracted under the user's cache without installing a system package. This

@@ -4,8 +4,9 @@ Wi-Fi AP discovery and BLE discovery work through NetworkManager and BlueZ witho
 root. The native TFT now shows paginated results, signal values and device details.
 The separate lab helper implements **passive packet metadata**, a **10-probe directed
 injection check**, and a **3-frame deauthentication test**. These backends have automated
-tests, but the stock onboard radio returned **zero monitor packets and no directed
-responses** in live tests. Capture and injection are **not validated**. These are not full Marauder
+tests. The stock onboard radio returned **zero monitor packets and no directed
+responses**. The PC-forwarded Alfa provides **verified monitor reception on
+2.4/5 GHz**; injection remains unverified. These are not full Marauder
 attack parity. Other unported menu entries remain marked planned.
 
 ## One-time Debian admin setup
@@ -53,8 +54,9 @@ file disables the legacy sudo entry point. To disable all access, also stop/disa
 3. **WiFi → Sniffers → Lab packet recon**: listen for eight seconds, counting
    configured lab frames, beacons, deauthentication frames and observed clients.
    No packet payloads or captures are saved by this helper.
-4. **WiFi → Attacks → Injection check**: send at most ten directed probe requests
-   to one allowlisted AP. A unique test source address and received AP responses
+4. **WiFi → Attacks → Injection check**: send at most ten probes naming the configured
+   lab SSID, with standard broadcast receiver/BSSID fields. Only replies from the
+   selected allowlisted AP count. A unique test source address and received AP responses
    distinguish radio reception from local transmit echoes. No response means
    inconclusive, not proof that every form of injection is unsupported.
 5. **WiFi → Attacks → Lab deauth (3 frames)**: send three deauthentication frames
@@ -67,8 +69,10 @@ frequency. Missing or mismatched channel information blocks transmission.
 The browser's **System → Lab radio tests** provides the same bounded actions.
 
 The helper uses a temporary `qmmon` monitor interface and removes it after each job,
-including errors. It does not disable NetworkManager or disconnect the managed
-interface. While that interface is connected, it only selects a configured AP on
+including errors. For a disconnected external adapter it temporarily releases that
+device from NetworkManager and restores ownership afterward, preventing background
+scans from retuning it. It does not stop NetworkManager or disconnect a connected
+management interface. While that interface is connected, it only selects a configured AP on
 the existing channel. Testing a different channel can require a separate radio.
 An existing `qmmon` is treated as a conflict, never deleted automatically.
 
@@ -93,9 +97,10 @@ history, not a tamper-resistant audit log.
   isolated test with the managed connection disabled and channel tuning accepted.
 - A directed probe check submitted ten frames but received no responses. Submission
   is not evidence of RF transmission. No deauthentication test was transmitted.
-- External-radio capture/injection and actual client-disconnect behavior: unverified.
-  The PC-connected MT7921 adapter currently needs drivers and a Linux connection
-  path; see [USB radio support](USB-RADIO.md).
+- External MT7921 USB radio: forwarding, AP scans and lab monitor reception verified.
+  Ten-probe checks on 2.4/5 GHz and an independent Aircrack-ng check received no
+  matching injection replies. Actual client-disconnect behavior remains unverified;
+  no deauth test was transmitted. See [USB radio support](USB-RADIO.md).
 - BLE attack families, portals, arbitrary frame attacks and full upstream parity:
   not implemented. Wardriving work is deferred.
 

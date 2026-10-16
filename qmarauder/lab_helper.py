@@ -158,10 +158,22 @@ def execute(action, profile):
             raise RuntimeError("Run a successful injection check on this lab AP first (valid for 10 minutes)")
     if Path("/sys/class/net", MONITOR).exists():
         raise RuntimeError("qmmon already exists; inspect it before retrying")
-    created = False
+    created, restore_management = False, False
+    source = b"\x02" + secrets.token_bytes(5)
     try:
+        # An idle USB adapter still scans under NetworkManager, which can prevent
+        # channel tuning or move the monitor during a test. Never detach a connected
+        # management radio. Restore ownership even when setup/capture fails.
+        if not connected:
+            managed = command("nmcli", "--get-values", "GENERAL.NM-MANAGED", "device", "show", profile["interface"]).strip()
+            if managed == "yes":
+                command("nmcli", "device", "set", profile["interface"], "managed", "no")
+                restore_management = True
+                command("ip", "link", "set", profile["interface"], "down")
         command("iw", "dev", profile["interface"], "interface", "add", MONITOR, "type", "monitor")
         created = True
+        if action == "injection":
+            command("ip", "link", "set", MONITOR, "address", source.hex(":"))
         command("ip", "link", "set", MONITOR, "up")
         if not connected:
             command("iw", "dev", MONITOR, "set", "freq", str(target["frequency"]))
@@ -172,7 +184,6 @@ def execute(action, profile):
             raise RuntimeError("Monitor channel is not verified on the configured lab AP; transmission blocked")
         # A unique locally administered source makes replies attributable to this test,
         # rather than the managed interface's unrelated background probes.
-        source = b"\x02" + secrets.token_bytes(5)
         stats = dict(action=action, bssid=target["bssid"], frequency=target["frequency"],
                      interface=profile["interface"], monitor_frequency=actual_frequency,
                      received=0, decoded=0, frames=0, beacons=0, deauth_seen=0, stations=0, sent=0, probe_responses=0)
@@ -186,9 +197,11 @@ def execute(action, profile):
                 now = time.monotonic()
                 if action == "injection" and stats["sent"] < 10 and now >= next_send:
                     ssid = profile["ssid"].encode()
-                    rates = b"\x01\x08\x8c\x12\x98\x24\xb0\x48\x60\x6c" if target["frequency"] >= 4900 else b"\x01\x04\x82\x84\x8b\x96"
+                    rates = b"\x01\x08\x8c\x12\x98\x24\xb0\x48\x60\x6c" if target["frequency"] >= 4900 else b"\x01\x08\x82\x84\x8b\x96\x0c\x12\x18\x24\x32\x04\x30\x48\x60\x6c"
                     body = bytes([0, len(ssid)]) + ssid + rates
-                    frame = management_frame(4, bssid, source, bssid, stats["sent"], body)
+                    # Directed SSID discovery uses broadcast receiver/BSSID fields.
+                    # Count only replies from the configured AP to this unique source.
+                    frame = management_frame(4, b"\xff" * 6, source, b"\xff" * 6, stats["sent"], body)
                     if radio.send(frame) != len(frame):
                         raise RuntimeError("Incomplete probe transmission")
                     stats["sent"] += 1; next_send = now + 0.3
@@ -233,8 +246,12 @@ def execute(action, profile):
                          else "Passive lab metadata only; no packet payloads stored.")
         return stats
     finally:
-        if created:
-            command("iw", "dev", MONITOR, "del")
+        try:
+            if created:
+                command("iw", "dev", MONITOR, "del")
+        finally:
+            if restore_management:
+                command("nmcli", "device", "set", profile["interface"], "managed", "yes")
 
 
 def main():

@@ -23,7 +23,18 @@ def kernel_support():
     for name in ("USBIP_CORE", "USBIP_VHCI_HCD", "MT7921U"):
         match = re.search(rf"^CONFIG_{name}=([ym])$", config, re.M)
         options[name] = match[1] if match else "disabled" if source else "unknown"
-    return dict(release=release, config_source=source, options=options)
+    modules = {}
+    for name in ("usbip_core", "vhci_hcd", "mt7921u"):
+        loaded = (Path("/sys/module") / name).is_dir()
+        available = loaded
+        if not available and shutil.which("modinfo"):
+            try:
+                result = subprocess.run(["modinfo", "-F", "filename", name], capture_output=True, timeout=3)
+                available = result.returncode == 0
+            except (OSError, subprocess.TimeoutExpired):
+                pass
+        modules[name] = dict(loaded=loaded, available=available)
+    return dict(release=release, config_source=source, options=options, modules=modules)
 
 
 def run(argv: list[str], timeout: int = 20) -> str:
