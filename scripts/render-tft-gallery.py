@@ -45,7 +45,7 @@ def main():
     drawing=drawing.replace('#include <Arduino_RouterBridge.h>','')
     drawing=drawing.replace('#include "Parallel9486.h"','#include "Panel.h"')
     drawing=drawing.replace('#include "TouchControls.h"','')
-    scenes={'bwm-home':(0,0,0),'marauder-detection':(1,13,0),
+    scenes={'bwm-boot':(0,-1,0),'bwm-home':(0,0,0),'marauder-detection':(1,13,0),
             'biscuit-settings':(2,12,0),'valleytech-ble':(3,15,0),'theme-picker':(0,14,0),
             'linux-tools':(3,18,0),'linux-analysis':(1,18,1),'linux-history-menu':(0,18,2)}
     output.mkdir(parents=True,exist_ok=True)
@@ -56,7 +56,8 @@ int main(int argc,char **argv) {
   if(argc!=5) return 2;
   theme=std::atoi(argv[1]); menu=std::atoi(argv[2]); page=std::atoi(argv[3]);
   orientation=0; touch.calibrated=true; connected=false;
-  render(); lcd.save(argv[4]);
+  if(menu<0) { bootScreen(); animateBoot(); } else render();
+  lcd.save(argv[4]);
 }
 '''
         cpp=temporary/'preview.cpp';cpp.write_text(main_cpp)

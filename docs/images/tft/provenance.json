@@ -6,9 +6,14 @@
   ],
   "observations": "none; zero counters; bridge disconnected",
   "source": "firmware/uno_shield/uno_shield.ino",
-  "source_sha256": "a758d730d25231cd7b821c64333c757fdb77b3e7fdd3ce793ed707e3dc742257",
+  "source_sha256": "84ab40400a770ecd4f08f1fba6440f7be18fcc0632d4080e816dd091bca661a9",
   "gfx_version": "1.12.6",
   "scenes": {
+    "bwm-boot": [
+      0,
+      -1,
+      0
+    ],
     "bwm-home": [
       0,
       0,

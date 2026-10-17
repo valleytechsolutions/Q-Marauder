@@ -40,14 +40,14 @@ must be tested separately before publishing a universal firmware binary.
   are inactive at the ends; gaps between targets do not activate neighboring items.
 - On the main menu the left footer button opens **Settings**; choose **Themes** there. Details have a Back button.
 - FreeSans menu text, wrapped long labels, and large targets support finger input.
-- 18 groups / 174 selections follow Marauder's main menu branches, including Wi-Fi
+- 19 groups / 198 selections follow Marauder's main menu branches, including Wi-Fi
   Sniffers, Scanners, Attacks and General; Bluetooth Sniffers and Attacks; GPS and Device.
 - Unported leaves show **Port planned**. Menu presence does not mean backend parity.
 - Scan APs, BLE discovery, survey start and stop route to the existing Linux worker.
   Wi-Fi/BLE results now appear in paginated native lists with tap-to-open details.
   Exports remain in the USB console. Scan failures remain visible; old results are
   labeled while a new scan runs. Lab controls are described in [LAB.md](LAB.md).
-- Supplied BWM and Marauder artwork is encoded for the physical startup screen.
+- The supplied BWM logo and a moving red loader appear at physical startup.
   This is MCU application startup, not a replacement Linux bootloader screen.
 - **BWM** (red/graphite), **Marauder** (crimson/steel), and **Biscuit Shop** (amber/espresso) and **Valleytech** (silver/blue)
   themes apply immediately and persist through Linux. Each uses its supplied artwork
@@ -55,16 +55,25 @@ must be tested separately before publishing a universal firmware binary.
   Settings / Themes. The full source images remain unchanged; generated MCU assets
   fit the menu body, preserve transparency, and render at subdued brightness.
 
-First use starts with four portrait orientation candidates. Hold the USB connector
-at the bottom and wait for upright, normally readable text, then tap anywhere.
-Each candidate stays on screen for seven seconds after drawing. The test uses
+Startup now opens the portrait menu automatically, without orientation or touch
+calibration prompts. Hold the USB connector at the bottom. The firmware starts with
+the measured reference profile for the development shield; the Linux bridge restores
+your saved orientation and touch map together before saving anything from the MCU.
+The BWM loader animates for about 2.2 seconds after bridge initialization; it is an
+activity indicator, not a percentage of Linux startup. The menu can open while Linux
+is still starting. Live radio tools need the Linux console to be running.
+
+To adjust a different shield, use **Settings → Calibrate touch**. **Settings →
+Screen orientation** opens the four-layout selector.
+Wait for upright, normally readable text, then tap anywhere; each candidate stays
+on screen for seven seconds after drawing. This manual test uses
 software coordinate reflections with a fixed MADCTL value of `0x08`; X/Y reflection
 bits apply to every solid rectangle, including individual glyph pixels and logo runs.
 The panel accepted hardware MADCTL changes in register readback, but the owner
 reported mirror-written letters in all four hardware candidates. A software profile
 therefore needs visual validation rather than inference from the controller ID.
 
-The subsequent touch screen presents three circles: upper left, upper right, and
+Manual calibration presents three circles: upper left, upper right, and
 lower left. Press and release each center. These measurements produce a two-axis
 affine map that handles axis swapping, reflection, and skew. Degenerate or closely
 spaced targets are rejected. Version-2 calibration stores all six raw coordinates;
@@ -106,7 +115,10 @@ page replies are rejected; unchanged results are not retransmitted. The Linux se
 include the orientation and restore only when it matches; old records without an
 orientation are intentionally ignored. The MCU also rejects saved calibration
 after a manual orientation choice, so a fresh setup cannot silently reuse old values.
-Without the Linux service, setup repeats after MCU reset.
+Protocol `qm-display/11` restores the orientation and touch profile atomically at
+startup. Without the Linux service, the reference profile still opens the menu;
+custom settings return when the service reconnects. No calibration prompt opens
+automatically. The reference profile is not a guarantee for every shield clone.
 
 For a previously working display that remains blank after restart, use
 **Repair-Display.cmd** on Windows. It starts the Linux console and resets the MCU
@@ -127,5 +139,5 @@ saved portrait orientation and touch calibration restored after upload.
 Native pairing/hex keypad acceptance, new theme artwork appearance, cold boot,
 long-running touch reliability, and modern-core builds must be recorded before a
 general hardware release. The Linux service currently needs manual start or the
-documented systemd setup. The MCU firmware remains flashed, but restoring its saved
-orientation and calibration requires the Linux bridge.
+documented systemd setup. The MCU firmware remains flashed; custom saved settings
+require the Linux bridge, while the reference touch profile works locally.

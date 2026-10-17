@@ -76,6 +76,7 @@ class DisplayLink:
         self.saved_theme = None
         self.last_result = None
         self.controls = False
+        self.quiet_boot = False
         self.characteristic = ''
         self.characteristic_target = ''
         self.pair_prompt = None
@@ -165,6 +166,23 @@ class DisplayLink:
         self.status(orientation=value)
         return True
 
+    def sync_boot_profile(self):
+        pending = self.call('qm.profilePending')
+        if type(pending) is not bool:
+            raise ConnectionError('Display startup profile status is unavailable')
+        if not pending: return
+        try:
+            orientation = orientation_value(json.loads(self.orientation_path.read_text(encoding='utf-8')))
+            record = json.loads(self.path.read_text(encoding='utf-8'))
+            if not isinstance(record, dict) or orientation_value(record.get('orientation')) != orientation:
+                raise ValueError('Profile mismatch')
+            values = calibration_values(record.get('calibration'))
+        except (OSError, ValueError, TypeError):
+            accepted = self.call('qm.acceptProfile')
+        else:
+            accepted = self.call('qm.restoreProfile', orientation, *values)
+        if accepted is not True: raise ConnectionError('Display did not accept its saved startup profile')
+
     def sync_theme(self):
         with self.service.lock:
             pending = self.service.state.get('pending_theme')
@@ -244,6 +262,8 @@ class DisplayLink:
                 self.last_result = current
 
     def cycle(self):
+        # Restore before reading/persisting MCU defaults, including after a reset.
+        if self.quiet_boot: self.sync_boot_profile()
         state = self.service.snapshot()
         if state["error"]:
             headline = str(state['error'])[:68]
@@ -279,9 +299,10 @@ class DisplayLink:
             try:
                 if not linked:
                     protocol = self.call("qm.protocol")
-                    if not isinstance(protocol, str) or not protocol.startswith(("qm-display/7;", "qm-display/8;", "qm-display/9;", "qm-display/10;")):
+                    if not isinstance(protocol, str) or not protocol.startswith(("qm-display/7;", "qm-display/8;", "qm-display/9;", "qm-display/10;", "qm-display/11;")):
                         raise ConnectionError("Compatible portrait display firmware is required")
-                    self.controls = protocol.startswith(('qm-display/8;', 'qm-display/9;', 'qm-display/10;'))
+                    self.controls = protocol.startswith(('qm-display/8;', 'qm-display/9;', 'qm-display/10;', 'qm-display/11;'))
+                    self.quiet_boot = protocol.startswith('qm-display/11;')
                     self.pair_prompt = None
                     details = self.call("qm.diagnostics")
                     match = re.search(r"uptime_ms=(\d+)", details)

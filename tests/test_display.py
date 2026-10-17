@@ -2,11 +2,72 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, call, patch
 from qmarauder.display import DisplayLink, calibration_values, orientation_value, rpc
 
 
 class DisplayTests(unittest.TestCase):
+    def test_quiet_boot_restores_atomic_profile_before_any_default_is_saved(self):
+        with tempfile.TemporaryDirectory() as directory:
+            saved='v2,150,180,850,180,150,880'
+            record={'orientation':3,'calibration':saved}
+            service=Mock(state={'display':{}})
+            service.lock=__import__('threading').RLock()
+            service.snapshot.return_value=dict(error=None,stopping=False,busy=None,mission=None,
+                                               wifi=[],ble=[],sessions=[],gps=None)
+            rpc_call=Mock(side_effect=[True,True,True,'0,0','3','1',saved,'0,0,0'])
+            link=DisplayLink(service,directory,rpc_call)
+            link.quiet_boot=True
+            link.orientation_path.write_text('3')
+            link.path.write_text(json.dumps(record))
+            link.cycle()
+            self.assertEqual(rpc_call.call_args_list[:2],[
+                call('qm.profilePending'),call('qm.restoreProfile',3,150,180,850,180,150,880)])
+            self.assertEqual(json.loads(link.orientation_path.read_text()),3)
+            self.assertEqual(json.loads(link.path.read_text()),record)
+
+    def test_quiet_boot_missing_corrupt_or_mismatched_profile_uses_reference(self):
+        with tempfile.TemporaryDirectory() as directory:
+            rpc_call=Mock(return_value=True)
+            link=DisplayLink(Mock(),directory,rpc_call)
+            link.sync_boot_profile()  # New installation: no files yet.
+            rpc_call.assert_called_with('qm.acceptProfile')
+            link.orientation_path.write_text('2')
+            for record in ('broken',json.dumps({'orientation':1,'calibration':'v2,150,180,850,180,150,880'}),
+                           json.dumps({'orientation':2,'calibration':'v2,0,0,1,1,2,2'})):
+                link.path.write_text(record)
+                rpc_call.reset_mock()
+                link.sync_boot_profile()
+                self.assertEqual(rpc_call.call_args_list,[call('qm.profilePending'),call('qm.acceptProfile')])
+
+    def test_quiet_boot_manual_profile_is_not_replaced(self):
+        link=DisplayLink(Mock(),Path('unused'),Mock(return_value=False))
+        link.sync_boot_profile()
+        link.call.assert_called_once_with('qm.profilePending')
+
+    def test_quiet_boot_restore_failure_does_not_persist_defaults(self):
+        with tempfile.TemporaryDirectory() as directory:
+            record={'orientation':3,'calibration':'v2,150,180,850,180,150,880'}
+            service=Mock()
+            rpc_call=Mock(side_effect=[True,False,True,True])
+            link=DisplayLink(service,directory,rpc_call)
+            link.quiet_boot=True
+            link.orientation_path.write_text('3')
+            link.path.write_text(json.dumps(record))
+            with self.assertRaises(ConnectionError): link.cycle()
+            service.snapshot.assert_not_called()
+            self.assertEqual(json.loads(link.path.read_text()),record)
+            self.assertEqual(link.orientation_path.read_text(),'3')
+            link.sync_boot_profile()  # Retried, with the original saved profile intact.
+            self.assertEqual(rpc_call.call_args_list[1],rpc_call.call_args_list[3])
+
+    def test_quiet_boot_invalid_status_stops_before_saving_defaults(self):
+        for response in (None,0,1,'false','true'):
+            link=DisplayLink(Mock(),Path('unused'),Mock(return_value=response))
+            link.quiet_boot=True
+            with self.assertRaises(ConnectionError): link.cycle()
+            link.service.snapshot.assert_not_called()
+
     def test_native_characteristic_cannot_be_reused_for_another_target(self):
         characteristic='00002a19-0000-1000-8000-00805f9b34fb'
         target='00:11:22:33:44:55'

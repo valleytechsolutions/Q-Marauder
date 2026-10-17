@@ -71,7 +71,9 @@ An HDMI-connected monitor has not yet been physically validated. See the
 - A loopback-only dashboard accessed through USB ADB forwarding or an SSH tunnel.
 - Original BWM and Marauder artwork in the application startup screen.
 - Native 320 x 480 portrait firmware with direct row taps, large Back/page buttons,
-  19 menu groups, and 197 selections. Unported functions are explicitly marked planned.
+  19 menu groups, and 198 selections. Unported functions are explicitly marked planned.
+- BWM startup logo with an animated loader, silent touch-profile restoration and
+  no automatic calibration prompts. Manual adjustment remains in Settings.
 - Eight shared Linux radio tools, including channel surveys, Wi-Fi scan comparisons,
   BLE advertisement summaries and saved Bluetooth device inspection. The TFT can
   reopen saved Linux reports without repeating scans. [How to use them](docs/SURVEY-TOOLS.md).

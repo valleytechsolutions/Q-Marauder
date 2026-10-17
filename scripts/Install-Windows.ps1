@@ -63,6 +63,6 @@ if ($StartOnly) {
 }
 Board forward 'tcp:8788' 'tcp:8787'
 Write-Host 'Ready: http://127.0.0.1:8788'
-Write-Host 'Saved display settings restore through the console. If setup appears, select upright text and tap/release the three circles.'
+Write-Host 'The BWM loader opens the portrait menu without setup taps. Saved settings restore through the console; manual calibration is in Settings.'
 Write-Host 'After a board reboot, double-click Start-QMarauder.cmd. Boot-service setup is optional; see docs/INSTALL.md.'
 if (-not $NoBrowser) { Start-Process 'http://127.0.0.1:8788' }

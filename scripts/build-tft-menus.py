@@ -42,7 +42,7 @@ actions={"Scan APs":1,"Bluetooth Sniffer":2,"Wardrive":3,"Stop survey":4,
          "hci0 / onboard":34,"hci1 / secondary":35,"Listen HID reports":36,"Wi-Fi PCAP":37,"Write no response":38,
          "Flock Wi-Fi":39,"Flock BLE":40,"Sky Spy Wi-Fi":41,"Sky Spy BLE":42,"BLE Sniff PCAP":43,"Packet detector":44,
          "BLE beacon test":45,"Stop beacon test":46,"AXEOFF Wi-Fi":47,
-         "Linux report":52,"Port inventory":53,"Saved Linux reports":58}
+         "Linux report":52,"Port inventory":53,"Saved Linux reports":58,"Screen orientation":60}
 import sys
 sys.path.insert(0,str(root))
 from qmarauder.linux_tools import TOOLS
@@ -66,7 +66,7 @@ for index,(key,title,parent) in enumerate(menus):
     if index==2: found[1:1]=["Lab packet recon","Wi-Fi PCAP"]
     if index==4: found[2:2]=["Injection check","Lab deauth (3 frames)"]
     if index==11: found=["Back","Wardrive","Stop survey","Live status"]
-    if index==12: found=["Back","Themes","Calibrate touch","BLE adapter"]
+    if index==12: found=["Back","Themes","Calibrate touch","BLE adapter","Screen orientation"]
     if index==7: found[1:1]=["BLE Sniff PCAP","Flock BLE","Sky Spy BLE"]
     if index==13: found=["Back","Packet detector","Flock Wi-Fi","Flock BLE","Sky Spy Wi-Fi","Sky Spy BLE","BLE Sniff PCAP","AXEOFF BLE","AXEOFF Wi-Fi","BLE watchlist scan","BLE foxhunt","Wi-Fi PCAP","Dragon Detector","Squachwach"]
     if index==14: found=["Back","BWM","Marauder","Biscuit Shop","Valleytech"]

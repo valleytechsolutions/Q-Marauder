@@ -38,5 +38,6 @@ arduino-router-cli '$/serial/close' /dev/ttyHS1 >/dev/null
   upload -a 0x80F0000 "$build/uno_shield.ino.elf-zsk.bin"
 reopen
 trap - EXIT
-echo 'MCU uploaded. With USB at the bottom, select the readable orientation, then tap/release the three calibration circles.'
+echo 'MCU uploaded. With USB at the bottom, the BWM loader opens the portrait menu without setup taps.'
+echo 'Settings contains Calibrate touch and Screen orientation if your shield needs adjustment.'
 echo 'Run python3 -m qmarauder serve to connect the native menu to Linux.'

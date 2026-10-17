@@ -16,10 +16,11 @@ It refuses an untested core version. It does not reinstall Debian or replace the
 matching Zephyr runtime. The backup stays local and must never be published.
 
 Keep the Linux application and display firmware from the same revision (the native
-bridge uses protocol 6). First select the upright, readable portrait layout while
-holding USB at the bottom, then press/release the three calibration circles.
-The Linux service saves orientation, two-axis calibration, and theme for subsequent
-MCU starts. Vertical-only calibrations from older builds are not reused.
+bridge uses protocol 11). With USB at the bottom, the BWM logo and animated loader
+open the menu automatically. Startup uses a reference touch profile and silently
+restores the saved orientation, calibration and theme through Linux.
+**Settings → Calibrate touch** and **Settings → Screen orientation** remain available
+for manual adjustment. Vertical-only calibrations from older builds are not reused.
 
 To build without uploading:
 

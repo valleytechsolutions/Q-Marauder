@@ -68,3 +68,23 @@ it is not a photograph or physical touch acceptance evidence.
   HDMI/hub and UPS hardware acceptance remain outstanding.
 
 No new attack or injection validation was performed for this update.
+
+## BWM startup without calibration prompts — October 16, 2026
+
+- The owner confirmed the BWM loading screen leads directly to a working touch
+  menu, without orientation or calibration prompts.
+- MCU restart verification observed the loader, then the active menu. The saved
+  orientation, touch calibration and theme restored through protocol 11; the
+  three saved settings files remained byte-for-byte unchanged.
+- 128 Python tests pass on UNO Q Debian; Windows passes with one POSIX-only skip.
+  New bridge tests cover atomic restoration, missing/invalid profiles, manual
+  adjustment, failed restoration and protection against saving premature defaults.
+- Factory-core build/upload: 119,236-byte sketch, 3,656-byte globals. The loader
+  reuses the BWM menu asset instead of storing another large image. A larger initial
+  asset compiled but did not start on the factory runtime; the smaller build was
+  uploaded and its startup verified before publication.
+- Nine current gallery scenes include a rendered frame of the BWM loading screen.
+  Manual touch calibration and portrait orientation remain in Settings.
+
+This verifies the sketch startup and MCU-only reset, not unattended Linux-service
+startup after a complete power cycle. Live radio tools still need that service.

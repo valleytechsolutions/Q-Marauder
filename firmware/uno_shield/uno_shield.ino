@@ -33,7 +33,14 @@ const uint8_t orientations[]={1,3,0,2};
 int orientation=-1,orientationIndex=0;
 unsigned long orientationSince=0;
 uint32_t orientationReadback=0;
-bool splashPending=false,calibrationRestoreAllowed=false;
+// Reference profile measured on the supported red ILI9486 UNO shield.
+// Linux restores each owner's saved profile atomically, without showing setup.
+constexpr int BOOT_ORIENTATION=2;
+constexpr int BOOT_TOUCH[]={843,870,175,851,841,162};
+bool profilePending=true,manualOrientation=false,booting=true;
+bool calibrationRestoreAllowed=false;
+unsigned long bootStarted=0;
+int bootFrame=-1;
 struct ResultRow { String title,summary,detail,key; };
 ResultRow resultRows[4];
 int resultKind=0,resultPage=0,resultTotal=0,resultSequence=0;
@@ -88,13 +95,13 @@ void fitted(int x,int y,int width,String value,uint16_t color) {
   }
   label(x,y,value,color);
 }
-void logo(int x,int y,int width,const uint16_t *runs,size_t count) {
+void logo(int x,int y,int width,const uint16_t *runs,size_t count,int scale=2) {
   uint32_t position=0;
   for(size_t i=0;i<count;++i) {
     uint16_t remaining=runs[i*2];
     while(remaining) {
       uint16_t col=position%width,n=min(int(remaining),width-col);
-      lcd.fillRect(x+col*2,y+(position/width)*2,n*2,2,runs[i*2+1]);
+      lcd.fillRect(x+col*scale,y+(position/width)*scale,n*scale,scale,runs[i*2+1]);
       remaining-=n; position+=n;
     }
   }
@@ -167,20 +174,30 @@ void orientationScreen() {
   centered(0,452,320,String(orientationIndex+1)+" / 4",0x8492);
   orientationSince=millis();
 }
-void splash() {
+void bootScreen() {
   lcd.fillScreen(0);
-  logo(25,125,bwmWidth,&bwmRuns[0][0],sizeof(bwmRuns)/4);
-  logo(195,101,marauderWidth,&marauderRuns[0][0],sizeof(marauderRuns)/4);
-  centered(0,55,320,"Q-MARAUDER",themes[theme].text,3);
-  centered(0,352,320,"BWM x MARAUDER",themes[theme].accent);
-  centered(0,396,320,"UNO Q / TOUCH CONSOLE",themes[theme].muted,1);
-  delay(1000);
+  // Reuse the menu asset: the factory runtime has a 128 KiB LLEXT heap.
+  logo(16,12,bwmWidth,&bwmRuns[0][0],sizeof(bwmRuns)/4,4);
+  centered(0,348,320,"Q-MARAUDER",0xEF7D,3);
+  centered(0,386,320,"BLACK WIRE MILITIA",0xF800,1);
+  centered(0,452,320,"STARTING TOUCH CONSOLE",0xA514,1);
+  lcd.drawRoundRect(48,418,224,10,4,0x4208);
+  bootFrame=-1;
+}
+void animateBoot() {
+  unsigned long now=millis();
+  int frame=((now-bootStarted)/70)%36;
+  if(frame==bootFrame) return;
+  bootFrame=frame;
+  int step=frame<18?frame:35-frame;
+  lcd.fillRect(50,420,220,6,0);
+  lcd.fillRect(50+step*10,420,50,6,0xF800);
 }
 bool chooseOrientation(int value,bool restoring) {
   if(value<0 || value>3) return false;
   orientation=value; lcd.portraitAxes(value);
   touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=restoring;
-  splashPending=true; dirty=true; return true;
+  manualOrientation=false; dirty=true; return true;
 }
 bool isBack(const MenuEntry &entry) { return strcmp(entry.title,"Back")==0; }
 int countItems() { int n=0; for(const auto &e:menuEntries) if(e.menu==menu && !isBack(e))++n; return n; }
@@ -379,7 +396,8 @@ void activate(int target) {
   const auto &entry=itemAt(page*4+target-10);
   if(entry.child>=0) { if(entry.child==14) themeReturnMenu=menu; openMenu(entry.child); }
   else if(entry.action>=8 && entry.action<=11) { theme=entry.action-8; themeChosen=true; dirty=true; }
-  else if(entry.action==6) { touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=false; dirty=true; }
+  else if(entry.action==6) { profilePending=false; touch.calibrated=false; calibrationStep=0; calibrationRestoreAllowed=false; dirty=true; }
+  else if(entry.action==60) { profilePending=false; manualOrientation=true; orientation=-1; orientationIndex=0; orientationScreen(); dirty=false; }
   else if(entry.action==12 || entry.action==13) requestResults(entry.action-11);
   else if(entry.action==24 || entry.action==38) { writeWithoutResponse=entry.action==38; inputMode=1; inputPage=0; inputValue=""; dirty=true; }
   else if((entry.action>=39 && entry.action<=44) || entry.action==47) {
@@ -451,11 +469,12 @@ void pollTouch() {
     if(pressedHit>=10 && pressedHit<=13) lcd.drawRoundRect(10,Layout::rowTop+(pressedHit-10)*Layout::rowStride,300,64,6,themes[theme].accent);
   }
 }
-String protocol() { return "qm-display/10;portrait;direct-touch;themes;results;ble-lab;keypad;linux-tools;history"; }
+String protocol() { return "qm-display/11;portrait;direct-touch;themes;results;ble-lab;keypad;linux-tools;history;quiet-boot"; }
 String diagnostics() {
   return String("read_id=0x")+String(lcd.readId,HEX)+";render_ms="+renderMs+";uptime_ms="+millis()
       +";touch="+lastTouch.x+","+lastTouch.y+","+lastTouch.pressure+";menu="+menu+";page="+page
       +";orientation="+orientation+";theme="+theme+";calibration_step="+calibrationStep
+      +";booting="+(booting?1:0)+";profile_pending="+(profilePending?1:0)
       +";result_kind="+resultKind+";result_page="+resultPage+";result_count="+resultTotal;
 }
 String view() { return String(resultSequence)+","+resultKind+","+resultPage; }
@@ -492,7 +511,18 @@ String panelRegisters() {
       +";madctl=0x"+String(orientationReadback,HEX)+";current=0x"+String(lcd.readRegister(0x0B),HEX);
 }
 String getOrientation() { return orientation<0?"unset":String(orientation); }
-bool restoreOrientation(int value) { return orientation<0 && chooseOrientation(value,true); }
+bool restoreOrientation(int value) { return !manualOrientation && orientation<0 && chooseOrientation(value,true); }
+bool needsProfile() { return profilePending; }
+bool acceptProfile() { profilePending=false; return true; }
+bool restoreProfile(int value,int x0,int y0,int x1,int y1,int x2,int y2) {
+  if(!profilePending || value<0 || value>3) return false;
+  // set() validates the entire candidate before changing the active map.
+  if(!touch.set(x0,y0,x1,y1,x2,y2)) return false;
+  orientation=value; lcd.portraitAxes(value); calibrationStep=0;
+  profilePending=false; calibrationRestoreAllowed=false;
+  if(booting) bootScreen();
+  dirty=true; return true;
+}
 String getTheme() { return themeChosen?String(theme):"unset"; }
 bool setTheme(int value) {
   if(value<0 || value>3) return false;
@@ -538,7 +568,10 @@ bool update(int wifi,int ble,int sessions,bool gps,String status) {
   headline=status; lastUpdate=millis(); connected=true; return true;
 }
 void setup() {
-  lcd.begin(); analogReadResolution(10); orientationScreen();
+  lcd.begin(); analogReadResolution(10);
+  orientation=BOOT_ORIENTATION; lcd.portraitAxes(orientation);
+  touch.set(BOOT_TOUCH[0],BOOT_TOUCH[1],BOOT_TOUCH[2],BOOT_TOUCH[3],BOOT_TOUCH[4],BOOT_TOUCH[5]);
+  bootStarted=millis(); bootScreen();
   Serial1.begin(115200); Serial1.print("MCU starting RPC Bridge communication"); Serial1.flush();
   Bridge.begin();
   Bridge.provide_safe("qm.protocol",protocol); Bridge.provide_safe("qm.diagnostics",diagnostics);
@@ -551,13 +584,21 @@ void setup() {
   Bridge.provide_safe("qm.setTheme",setTheme);
   Bridge.provide_safe("qm.view",view); Bridge.provide_safe("qm.results",results);
   Bridge.provide_safe("qm.resultChunk",resultChunk);
+  Bridge.provide_safe("qm.profilePending",needsProfile); Bridge.provide_safe("qm.acceptProfile",acceptProfile);
+  Bridge.provide_safe("qm.restoreProfile",restoreProfile);
+  // Give the loader time to animate even if router startup was slow.
+  bootStarted=millis();
 }
 void loop() {
   if(connected && millis()-lastUpdate>15000) { connected=false; headline="Linux offline / data stale"; statusDirty=true; }
   if(orientation<0 && millis()-orientationSince>7000 && !lastTouch.down && !releasePending) {
     orientationIndex=(orientationIndex+1)%4; orientationScreen();
   }
-  if(splashPending) { splashPending=false; splash(); dirty=true; }
+  if(booting) {
+    animateBoot();
+    if(millis()-bootStarted<2200) { delay(5); return; }
+    booting=false; dirty=true;
+  }
   pollTouch();
   if(dirty) render();
   else if(statusDirty && orientation>=0 && touch.calibrated) statusBar();

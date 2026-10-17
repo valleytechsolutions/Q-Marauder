@@ -57,8 +57,11 @@ The launcher:
 4. Uploads the sketch, leaving the Debian image and matching Zephyr runtime in place.
 5. Opens the browser console at **http://127.0.0.1:8788**.
 
-On the TFT, hold **USB at the bottom**. Tap the orientation whose text is upright
-and readable, then firmly tap and release each calibration circle. Tap **WiFi →
+On the TFT, hold **USB at the bottom**. The BWM logo and moving loader lead straight
+to the menu, without setup taps. Existing orientation and touch settings restore
+silently; new installations use the supported shield's reference profile.
+If your clone needs adjustment, use **Settings → Calibrate touch** or **Settings →
+Screen orientation**. Then tap **WiFi →
 Scan APs**; after completion, tap a network row for details. **Settings → Themes** selects BWM,
 Marauder, Biscuit Shop or Valleytech. The Linux console saves the orientation,
 touch calibration and theme. Browser **Settings → Themes** changes both interfaces.
@@ -126,8 +129,8 @@ Advanced PowerShell examples from the extracted folder:
 | Unsupported core | Use `-AppOnly`; record `arduino-cli core list` and consult [firmware notes](../firmware/README.md). The uploader deliberately stops before changing an untested runtime. |
 | Previously working screen goes blank | Run **Repair-Display.cmd** and wait about 15 seconds. If still blank, check power and header seating with the board unplugged. Report whether it is white, black or unlit. |
 | White panel on first install | Backlight power alone is not a working GUI. Check that the TFT sketch was successfully uploaded and the shield matches the supported parallel wiring. |
-| Mirrored/upside-down text | Select the readable orientation during setup; use the display's recalibration option if needed. |
-| Touch misses buttons | Recalibrate using press **and release** at all three circles. Avoid holding a finger across targets. |
+| Mirrored/upside-down text | Open **Settings → Screen orientation**. Select the readable layout with USB at the bottom, then complete the three touch targets. |
+| Touch misses buttons | Open **Settings → Calibrate touch**, then press **and release** at all three circles. Avoid holding a finger across targets. |
 | Scan starts without rows | Wait for completion; check the browser console and board diagnostics. Both Linux console and native bridge must be running. |
 | Port 8787 occupied | Do not kill arbitrary processes. Stop the existing Q-Marauder service/preview using [installation instructions](INSTALL.md). |
 | Alfa absent | A PC USB dongle does not automatically belong to the board. Follow [external-radio setup](USB-RADIO.md). |

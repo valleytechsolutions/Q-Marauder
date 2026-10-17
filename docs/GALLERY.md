@@ -35,6 +35,16 @@ device settings. Theme preferences are shared with the portrait TFT.
 
 ## Portrait touchscreen
 
+### BWM startup
+
+<img src="images/tft/bwm-boot.png" width="256" alt="Portrait BWM startup logo and red loading indicator rendered from firmware">
+
+The logo stays visible while a red activity bar moves. Startup opens the menu
+without orientation or calibration taps; both adjustments remain in Settings.
+This is a single rendered frame of the MCU loading screen, not a photograph.
+
+### Menus and themes
+
 These are **320 × 480 software renders of the current firmware drawing code**, not
 photographs of the physical panel. They use the same Adafruit GFX primitives, font,
 menus, colors and encoded artwork as the sketch. No scan observations are fabricated:

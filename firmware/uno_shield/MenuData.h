@@ -153,6 +153,7 @@ const MenuEntry menuEntries[] = {
   {12,"Themes",14,0},
   {12,"Calibrate touch",-1,6},
   {12,"BLE adapter",17,0},
+  {12,"Screen orientation",-1,60},
   {13,"Back",0,0},
   {13,"Packet detector",-1,44},
   {13,"Flock Wi-Fi",-1,39},
@@ -201,4 +202,4 @@ const MenuEntry menuEntries[] = {
   {18,"Saved Linux reports",-1,58},
   {18,"Port inventory",-1,53},
 };
-constexpr int MENU_ENTRY_COUNT = 197;
+constexpr int MENU_ENTRY_COUNT = 198;
